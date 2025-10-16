@@ -17,7 +17,7 @@ NC := \033[0m # No Color
 help:
 	@echo "${BLUE}Catalyst Platform - Available Commands${NC}"
 	@echo ""
-	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/## //' | column -t -s ':'
+	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/## /  /'
 	@echo ""
 
 ## setup: Initial setup - creates .env file from config.yaml
