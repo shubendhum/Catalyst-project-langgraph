@@ -46,6 +46,7 @@ class TaskExecutor:
             # Phase 3: Coding (with retry loop)
             max_retries = 2
             code_result = None
+            test_result = None
             test_passed = False
             
             for attempt in range(max_retries):
