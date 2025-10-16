@@ -1,4 +1,4 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
