@@ -65,6 +65,9 @@ const Dashboard = () => {
             <DialogContent data-testid="create-project-dialog" className="glass-strong" style={{ maxWidth: '500px', padding: '32px' }}>
               <DialogHeader>
                 <DialogTitle style={{ fontSize: '24px', marginBottom: '24px' }}>Create New Project</DialogTitle>
+                <p style={{ fontSize: '14px', color: '#a0aec0', marginTop: '8px' }}>
+                  Start a new AI-powered development project
+                </p>
               </DialogHeader>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>
