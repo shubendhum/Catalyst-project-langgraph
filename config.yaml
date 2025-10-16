@@ -1,0 +1,139 @@
+# Catalyst Platform Configuration
+# This file contains all configurable environment variables
+# Copy this to .env file or set as environment variables
+
+# ======================
+# Database Configuration
+# ======================
+database:
+  # MongoDB root credentials
+  root_username: admin
+  root_password: catalyst_admin_pass
+  
+  # Database name
+  name: catalyst_db
+  
+  # MongoDB port (default: 27017)
+  port: 27017
+  
+  # Connection URL (auto-generated in docker-compose)
+  # Format: mongodb://username:password@host:port
+  url: mongodb://localhost:27017
+
+# ======================
+# Backend Configuration
+# ======================
+backend:
+  # Backend API port
+  port: 8001
+  
+  # CORS origins (comma-separated)
+  # Use '*' for development, specific domains for production
+  cors_origins: "*"
+  
+  # Log level (DEBUG, INFO, WARNING, ERROR)
+  log_level: INFO
+
+# ======================
+# Frontend Configuration
+# ======================
+frontend:
+  # Frontend port
+  port: 3000
+  
+  # Backend API URL (used by frontend to connect to backend)
+  # For local: http://localhost:8001
+  # For production: https://your-domain.com
+  backend_url: http://localhost:8001
+  
+  # Enable visual edits (development only)
+  enable_visual_edits: true
+  
+  # Enable health check
+  enable_health_check: false
+
+# ======================
+# LLM Configuration
+# ======================
+llm:
+  # Emergent Universal LLM Key (supports OpenAI, Anthropic, Google)
+  # Get your key from: https://emergent.sh/profile/universal-key
+  emergent_llm_key: "YOUR_EMERGENT_LLM_KEY_HERE"
+  
+  # Optional: Override with specific provider keys
+  # openai_api_key: "YOUR_OPENAI_KEY"
+  # anthropic_api_key: "YOUR_ANTHROPIC_KEY"
+  # google_api_key: "YOUR_GOOGLE_KEY"
+  
+  # Default model settings
+  default_provider: anthropic
+  default_model: claude-3-7-sonnet-20250219
+
+# ======================
+# Explorer Agent Configuration
+# ======================
+explorer:
+  # GitHub integration (optional)
+  github_token: "YOUR_GITHUB_TOKEN"
+  
+  # Jira integration (optional)
+  jira_url: "https://your-company.atlassian.net"
+  jira_username: "your-email@company.com"
+  jira_api_token: "YOUR_JIRA_TOKEN"
+  
+  # ServiceNow integration (optional)
+  servicenow_url: "https://your-instance.service-now.com"
+  servicenow_username: "admin"
+  servicenow_password: "YOUR_SERVICENOW_PASSWORD"
+
+# ======================
+# Deployment Configuration
+# ======================
+deployment:
+  # Environment (development, staging, production)
+  environment: development
+  
+  # Enable mock deployment (true for testing)
+  mock_deployment: true
+  
+  # Deployment provider (vercel, netlify, custom)
+  provider: custom
+
+# ======================
+# Security Configuration
+# ======================
+security:
+  # Enable audit logging
+  enable_audit_logs: true
+  
+  # Enable PII redaction in logs
+  enable_pii_redaction: true
+  
+  # Session timeout (minutes)
+  session_timeout: 60
+
+# ======================
+# Performance Configuration
+# ======================
+performance:
+  # Max concurrent agent executions
+  max_concurrent_tasks: 5
+  
+  # Agent timeout (seconds)
+  agent_timeout: 300
+  
+  # WebSocket ping interval (seconds)
+  websocket_ping_interval: 30
+
+# ======================
+# Monitoring Configuration
+# ======================
+monitoring:
+  # Enable metrics collection
+  enable_metrics: true
+  
+  # Enable performance monitoring
+  enable_performance_monitoring: false
+  
+  # Sentry DSN (optional)
+  sentry_dsn: ""
