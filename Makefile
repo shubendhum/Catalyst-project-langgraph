@@ -20,18 +20,29 @@ help:
 	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/## /  /'
 	@echo ""
 
-## setup: Initial setup - creates .env file from config.yaml
+## setup: Initial setup - creates .env files from config.yaml
 setup:
 	@echo "${BLUE}Setting up Catalyst platform...${NC}"
-	@if [ ! -f .env ]; then \
-		echo "${YELLOW}Creating .env file from config.yaml...${NC}"; \
-		python3 scripts/generate_env.py; \
-		echo "${GREEN}✓ .env file created${NC}"; \
-		echo "${YELLOW}⚠ Please edit .env and add your EMERGENT_LLM_KEY${NC}"; \
-	else \
-		echo "${GREEN}✓ .env file already exists${NC}"; \
+	@if [ ! -f config.yaml ]; then \
+		echo "${RED}✗ config.yaml not found${NC}"; \
+		echo "${YELLOW}Creating config.yaml from template...${NC}"; \
+		cp config.yaml.example config.yaml 2>/dev/null || echo "Please create config.yaml manually"; \
+		exit 1; \
 	fi
+	@echo "${YELLOW}Generating environment files...${NC}"
+	@python3 scripts/generate_env.py
+	@echo ""
 	@echo "${GREEN}✓ Setup complete!${NC}"
+	@echo ""
+	@echo "${YELLOW}⚠ IMPORTANT: Update these files before starting:${NC}"
+	@echo "  1. ${BLUE}.env${NC} - Root configuration for docker-compose"
+	@echo "  2. ${BLUE}backend/.env${NC} - Backend API configuration"
+	@echo "  3. ${BLUE}frontend/.env${NC} - Frontend configuration"
+	@echo ""
+	@echo "${YELLOW}Required changes:${NC}"
+	@echo "  - Add your ${BLUE}EMERGENT_LLM_KEY${NC} in all .env files"
+	@echo "  - Change ${BLUE}MONGO_ROOT_PASSWORD${NC} for production"
+	@echo ""
 
 ## env: Show current environment variables
 env:
