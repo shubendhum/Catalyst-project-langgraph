@@ -480,6 +480,380 @@ async def execute_task(task_id: str, prompt: str, project_id: str):
             {"$set": {"status": "failed"}}
         )
 
+
+
+# ============================================
+# Phase 4: Intelligence & Optimization APIs
+# ============================================
+
+# Initialize Phase 4 services
+context_manager = get_context_manager()
+cost_optimizer = get_cost_optimizer(db)
+learning_service = get_learning_service(db)
+workspace_service = get_workspace_service(db)
+analytics_service = get_analytics_service(db)
+
+
+# Context Management Endpoints
+@api_router.post("/context/check")
+async def check_context_limit(messages: List[Dict], model: str = "claude-3-7-sonnet-20250219"):
+    """Check context usage for conversation"""
+    try:
+        cm = get_context_manager(model)
+        total_tokens = cm.count_messages_tokens(messages)
+        status = cm.check_limit(total_tokens)
+        
+        return {
+            "success": True,
+            **status,
+            "formatted_status": cm.format_context_status(status)
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.post("/context/truncate")
+async def truncate_context(
+    messages: List[Dict],
+    model: str = "claude-3-7-sonnet-20250219",
+    strategy: str = "sliding_window"
+):
+    """Truncate messages to fit within limits"""
+    try:
+        cm = get_context_manager(model)
+        truncated, metadata = cm.truncate_messages(messages, strategy=strategy)
+        
+        return {
+            "success": True,
+            "messages": truncated,
+            "metadata": metadata
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# Cost Optimizer Endpoints
+@api_router.post("/optimizer/select-model")
+async def select_optimal_model(
+    task_description: str,
+    complexity: Optional[float] = None,
+    current_model: str = "claude-3-7-sonnet-20250219"
+):
+    """Get optimal model recommendation for task"""
+    try:
+        recommendation = cost_optimizer.select_optimal_model(
+            task_description, complexity or 0.7, current_model=current_model
+        )
+        return {"success": True, **recommendation}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/optimizer/cache-stats")
+async def get_cache_stats():
+    """Get cache statistics"""
+    try:
+        stats = cost_optimizer.get_cache_stats()
+        return {"success": True, **stats}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/optimizer/budget/{project_id}")
+async def get_project_budget(project_id: str):
+    """Get budget status for project"""
+    try:
+        status = await cost_optimizer.get_project_budget_status(project_id)
+        return {"success": True, **status}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.post("/optimizer/budget/{project_id}")
+async def set_project_budget(
+    project_id: str,
+    budget_limit: float,
+    alert_threshold: float = 0.75
+):
+    """Set budget for project"""
+    try:
+        result = await cost_optimizer.set_project_budget(
+            project_id, budget_limit, alert_threshold
+        )
+        return result
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/optimizer/analytics")
+async def get_cost_analytics(
+    project_id: Optional[str] = None,
+    timeframe_days: int = 30
+):
+    """Get cost analytics"""
+    try:
+        analytics = await cost_optimizer.get_cost_analytics(project_id, timeframe_days)
+        return {"success": True, **analytics}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# Learning Service Endpoints
+@api_router.post("/learning/learn")
+async def learn_from_project(
+    project_id: str,
+    task_description: str,
+    tech_stack: List[str],
+    success: bool,
+    metrics: Dict
+):
+    """Extract learnings from project"""
+    try:
+        result = await learning_service.learn_from_project(
+            project_id, task_description, tech_stack, success, metrics
+        )
+        return {"success": True, **result}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.post("/learning/similar")
+async def find_similar_projects(
+    task_description: str,
+    tech_stack: Optional[List[str]] = None,
+    limit: int = 5
+):
+    """Find similar past projects"""
+    try:
+        similar = await learning_service.find_similar_projects(
+            task_description, tech_stack, limit
+        )
+        return {"success": True, "similar_projects": similar}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.post("/learning/predict")
+async def predict_success(task_description: str, tech_stack: List[str]):
+    """Predict success probability"""
+    try:
+        prediction = await learning_service.predict_success_probability(
+            task_description, tech_stack
+        )
+        return {"success": True, **prediction}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.post("/learning/suggest/{project_id}")
+async def suggest_improvements(project_id: str, current_metrics: Dict):
+    """Get improvement suggestions"""
+    try:
+        suggestions = await learning_service.suggest_improvements(
+            project_id, current_metrics
+        )
+        return {"success": True, "suggestions": suggestions}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/learning/stats")
+async def get_learning_stats():
+    """Get learning system statistics"""
+    try:
+        stats = await learning_service.get_learning_stats()
+        return {"success": True, **stats}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# Workspace Endpoints
+@api_router.post("/workspaces")
+async def create_workspace(
+    name: str,
+    owner_id: str,
+    owner_email: str,
+    settings: Optional[Dict] = None
+):
+    """Create a new workspace"""
+    try:
+        result = await workspace_service.create_workspace(
+            name, owner_id, owner_email, settings
+        )
+        return result
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/workspaces/{workspace_id}")
+async def get_workspace(workspace_id: str):
+    """Get workspace details"""
+    try:
+        workspace = await workspace_service.get_workspace(workspace_id)
+        if workspace:
+            return {"success": True, "workspace": workspace}
+        return {"success": False, "error": "Workspace not found"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/workspaces/user/{user_id}")
+async def list_user_workspaces(user_id: str):
+    """List user's workspaces"""
+    try:
+        workspaces = await workspace_service.list_user_workspaces(user_id)
+        return {"success": True, "workspaces": workspaces}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.post("/workspaces/{workspace_id}/invite")
+async def invite_member(
+    workspace_id: str,
+    email: str,
+    role: str,
+    invited_by: str
+):
+    """Invite member to workspace"""
+    try:
+        result = await workspace_service.invite_member(
+            workspace_id, email, role, invited_by
+        )
+        return result
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.put("/workspaces/{workspace_id}/members/{user_id}/role")
+async def update_member_role(
+    workspace_id: str,
+    user_id: str,
+    new_role: str,
+    updated_by: str
+):
+    """Update member role"""
+    try:
+        result = await workspace_service.update_member_role(
+            workspace_id, user_id, new_role, updated_by
+        )
+        return result
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.delete("/workspaces/{workspace_id}/members/{user_id}")
+async def remove_member(
+    workspace_id: str,
+    user_id: str,
+    removed_by: str
+):
+    """Remove member from workspace"""
+    try:
+        result = await workspace_service.remove_member(
+            workspace_id, user_id, removed_by
+        )
+        return result
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/workspaces/{workspace_id}/analytics")
+async def get_workspace_analytics(workspace_id: str):
+    """Get workspace analytics"""
+    try:
+        analytics = await workspace_service.get_workspace_analytics(workspace_id)
+        return {"success": True, **analytics}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# Analytics Endpoints
+@api_router.post("/analytics/track")
+async def track_metric(
+    metric_name: str,
+    value: float,
+    unit: str,
+    tags: Optional[Dict] = None
+):
+    """Track a metric"""
+    try:
+        await analytics_service.track_metric(metric_name, value, unit, tags)
+        return {"success": True, "message": "Metric tracked"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/analytics/performance")
+async def get_performance_dashboard(
+    user_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    timeframe_days: int = 30
+):
+    """Get performance dashboard"""
+    try:
+        data = await analytics_service.get_performance_dashboard(
+            user_id, project_id, timeframe_days
+        )
+        return {"success": True, **data}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/analytics/cost")
+async def get_cost_dashboard(
+    user_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    timeframe_days: int = 30
+):
+    """Get cost dashboard"""
+    try:
+        data = await analytics_service.get_cost_dashboard(
+            user_id, project_id, timeframe_days
+        )
+        return {"success": True, **data}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/analytics/quality")
+async def get_quality_dashboard(
+    user_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    timeframe_days: int = 30
+):
+    """Get quality dashboard"""
+    try:
+        data = await analytics_service.get_quality_dashboard(
+            user_id, project_id, timeframe_days
+        )
+        return {"success": True, **data}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/analytics/insights/{user_id}")
+async def get_insights(user_id: str, timeframe_days: int = 30):
+    """Get AI-powered insights"""
+    try:
+        insights = await analytics_service.generate_insights(user_id, timeframe_days)
+        return {"success": True, "insights": insights}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/analytics/export")
+async def export_analytics(
+    format: str = "json",
+    user_id: Optional[str] = None,
+    timeframe_days: int = 30
+):
+    """Export analytics data"""
+    try:
+        result = await analytics_service.export_analytics(format, user_id, timeframe_days)
+        return result
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 app.include_router(api_router)
 
 app.add_middleware(
