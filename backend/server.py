@@ -769,6 +769,7 @@ async def get_workspace_analytics(workspace_id: str):
     """Get workspace analytics"""
     try:
         analytics = await workspace_service.get_workspace_analytics(workspace_id)
+        # Analytics already returns clean data
         return {"success": True, **analytics}
     except Exception as e:
         return {"success": False, "error": str(e)}
