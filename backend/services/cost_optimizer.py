@@ -54,8 +54,26 @@ class CostOptimizer:
     def __init__(self, db=None):
         self.db = db
         
-        # In-memory cache with TTL (time-to-live)
-        # Cache stores responses for similar prompts
+        # Try to connect to Redis first
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        self.redis_client = None
+        
+        if REDIS_AVAILABLE:
+            try:
+                self.redis_client = redis.from_url(
+                    redis_url,
+                    decode_responses=True,
+                    socket_timeout=5,
+                    socket_connect_timeout=5
+                )
+                # Test connection
+                self.redis_client.ping()
+                logger.info(f"✅ Connected to Redis at {redis_url}")
+            except Exception as e:
+                logger.warning(f"Failed to connect to Redis: {e}. Using in-memory cache.")
+                self.redis_client = None
+        
+        # In-memory cache as fallback
         self.response_cache = TTLCache(maxsize=1000, ttl=3600)  # 1 hour TTL
         
         # Semantic cache for embeddings (if we had vector DB)
