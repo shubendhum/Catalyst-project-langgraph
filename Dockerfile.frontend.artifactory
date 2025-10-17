@@ -28,20 +28,37 @@ RUN yarn config set registry https://artifactory.devtools.syd.c1.macquarie.com:9
     npm config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
     yarn config set strict-ssl false && \
     npm config set strict-ssl false && \
+    echo "Registry configured:" && \
+    yarn config get registry && \
     yarn config list
+
+# Set environment variable to bypass SSL (additional safety)
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
 # Copy package files from frontend directory
 COPY package.json yarn.lock ./
 
+# Verify files are present
+RUN echo "Checking package files:" && \
+    ls -la package.json yarn.lock && \
+    echo "Package.json content preview:" && \
+    head -20 package.json
+
 # Install dependencies with increased timeout and retry logic
 # Now using Artifactory registry configured above
 # SSL verification disabled via config (strict-ssl false)
-RUN yarn install --frozen-lockfile \
+RUN echo "Starting yarn install attempt 1..." && \
+    yarn install --frozen-lockfile \
     --network-timeout 600000 \
-    --network-concurrency 1 || \
-    (echo "Retrying yarn install..." && \
+    --network-concurrency 1 \
+    --verbose 2>&1 | tee /tmp/yarn-install.log || \
+    (echo "First attempt failed, cleaning cache and retrying..." && \
      yarn cache clean && \
-     yarn install --network-timeout 600000 --network-concurrency 1)
+     echo "Starting yarn install attempt 2..." && \
+     yarn install --frozen-lockfile \
+     --network-timeout 600000 \
+     --network-concurrency 1 \
+     --verbose)
 
 # Copy source code
 COPY . ./
