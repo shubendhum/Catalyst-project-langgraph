@@ -8,6 +8,40 @@ from typing import Dict, Optional
 from datetime import datetime, timezone
 from langchain_core.messages import HumanMessage
 import json
+import sys
+from pathlib import Path
+
+# Import EC2 and EKS methods
+sys.path.append(str(Path(__file__).parent))
+from deployer_ec2_methods import (
+    generate_ec2_user_data,
+    generate_ec2_terraform,
+    generate_terraform_variables,
+    generate_terraform_outputs,
+    generate_ec2_cloudformation,
+    generate_ec2_deploy_script,
+    generate_ec2_env,
+    generate_ec2_readme
+)
+from deployer_eks_methods import (
+    generate_k8s_namespace,
+    generate_k8s_backend_deployment,
+    generate_k8s_frontend_deployment,
+    generate_k8s_mongodb_statefulset,
+    generate_k8s_services,
+    generate_k8s_ingress,
+    generate_k8s_configmap,
+    generate_k8s_secrets,
+    generate_helm_chart,
+    generate_helm_values,
+    generate_eks_terraform,
+    generate_eks_terraform_variables,
+    generate_eks_terraform_outputs,
+    generate_eks_deploy_script,
+    generate_eks_cluster_setup_script,
+    generate_eks_github_actions,
+    generate_eks_readme
+)
 
 logger = logging.getLogger(__name__)
 
