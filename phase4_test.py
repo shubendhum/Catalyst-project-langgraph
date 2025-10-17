@@ -73,11 +73,8 @@ class Phase4Tester:
         success, response = self.test_endpoint(
             "Context Check (Simple)",
             "POST",
-            "context/check",
-            data={
-                "messages": [{"role": "user", "content": "Hello"}], 
-                "model": "claude-3-7-sonnet-20250219"
-            }
+            "context/check?model=claude-3-7-sonnet-20250219",
+            data=[{"role": "user", "content": "Hello"}]
         )
         if success and response.get("success"):
             print(f"   Status: {response.get('status')}")
