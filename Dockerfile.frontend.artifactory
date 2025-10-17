@@ -70,8 +70,24 @@ ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
 # Ensure node_modules/.bin is in PATH for build tools like craco
 ENV PATH=/app/node_modules/.bin:$PATH
 
-# Build application
-RUN yarn build
+# Debug: Check if craco exists and PATH
+RUN echo "=== Debugging build environment ===" && \
+    echo "Current PATH: $PATH" && \
+    echo "Checking for craco:" && \
+    ls -la node_modules/.bin/craco || echo "craco not found in node_modules/.bin" && \
+    ls -la node_modules/@craco/craco/dist/bin/craco.js || echo "craco.js not found" && \
+    which craco || echo "craco not in PATH" && \
+    echo "node_modules/.bin contents:" && \
+    ls -la node_modules/.bin/ | head -20
+
+# Build application - try multiple methods
+RUN echo "=== Attempting build ===" && \
+    (yarn build || \
+    echo "Method 1 failed, trying with npx..." && \
+    npx craco build || \
+    echo "Method 2 failed, trying with full path..." && \
+    node node_modules/@craco/craco/dist/bin/craco.js build || \
+    echo "All methods failed!")
 
 # Stage 2: Runtime stage with Nginx
 FROM artifactory.devtools.syd.c1.macquarie.com:9996/nginx:alpine
