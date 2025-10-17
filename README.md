@@ -216,8 +216,10 @@ aws ecs register-task-definition --cli-input-json file://aws/ecs-task-definition
 - **[API Documentation](http://localhost:8001/docs)** - Interactive API docs (when running)
 
 ### Deployment Documentation
-- **[ARTIFACTORY_QUICK_START.md](ARTIFACTORY_QUICK_START.md)** - ✅ **NEW** - Artifactory build quick reference
-- **[ARTIFACTORY_BUILD_FIX.md](ARTIFACTORY_BUILD_FIX.md)** - ✅ **NEW** - Detailed build context fix
+- **[YARN_INSTALL_FIX_APPLIED.md](YARN_INSTALL_FIX_APPLIED.md)** - ✅ **LATEST** - Yarn install failure fix
+- **[YARN_INSTALL_TROUBLESHOOTING.md](YARN_INSTALL_TROUBLESHOOTING.md)** - Complete yarn troubleshooting
+- **[ARTIFACTORY_QUICK_START.md](ARTIFACTORY_QUICK_START.md)** - Artifactory build quick reference
+- **[ARTIFACTORY_BUILD_FIX.md](ARTIFACTORY_BUILD_FIX.md)** - Detailed build context fix
 - **[ARTIFACTORY_SETUP.md](ARTIFACTORY_SETUP.md)** - Artifactory mirror configuration
 - **[DOCKER_MAKEFILE_GUIDE.md](DOCKER_MAKEFILE_GUIDE.md)** - Docker + Makefile commands
 - **[MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md)** - Make command reference
