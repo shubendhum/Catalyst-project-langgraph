@@ -661,6 +661,725 @@ class CatalystAPITester:
             print(f"❌ Error checking generated files: {str(e)}")
             return False
 
+    # ==================== PHASE 4 MVP FEATURES TESTS ====================
+    
+    def test_context_check_10_messages(self):
+        """Test context check with 10 messages (should be ok)"""
+        messages = [
+            {"role": "user", "content": f"Test message {i}"} for i in range(10)
+        ]
+        
+        success, response = self.run_test(
+            "Context Check (10 messages)",
+            "POST",
+            "context/check",
+            200,
+            data={"messages": messages, "model": "claude-3-7-sonnet-20250219"}
+        )
+        
+        if success and response.get("success"):
+            status = response.get("status", "unknown")
+            print(f"   Status: {status}")
+            print(f"   Current tokens: {response.get('current_tokens', 0)}")
+            print(f"   Usage: {response.get('usage_percent', 0)*100:.1f}%")
+            return status == "ok"
+        return False
+
+    def test_context_check_large_tokens(self):
+        """Test context check with simulated 150K tokens (should be warning)"""
+        # Create large messages to simulate 150K tokens
+        large_messages = [
+            {"role": "user", "content": "A" * 5000} for _ in range(30)  # ~150K tokens
+        ]
+        
+        success, response = self.run_test(
+            "Context Check (150K tokens)",
+            "POST",
+            "context/check",
+            200,
+            data={"messages": large_messages, "model": "claude-3-7-sonnet-20250219"}
+        )
+        
+        if success and response.get("success"):
+            status = response.get("status", "unknown")
+            print(f"   Status: {status}")
+            print(f"   Current tokens: {response.get('current_tokens', 0)}")
+            print(f"   Usage: {response.get('usage_percent', 0)*100:.1f}%")
+            return status in ["warning", "critical"]
+        return False
+
+    def test_context_check_critical_tokens(self):
+        """Test context check with simulated 180K tokens (should be critical)"""
+        # Create very large messages to simulate 180K tokens
+        critical_messages = [
+            {"role": "user", "content": "B" * 6000} for _ in range(30)  # ~180K tokens
+        ]
+        
+        success, response = self.run_test(
+            "Context Check (180K tokens)",
+            "POST",
+            "context/check",
+            200,
+            data={"messages": critical_messages, "model": "claude-3-7-sonnet-20250219"}
+        )
+        
+        if success and response.get("success"):
+            status = response.get("status", "unknown")
+            print(f"   Status: {status}")
+            print(f"   Current tokens: {response.get('current_tokens', 0)}")
+            print(f"   Usage: {response.get('usage_percent', 0)*100:.1f}%")
+            return status == "critical"
+        return False
+
+    def test_context_truncate_sliding_window(self):
+        """Test context truncation with sliding window strategy"""
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant"},
+            {"role": "user", "content": f"Message {i}: " + "X" * 100} for i in range(100)
+        ]
+        
+        success, response = self.run_test(
+            "Context Truncate (Sliding Window)",
+            "POST",
+            "context/truncate",
+            200,
+            data={
+                "messages": messages,
+                "model": "claude-3-7-sonnet-20250219",
+                "strategy": "sliding_window"
+            }
+        )
+        
+        if success and response.get("success"):
+            truncated_messages = response.get("messages", [])
+            metadata = response.get("metadata", {})
+            print(f"   Original: {metadata.get('original_count', 0)} messages")
+            print(f"   Truncated: {metadata.get('truncated_count', 0)} messages")
+            print(f"   Removed: {metadata.get('messages_removed', 0)} messages")
+            print(f"   Strategy: {metadata.get('strategy', 'unknown')}")
+            
+            # Check system messages are preserved
+            system_msgs = [msg for msg in truncated_messages if msg.get("role") == "system"]
+            return len(system_msgs) > 0 and len(truncated_messages) < len(messages)
+        return False
+
+    def test_context_truncate_important_first(self):
+        """Test context truncation with important_first strategy"""
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant"},
+            {"role": "user", "content": f"Message {i}: " + "Y" * 100} for i in range(100)
+        ]
+        
+        success, response = self.run_test(
+            "Context Truncate (Important First)",
+            "POST",
+            "context/truncate",
+            200,
+            data={
+                "messages": messages,
+                "model": "claude-3-7-sonnet-20250219",
+                "strategy": "important_first"
+            }
+        )
+        
+        if success and response.get("success"):
+            truncated_messages = response.get("messages", [])
+            metadata = response.get("metadata", {})
+            print(f"   Original: {metadata.get('original_count', 0)} messages")
+            print(f"   Truncated: {metadata.get('truncated_count', 0)} messages")
+            print(f"   Strategy: {metadata.get('strategy', 'unknown')}")
+            
+            # Check system messages are preserved
+            system_msgs = [msg for msg in truncated_messages if msg.get("role") == "system"]
+            return len(system_msgs) > 0 and metadata.get("strategy") == "important_first"
+        return False
+
+    def test_cost_optimizer_simple_task(self):
+        """Test cost optimizer for simple task (should recommend cheaper model)"""
+        success, response = self.run_test(
+            "Cost Optimizer (Simple Task)",
+            "POST",
+            "optimizer/select-model",
+            200,
+            data={
+                "task_description": "Fix a simple typo in documentation",
+                "complexity": 0.3,
+                "current_model": "claude-3-7-sonnet-20250219"
+            }
+        )
+        
+        if success and response.get("success"):
+            recommended = response.get("recommended_model", "")
+            current = response.get("current_model", "")
+            savings = response.get("estimated_savings_percent", 0)
+            print(f"   Recommended: {recommended}")
+            print(f"   Current: {current}")
+            print(f"   Estimated savings: {savings:.1f}%")
+            return recommended != current or savings >= 0
+        return False
+
+    def test_cost_optimizer_complex_task(self):
+        """Test cost optimizer for complex task (should recommend capable model)"""
+        success, response = self.run_test(
+            "Cost Optimizer (Complex Task)",
+            "POST",
+            "optimizer/select-model",
+            200,
+            data={
+                "task_description": "Design a complex distributed microservices architecture with security",
+                "complexity": 0.9,
+                "current_model": "gpt-3.5-turbo"
+            }
+        )
+        
+        if success and response.get("success"):
+            recommended = response.get("recommended_model", "")
+            reason = response.get("reason", "")
+            capability = response.get("complexity_match", 0)
+            print(f"   Recommended: {recommended}")
+            print(f"   Reason: {reason}")
+            print(f"   Capability match: {capability}")
+            return capability >= 0.9
+        return False
+
+    def test_cost_optimizer_cache_stats(self):
+        """Test cost optimizer cache statistics"""
+        success, response = self.run_test(
+            "Cost Optimizer Cache Stats",
+            "GET",
+            "optimizer/cache-stats",
+            200
+        )
+        
+        if success and response.get("success"):
+            cache_size = response.get("cache_size", 0)
+            maxsize = response.get("cache_maxsize", 0)
+            ttl = response.get("cache_ttl_seconds", 0)
+            savings = response.get("estimated_savings", 0)
+            print(f"   Cache size: {cache_size}/{maxsize}")
+            print(f"   TTL: {ttl} seconds")
+            print(f"   Estimated savings: ${savings:.4f}")
+            return True
+        return False
+
+    def test_cost_optimizer_set_budget(self):
+        """Test setting project budget"""
+        if not self.project_id:
+            print("❌ Skipping - No project ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Set Project Budget",
+            "POST",
+            f"optimizer/budget/{self.project_id}",
+            200,
+            data={
+                "budget_limit": 100.0,
+                "alert_threshold": 0.75
+            }
+        )
+        
+        if success and response.get("success"):
+            limit = response.get("limit", 0)
+            message = response.get("message", "")
+            print(f"   Budget limit: ${limit}")
+            print(f"   Message: {message}")
+            return limit == 100.0
+        return False
+
+    def test_cost_optimizer_get_budget(self):
+        """Test getting project budget status"""
+        if not self.project_id:
+            print("❌ Skipping - No project ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Get Project Budget",
+            "GET",
+            f"optimizer/budget/{self.project_id}",
+            200
+        )
+        
+        if success and response.get("success"):
+            budget_set = response.get("budget_set", False)
+            if budget_set:
+                limit = response.get("limit", 0)
+                spent = response.get("spent", 0)
+                remaining = response.get("remaining", 0)
+                usage_percent = response.get("usage_percent", 0)
+                print(f"   Budget: ${limit}")
+                print(f"   Spent: ${spent}")
+                print(f"   Remaining: ${remaining}")
+                print(f"   Usage: {usage_percent:.1f}%")
+            return budget_set
+        return False
+
+    def test_cost_optimizer_analytics(self):
+        """Test cost analytics"""
+        success, response = self.run_test(
+            "Cost Analytics",
+            "GET",
+            "optimizer/analytics?timeframe_days=30",
+            200
+        )
+        
+        if success and response.get("success"):
+            total_cost = response.get("total_cost", 0)
+            total_tokens = response.get("total_tokens", 0)
+            requests = response.get("requests", 0)
+            daily_avg = response.get("daily_average", 0)
+            print(f"   Total cost: ${total_cost:.4f}")
+            print(f"   Total tokens: {total_tokens}")
+            print(f"   Requests: {requests}")
+            print(f"   Daily average: ${daily_avg:.4f}")
+            return True
+        return False
+
+    def test_learning_service_learn_auth_project(self):
+        """Test learning from successful auth project"""
+        success, response = self.run_test(
+            "Learning Service (Auth Project)",
+            "POST",
+            "learning/learn",
+            200,
+            data={
+                "project_id": f"auth_project_{int(time.time())}",
+                "task_description": "Build authentication system with JWT and user management",
+                "tech_stack": ["React", "FastAPI", "JWT", "MongoDB"],
+                "success": True,
+                "metrics": {
+                    "completion_time_seconds": 1800,
+                    "cost_usd": 2.50,
+                    "code_quality_score": 85,
+                    "iterations_needed": 2
+                }
+            }
+        )
+        
+        if success and response.get("success"):
+            learned = response.get("learned", False)
+            patterns = response.get("patterns_extracted", 0)
+            entry_id = response.get("entry_id", "")
+            print(f"   Learned: {learned}")
+            print(f"   Patterns extracted: {patterns}")
+            print(f"   Entry ID: {entry_id}")
+            return learned and patterns > 0
+        return False
+
+    def test_learning_service_learn_crud_project(self):
+        """Test learning from CRUD API project"""
+        success, response = self.run_test(
+            "Learning Service (CRUD Project)",
+            "POST",
+            "learning/learn",
+            200,
+            data={
+                "project_id": f"crud_project_{int(time.time())}",
+                "task_description": "Create REST API with CRUD operations for user management",
+                "tech_stack": ["FastAPI", "SQLAlchemy", "PostgreSQL"],
+                "success": True,
+                "metrics": {
+                    "completion_time_seconds": 1200,
+                    "cost_usd": 1.75,
+                    "code_quality_score": 90,
+                    "iterations_needed": 1
+                }
+            }
+        )
+        
+        if success and response.get("success"):
+            learned = response.get("learned", False)
+            patterns = response.get("patterns_extracted", 0)
+            print(f"   Learned: {learned}")
+            print(f"   Patterns extracted: {patterns}")
+            return learned
+        return False
+
+    def test_learning_service_find_similar(self):
+        """Test finding similar projects for authentication"""
+        success, response = self.run_test(
+            "Learning Service (Find Similar)",
+            "POST",
+            "learning/similar",
+            200,
+            data={
+                "task_description": "authentication system with login and signup",
+                "tech_stack": ["React", "FastAPI"],
+                "limit": 5
+            }
+        )
+        
+        if success and response.get("success"):
+            similar_projects = response.get("similar_projects", [])
+            print(f"   Found {len(similar_projects)} similar projects")
+            for i, project in enumerate(similar_projects[:3]):
+                similarity = project.get("similarity", 0)
+                success_status = project.get("success", False)
+                print(f"   Project {i+1}: {similarity:.3f} similarity, success: {success_status}")
+            return True
+        return False
+
+    def test_learning_service_predict_success(self):
+        """Test predicting success for new login system project"""
+        success, response = self.run_test(
+            "Learning Service (Predict Success)",
+            "POST",
+            "learning/predict",
+            200,
+            data={
+                "task_description": "login system with password reset functionality",
+                "tech_stack": ["React", "FastAPI", "JWT"]
+            }
+        )
+        
+        if success and response.get("success"):
+            probability = response.get("probability", 0)
+            confidence = response.get("confidence", "unknown")
+            similar_count = response.get("similar_projects", 0)
+            message = response.get("message", "")
+            print(f"   Success probability: {probability:.2f}")
+            print(f"   Confidence: {confidence}")
+            print(f"   Similar projects: {similar_count}")
+            print(f"   Message: {message}")
+            return 0 <= probability <= 1
+        return False
+
+    def test_learning_service_stats(self):
+        """Test getting learning service statistics"""
+        success, response = self.run_test(
+            "Learning Service Stats",
+            "GET",
+            "learning/stats",
+            200
+        )
+        
+        if success and response.get("success"):
+            patterns_memory = response.get("patterns_in_memory", 0)
+            patterns_db = response.get("patterns_in_db", 0)
+            total_projects = response.get("total_projects_learned", 0)
+            successful = response.get("successful_projects", 0)
+            success_rate = response.get("success_rate", 0)
+            print(f"   Patterns in memory: {patterns_memory}")
+            print(f"   Patterns in DB: {patterns_db}")
+            print(f"   Total projects: {total_projects}")
+            print(f"   Successful: {successful}")
+            print(f"   Success rate: {success_rate:.2f}")
+            return True
+        return False
+
+    def test_workspace_service_create(self):
+        """Test creating new workspace"""
+        workspace_name = f"Test Team {datetime.now().strftime('%H%M%S')}"
+        
+        success, response = self.run_test(
+            "Create Workspace",
+            "POST",
+            "workspaces",
+            200,
+            data={
+                "name": workspace_name,
+                "owner_id": f"user_{int(time.time())}",
+                "owner_email": "test@example.com",
+                "settings": {"require_code_review": True}
+            }
+        )
+        
+        if success and response.get("success"):
+            workspace_id = response.get("workspace_id", "")
+            name = response.get("name", "")
+            message = response.get("message", "")
+            print(f"   Workspace ID: {workspace_id}")
+            print(f"   Name: {name}")
+            print(f"   Message: {message}")
+            
+            # Store for later tests
+            self.workspace_id = workspace_id
+            return workspace_id != ""
+        return False
+
+    def test_workspace_service_get(self):
+        """Test getting workspace details"""
+        if not hasattr(self, 'workspace_id') or not self.workspace_id:
+            print("❌ Skipping - No workspace ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Get Workspace",
+            "GET",
+            f"workspaces/{self.workspace_id}",
+            200
+        )
+        
+        if success and response.get("success"):
+            workspace = response.get("workspace", {})
+            name = workspace.get("name", "")
+            members = workspace.get("members", [])
+            projects = workspace.get("projects", [])
+            print(f"   Name: {name}")
+            print(f"   Members: {len(members)}")
+            print(f"   Projects: {len(projects)}")
+            return workspace.get("id") == self.workspace_id
+        return False
+
+    def test_workspace_service_list_user(self):
+        """Test listing user workspaces"""
+        success, response = self.run_test(
+            "List User Workspaces",
+            "GET",
+            f"workspaces/user/user_{int(time.time())}",
+            200
+        )
+        
+        if success and response.get("success"):
+            workspaces = response.get("workspaces", [])
+            print(f"   Found {len(workspaces)} workspaces")
+            return True
+        return False
+
+    def test_workspace_service_invite_member(self):
+        """Test inviting member to workspace"""
+        if not hasattr(self, 'workspace_id') or not self.workspace_id:
+            print("❌ Skipping - No workspace ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Invite Workspace Member",
+            "POST",
+            f"workspaces/{self.workspace_id}/invite",
+            200,
+            data={
+                "email": "developer@example.com",
+                "role": "developer",
+                "invited_by": f"user_{int(time.time())}"
+            }
+        )
+        
+        if success and response.get("success"):
+            message = response.get("message", "")
+            role = response.get("role", "")
+            print(f"   Message: {message}")
+            print(f"   Role: {role}")
+            return role == "developer"
+        return False
+
+    def test_workspace_service_analytics(self):
+        """Test getting workspace analytics"""
+        if not hasattr(self, 'workspace_id') or not self.workspace_id:
+            print("❌ Skipping - No workspace ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Workspace Analytics",
+            "GET",
+            f"workspaces/{self.workspace_id}/analytics",
+            200
+        )
+        
+        if success and response.get("success"):
+            members = response.get("members", 0)
+            projects = response.get("projects", 0)
+            total_cost = response.get("total_cost", 0)
+            total_tokens = response.get("total_tokens", 0)
+            plan = response.get("plan", "")
+            print(f"   Members: {members}")
+            print(f"   Projects: {projects}")
+            print(f"   Total cost: ${total_cost:.4f}")
+            print(f"   Total tokens: {total_tokens}")
+            print(f"   Plan: {plan}")
+            return True
+        return False
+
+    def test_analytics_service_track_completion_time(self):
+        """Test tracking completion time metric"""
+        success, response = self.run_test(
+            "Track Completion Time Metric",
+            "POST",
+            "analytics/track",
+            200,
+            data={
+                "metric_name": "task.completion_time",
+                "value": 1800.0,
+                "unit": "seconds",
+                "tags": {
+                    "user_id": f"user_{int(time.time())}",
+                    "project_id": self.project_id or "test_project",
+                    "task_type": "build_app"
+                }
+            }
+        )
+        
+        if success and response.get("success"):
+            message = response.get("message", "")
+            print(f"   Message: {message}")
+            return "tracked" in message.lower()
+        return False
+
+    def test_analytics_service_track_token_usage(self):
+        """Test tracking token usage metric"""
+        success, response = self.run_test(
+            "Track Token Usage Metric",
+            "POST",
+            "analytics/track",
+            200,
+            data={
+                "metric_name": "token.usage",
+                "value": 15000.0,
+                "unit": "tokens",
+                "tags": {
+                    "model": "claude-3-7-sonnet-20250219",
+                    "user_id": f"user_{int(time.time())}"
+                }
+            }
+        )
+        
+        if success and response.get("success"):
+            message = response.get("message", "")
+            print(f"   Message: {message}")
+            return "tracked" in message.lower()
+        return False
+
+    def test_analytics_service_track_cost(self):
+        """Test tracking cost metric"""
+        success, response = self.run_test(
+            "Track Cost Metric",
+            "POST",
+            "analytics/track",
+            200,
+            data={
+                "metric_name": "token.cost",
+                "value": 2.50,
+                "unit": "usd",
+                "tags": {
+                    "model": "claude-3-7-sonnet-20250219",
+                    "project_id": self.project_id or "test_project"
+                }
+            }
+        )
+        
+        if success and response.get("success"):
+            message = response.get("message", "")
+            print(f"   Message: {message}")
+            return "tracked" in message.lower()
+        return False
+
+    def test_analytics_service_track_quality_score(self):
+        """Test tracking quality score metric"""
+        success, response = self.run_test(
+            "Track Quality Score Metric",
+            "POST",
+            "analytics/track",
+            200,
+            data={
+                "metric_name": "code.quality_score",
+                "value": 85.0,
+                "unit": "score",
+                "tags": {
+                    "project_id": self.project_id or "test_project",
+                    "language": "python"
+                }
+            }
+        )
+        
+        if success and response.get("success"):
+            message = response.get("message", "")
+            print(f"   Message: {message}")
+            return "tracked" in message.lower()
+        return False
+
+    def test_analytics_service_performance_dashboard(self):
+        """Test getting performance dashboard"""
+        success, response = self.run_test(
+            "Performance Dashboard",
+            "GET",
+            "analytics/performance?timeframe_days=30",
+            200
+        )
+        
+        if success and response.get("success"):
+            timeframe = response.get("timeframe_days", 0)
+            task_completion = response.get("task_completion", {})
+            success_rate = response.get("success_rate", 0)
+            agent_performance = response.get("agent_performance", {})
+            total_metrics = response.get("total_metrics", 0)
+            
+            print(f"   Timeframe: {timeframe} days")
+            print(f"   Avg completion: {task_completion.get('average_seconds', 0):.1f}s")
+            print(f"   Success rate: {success_rate:.2f}")
+            print(f"   Agent performance entries: {len(agent_performance)}")
+            print(f"   Total metrics: {total_metrics}")
+            return True
+        return False
+
+    def test_analytics_service_cost_dashboard(self):
+        """Test getting cost dashboard"""
+        success, response = self.run_test(
+            "Cost Dashboard",
+            "GET",
+            "analytics/cost?timeframe_days=30",
+            200
+        )
+        
+        if success and response.get("success"):
+            total_cost = response.get("total_cost", 0)
+            total_tokens = response.get("total_tokens", 0)
+            daily_average = response.get("daily_average", 0)
+            model_breakdown = response.get("model_breakdown", {})
+            avg_cost_per_token = response.get("average_cost_per_token", 0)
+            
+            print(f"   Total cost: ${total_cost:.4f}")
+            print(f"   Total tokens: {total_tokens}")
+            print(f"   Daily average: ${daily_average:.4f}")
+            print(f"   Models tracked: {len(model_breakdown)}")
+            print(f"   Avg cost/token: ${avg_cost_per_token:.6f}")
+            return True
+        return False
+
+    def test_analytics_service_quality_dashboard(self):
+        """Test getting quality dashboard"""
+        success, response = self.run_test(
+            "Quality Dashboard",
+            "GET",
+            "analytics/quality?timeframe_days=30",
+            200
+        )
+        
+        if success and response.get("success"):
+            avg_quality = response.get("average_quality_score", 0)
+            avg_coverage = response.get("average_test_coverage", 0)
+            quality_trend = response.get("quality_trend", [])
+            total_assessments = response.get("total_assessments", 0)
+            
+            print(f"   Avg quality score: {avg_quality:.1f}")
+            print(f"   Avg test coverage: {avg_coverage:.1f}%")
+            print(f"   Quality trend points: {len(quality_trend)}")
+            print(f"   Total assessments: {total_assessments}")
+            return True
+        return False
+
+    def test_analytics_service_insights(self):
+        """Test generating insights for test user"""
+        test_user_id = f"user_{int(time.time())}"
+        
+        success, response = self.run_test(
+            "Generate Insights",
+            "GET",
+            f"analytics/insights/{test_user_id}?timeframe_days=30",
+            200
+        )
+        
+        if success and response.get("success"):
+            insights = response.get("insights", [])
+            print(f"   Generated {len(insights)} insights")
+            
+            for i, insight in enumerate(insights[:3]):  # Show first 3
+                insight_type = insight.get("type", "unknown")
+                severity = insight.get("severity", "unknown")
+                title = insight.get("title", "")
+                print(f"   Insight {i+1}: {insight_type} ({severity}) - {title}")
+            
+            return True
+        return False
+
     # ==================== INDIVIDUAL AGENT TESTS ====================
     
     def test_agent_imports(self):
