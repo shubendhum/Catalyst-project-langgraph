@@ -26,8 +26,8 @@ services:
   # Backend API
   backend:
     build:
-      context: ./backend
-      dockerfile: ../Dockerfile.backend.artifactory
+      context: .
+      dockerfile: Dockerfile.backend.artifactory
     container_name: catalyst-backend
     restart: unless-stopped
     ports:
