@@ -63,12 +63,19 @@ class UnifiedLLMClient:
                 os.environ["AWS_SECRET_ACCESS_KEY"] = aws_config.get("secret_access_key", "")
                 os.environ["AWS_REGION"] = aws_config.get("region", "us-east-1")
             
-            self.client = ChatBedrock(
-                model_id=model or os.getenv("BEDROCK_MODEL_ID"),
-                region_name=aws_config.get("region") if aws_config else os.getenv("AWS_REGION", "us-east-1"),
-                credentials_profile_name=None,
-                model_kwargs={"temperature": 0.7, "max_tokens": 4096}
-            )
+            # Prepare ChatBedrock kwargs
+            bedrock_kwargs = {
+                "model_id": model or os.getenv("BEDROCK_MODEL_ID"),
+                "region_name": aws_config.get("region") if aws_config else os.getenv("AWS_REGION", "us-east-1"),
+                "credentials_profile_name": None,
+                "model_kwargs": {"temperature": 0.7, "max_tokens": 4096}
+            }
+            
+            # Add custom endpoint URL if provided (for VPC endpoints or org-specific URLs)
+            if aws_config and aws_config.get("endpoint_url"):
+                bedrock_kwargs["endpoint_url"] = aws_config.get("endpoint_url")
+            
+            self.client = ChatBedrock(**bedrock_kwargs)
         else:
             raise ValueError(f"Unsupported provider: {provider}")
     
