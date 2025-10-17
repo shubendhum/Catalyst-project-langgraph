@@ -29,11 +29,11 @@ COPY package.json yarn.lock* ./
 
 # Install dependencies with relaxed constraints
 # Option 1: Without frozen-lockfile (generates new lock if needed)
-RUN yarn install --network-timeout 600000 --network-concurrency 1 || \
+RUN yarn install --network-timeout 600000 --network-concurrency 1 --disable-ssl || \
     (echo "First install attempt failed, retrying..." && \
      rm -rf node_modules && \
      yarn cache clean && \
-     yarn install --network-timeout 600000 --network-concurrency 1)
+     yarn install --network-timeout 600000 --network-concurrency 1 --disable-ssl)
 
 # Copy source code
 COPY . ./
