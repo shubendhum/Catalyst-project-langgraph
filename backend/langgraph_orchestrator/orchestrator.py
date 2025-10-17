@@ -45,29 +45,6 @@ class LangGraphOrchestrator:
         # Build the agent graph
         self.graph = self._build_graph()
     
-    def _init_llm(self):
-        """Initialize LLM based on configured provider"""
-        provider = os.getenv("PRIMARY_LLM_PROVIDER", "anthropic")
-        
-        if provider == "anthropic":
-            return ChatAnthropic(
-                api_key=os.getenv("ANTHROPIC_API_KEY"),
-                model=os.getenv("ANTHROPIC_MODEL", "claude-3-7-sonnet-20250219"),
-                temperature=0.7,
-                max_tokens=4096
-            )
-        
-        elif provider == "bedrock":
-            return ChatBedrock(
-                model_id=os.getenv("BEDROCK_MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0"),
-                region_name=os.getenv("AWS_REGION", "us-east-1"),
-                credentials_profile_name=None,  # Uses AWS credentials from env
-                model_kwargs={"temperature": 0.7, "max_tokens": 4096}
-            )
-        
-        else:
-            raise ValueError(f"Unsupported LLM provider: {provider}")
-    
     def _build_graph(self) -> StateGraph:
         """Build the LangGraph workflow"""
         
