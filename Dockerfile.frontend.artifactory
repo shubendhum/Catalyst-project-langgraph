@@ -23,17 +23,17 @@ RUN apk add --no-cache \
     ca-certificates \
     && yarn --version
 
-# Configure yarn/npm to use Artifactory registry and disable SSL verification
-RUN yarn config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
-    npm config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
+# Set environment to bypass SSL for npm packages
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+
+# Configure yarn/npm to use PUBLIC npm registry with SSL disabled
+RUN yarn config set registry https://registry.npmjs.org/ && \
+    npm config set registry https://registry.npmjs.org/ && \
     yarn config set strict-ssl false && \
     npm config set strict-ssl false && \
     echo "Registry configured:" && \
     yarn config get registry && \
     yarn config list
-
-# Set environment variable to bypass SSL (additional safety)
-ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
 # Copy package files from frontend directory
 COPY package.json yarn.lock ./
