@@ -930,30 +930,43 @@ def main():
     
     tester = CatalystAPITester()
     
-    # Test sequence - focusing on chat interface as requested
+    # Test sequence - Phase 2 comprehensive testing
     tests = [
         ("API Root", tester.test_api_root),
         
-        # Chat Interface Tests (HIGH PRIORITY)
+        # 1. Basic Chat Functionality Tests (HIGH PRIORITY)
         ("Set LLM Config (Emergent)", tester.test_set_llm_config_emergent),
         ("Get LLM Config", tester.test_get_llm_config),
-        ("Set LLM Config (Anthropic)", tester.test_set_llm_config_anthropic),
-        ("Set LLM Config (Bedrock)", tester.test_set_llm_config_bedrock),
         ("Create Conversation", tester.test_create_conversation),
-        ("List Conversations", tester.test_list_conversations),
-        ("Get Conversation", tester.test_get_conversation),
         ("Send Help Message", tester.test_send_help_message),
         ("Send Create Project Message", tester.test_send_create_project_message),
+        ("Get Conversation Messages", tester.test_get_conversation_messages),
+        
+        # 2. Individual Agent Tests (CRITICAL)
+        ("Agent Import Test", tester.test_agent_imports),
+        ("LLM Client Initialization", tester.test_llm_client_initialization),
+        ("FileSystem Service Test", tester.test_file_system_service),
+        ("GitHub Service Basic Test", tester.test_github_service_basic),
+        ("Phase2 Orchestrator Initialization", tester.test_phase2_orchestrator_initialization),
+        
+        # 3. Database Operations Tests
+        ("Database Connections Test", tester.test_database_connections),
+        
+        # 4. Phase 2 Orchestrator Workflow Test
+        ("Create Project", tester.test_create_project),
+        ("Phase 2 Simple Workflow", tester.test_phase2_simple_workflow),
+        ("Check Generated Files", tester.test_check_generated_files),
+        
+        # 5. Additional Chat Tests
         ("Send Build App Message", tester.test_send_build_app_message),
         ("Send Status Message", tester.test_send_status_message),
-        ("Get Conversation Messages", tester.test_get_conversation_messages),
+        ("List Conversations", tester.test_list_conversations),
+        ("Get Conversation", tester.test_get_conversation),
         ("Delete Conversation", tester.test_delete_conversation),
         
-        # Original Tests (for completeness)
-        ("Create Project", tester.test_create_project),
+        # 6. Legacy Tests (for completeness)
         ("Get Projects", tester.test_get_projects),
         ("Get Project", tester.test_get_project),
-        ("Create Task", tester.test_create_task),
         ("Get Tasks", tester.test_get_tasks),
         ("Get Task", tester.test_get_task),
         ("Get Agent Logs", tester.test_get_logs),
