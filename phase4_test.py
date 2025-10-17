@@ -177,11 +177,10 @@ class Phase4Tester:
             "Workspace Service (Create)",
             "POST",
             "workspaces",
-            data={
+            params={
                 "name": workspace_name,
                 "owner_id": f"user_{int(time.time())}",
-                "owner_email": "test@example.com",
-                "settings": {}
+                "owner_email": "test@example.com"
             }
         )
         workspace_id = None
