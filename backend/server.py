@@ -13,13 +13,13 @@ from datetime import datetime, timezone
 import json
 import asyncio
 
-from agents.planner_agent import get_planner_agent, PlannerAgent as PlannerAgentClass
-from agents.architect_agent import get_architect_agent, ArchitectAgent as ArchitectAgentClass
-from agents.coder import get_coder_agent
-from agents.tester_agent import get_tester_agent, TesterAgent as TesterAgentClass
-from agents.reviewer_agent import get_reviewer_agent, ReviewerAgent as ReviewerAgentClass
-from agents.deployer_agent import get_deployer_agent, DeployerAgent as DeployerAgentClass
-from agents.explorer_agent import get_explorer_agent, ExplorerAgent as ExplorerAgentClass
+from agents.planner import PlannerAgent
+from agents.architect import ArchitectAgent
+from agents.coder import CoderAgent
+from agents.tester import TesterAgent
+from agents.reviewer import ReviewerAgent
+from agents.deployer import DeployerAgent
+from agents.explorer import ExplorerAgent
 from orchestrator.executor import TaskExecutor
 from chat_interface.interface import ChatInterface, ChatMessage, Conversation
 from orchestrator.phase2_orchestrator import get_phase2_orchestrator
