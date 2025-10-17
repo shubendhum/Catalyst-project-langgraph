@@ -183,7 +183,8 @@ class ChatInterface:
 Return JSON with: name, description (if mentioned).
 If not clear, suggest a name based on context."""
         
-        response = await self.llm.ainvoke([{"role": "user", "content": prompt}])
+        from langchain_core.messages import HumanMessage
+        response = await self.llm.ainvoke([HumanMessage(content=prompt)])
         
         try:
             project_details = json.loads(response.content)
