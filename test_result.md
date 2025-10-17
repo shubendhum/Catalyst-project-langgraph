@@ -248,8 +248,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Create ChatInterface component to replace Dashboard"
-    - "Create LLM Settings component for provider/key selection"
+    - "Fix Docker frontend entrypoint error"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
