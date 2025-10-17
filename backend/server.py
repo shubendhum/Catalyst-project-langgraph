@@ -291,7 +291,7 @@ async def get_llm_config():
     safe_config = _llm_config.copy()
     if safe_config.get("api_key"):
         safe_config["api_key"] = "***"
-    if safe_config.get("aws_config", {}).get("secret_access_key"):
+    if safe_config.get("aws_config") and safe_config["aws_config"].get("secret_access_key"):
         safe_config["aws_config"]["secret_access_key"] = "***"
     
     return safe_config
