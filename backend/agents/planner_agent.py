@@ -4,8 +4,8 @@ Breaks down user requirements into actionable tasks for full-stack development
 """
 from typing import Dict, List, Optional
 import logging
-from datetime import datetime
-from backend.llm_client import get_llm_client
+from datetime import datetime, timezone
+from langchain_core.messages import HumanMessage
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,8 @@ class PlannerAgent:
     Agent responsible for analyzing requirements and creating development plans
     """
     
-    def __init__(self):
-        self.llm_client = get_llm_client()
+    def __init__(self, llm_client):
+        self.llm_client = llm_client
         self.agent_name = "Planner"
     
     async def create_plan(
@@ -46,12 +46,12 @@ class PlannerAgent:
         )
         
         try:
-            # Get plan from LLM
-            llm_response = await self.llm_client.generate(
-                prompt=planning_prompt,
-                max_tokens=2000,
-                temperature=0.7
+            # Get plan from LLM using ainvoke
+            response = await self.llm_client.ainvoke(
+                [HumanMessage(content=planning_prompt)]
             )
+            
+            llm_response = response.content
             
             # Parse LLM response into structured plan
             plan = self._parse_plan_response(llm_response, user_requirements)
@@ -59,7 +59,7 @@ class PlannerAgent:
             # Add metadata
             plan["metadata"] = {
                 "project_name": project_name,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "agent": self.agent_name,
                 "user_requirements": user_requirements
             }
