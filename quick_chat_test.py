@@ -6,7 +6,7 @@ Quick Chat Interface Test - Key functionality only
 import requests
 import json
 
-BASE_URL = "https://agent-orchestra-11.preview.emergentagent.com/api"
+BASE_URL = "https://catalyst-stack.preview.emergentagent.com/api"
 
 def test_endpoint(name, method, endpoint, data=None):
     """Test a single endpoint quickly"""

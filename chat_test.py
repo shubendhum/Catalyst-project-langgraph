@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://agent-orchestra-11.preview.emergentagent.com/api"
+BASE_URL = "https://catalyst-stack.preview.emergentagent.com/api"
 
 def test_endpoint(name, method, endpoint, data=None, expected_status=200):
     """Test a single endpoint"""
