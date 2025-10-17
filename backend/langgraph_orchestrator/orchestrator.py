@@ -36,8 +36,8 @@ class LangGraphOrchestrator:
         self.ws_manager = ws_manager
         self.config = config
         
-        # Initialize LLM based on provider
-        self.llm = self._init_llm()
+        # Initialize LLM using unified client
+        self.llm = get_llm_client(config)
         
         # Initialize checkpoint saver
         self.checkpointer = MemorySaver()
