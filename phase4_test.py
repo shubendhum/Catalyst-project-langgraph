@@ -74,7 +74,10 @@ class Phase4Tester:
             "Context Check (Simple)",
             "POST",
             "context/check",
-            data={"messages": [{"role": "user", "content": "Hello"}], "model": "claude-3-7-sonnet-20250219"}
+            data={
+                "messages": [{"role": "user", "content": "Hello"}], 
+                "model": "claude-3-7-sonnet-20250219"
+            }
         )
         if success and response.get("success"):
             print(f"   Status: {response.get('status')}")
