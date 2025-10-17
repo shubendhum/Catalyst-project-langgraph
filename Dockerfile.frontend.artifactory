@@ -46,24 +46,20 @@ RUN echo "Checking package files:" && \
     echo "Package.json content preview:" && \
     head -20 package.json
 
-# Install dependencies with increased timeout and retry logic
-# Now using Artifactory registry configured above
+# Install dependencies with increased timeout
 # SSL verification disabled via config (strict-ssl false)
 # NOTE: Install production + dev dependencies (craco is in devDependencies)
-RUN echo "Starting yarn install attempt 1..." && \
+RUN echo "Starting yarn install..." && \
     yarn install --frozen-lockfile \
     --network-timeout 600000 \
     --network-concurrency 1 \
     --production=false \
-    --verbose 2>&1 | tee /tmp/yarn-install.log || \
-    (echo "First attempt failed, cleaning cache and retrying..." && \
-     yarn cache clean && \
-     echo "Starting yarn install attempt 2..." && \
-     yarn install --frozen-lockfile \
-     --network-timeout 600000 \
-     --network-concurrency 1 \
-     --production=false \
-     --verbose)
+    --verbose && \
+    echo "Yarn install completed successfully" && \
+    echo "Checking node_modules directory:" && \
+    ls -la node_modules/ | head -20 && \
+    echo "Checking node_modules/.bin directory:" && \
+    ls -la node_modules/.bin/ | head -20
 
 # Verify dependencies installed
 RUN echo "=== Verifying installed packages ===" && \
