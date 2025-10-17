@@ -224,6 +224,22 @@ frontend:
         agent: "main"
         comment: "Implemented as part of ChatInterface component. Settings dialog allows switching between Emergent LLM Key, Anthropic Claude, and AWS Bedrock providers with all necessary configuration fields."
 
+infrastructure:
+  - task: "Fix Docker frontend entrypoint error"
+    implemented: true
+    working: "NA"
+    file: "/app/Dockerfile.frontend.artifactory, /app/frontend/nginx.conf"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported: error in docker entrypoint /docker-entrypoint.d/ is not empty"
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed nginx.conf structure - added complete config with events and http blocks (removed user directive to avoid permission errors). Updated Dockerfile to use default nginx user instead of custom catalyst user, added proper permissions and nginx -t validation. See DOCKER_ENTRYPOINT_FIX.md for details."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
