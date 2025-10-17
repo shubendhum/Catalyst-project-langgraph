@@ -4,8 +4,8 @@ Designs the technical architecture and creates detailed specifications
 """
 from typing import Dict, List, Optional
 import logging
-from datetime import datetime
-from backend.llm_client import get_llm_client
+from datetime import datetime, timezone
+from langchain_core.messages import HumanMessage
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,8 @@ class ArchitectAgent:
     Agent responsible for creating detailed technical architecture
     """
     
-    def __init__(self):
-        self.llm_client = get_llm_client()
+    def __init__(self, llm_client):
+        self.llm_client = llm_client
         self.agent_name = "Architect"
     
     async def design_architecture(
@@ -42,12 +42,12 @@ class ArchitectAgent:
         arch_prompt = self._build_architecture_prompt(plan, project_name, context)
         
         try:
-            # Get architecture from LLM
-            llm_response = await self.llm_client.generate(
-                prompt=arch_prompt,
-                max_tokens=3000,
-                temperature=0.5
+            # Get architecture from LLM using ainvoke
+            response = await self.llm_client.ainvoke(
+                [HumanMessage(content=arch_prompt)]
             )
+            
+            llm_response = response.content
             
             # Parse response into structured architecture
             architecture = self._parse_architecture_response(llm_response, plan)
@@ -55,7 +55,7 @@ class ArchitectAgent:
             # Add metadata
             architecture["metadata"] = {
                 "project_name": project_name,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "agent": self.agent_name,
                 "based_on_plan": True
             }
