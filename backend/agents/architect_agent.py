@@ -408,19 +408,13 @@ Format response as JSON with this structure:
         arch = self._create_default_architecture(plan)
         arch["metadata"] = {
             "project_name": project_name,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "agent": self.agent_name,
             "fallback": True
         }
         return arch
 
 
-# Singleton instance
-_architect_agent = None
-
-def get_architect_agent() -> ArchitectAgent:
-    """Get the singleton ArchitectAgent instance"""
-    global _architect_agent
-    if _architect_agent is None:
-        _architect_agent = ArchitectAgent()
-    return _architect_agent
+def get_architect_agent(llm_client) -> ArchitectAgent:
+    """Get ArchitectAgent instance"""
+    return ArchitectAgent(llm_client)
