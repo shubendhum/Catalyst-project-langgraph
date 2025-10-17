@@ -38,12 +38,41 @@ class LearningService:
     def __init__(self, db=None):
         self.db = db
         
-        # In-memory storage for patterns (would use vector DB in production)
+        # Try to connect to Qdrant
+        qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
+        self.qdrant_client = None
+        self.collection_name = "catalyst_learning"
+        
+        if QDRANT_AVAILABLE:
+            try:
+                self.qdrant_client = QdrantClient(url=qdrant_url, timeout=5.0)
+                # Create collection if it doesn't exist
+                collections = self.qdrant_client.get_collections().collections
+                if not any(c.name == self.collection_name for c in collections):
+                    self.qdrant_client.create_collection(
+                        collection_name=self.collection_name,
+                        vectors_config=VectorParams(size=384, distance=Distance.COSINE)
+                    )
+                logger.info(f"✅ Connected to Qdrant at {qdrant_url}")
+            except Exception as e:
+                logger.warning(f"Failed to connect to Qdrant: {e}. Using in-memory storage.")
+                self.qdrant_client = None
+        
+        # Load embedding model if available
+        self.embedding_model = None
+        if EMBEDDINGS_AVAILABLE:
+            try:
+                self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+                self.embedding_dim = 384
+                logger.info("✅ Loaded sentence-transformers embedding model")
+            except Exception as e:
+                logger.warning(f"Failed to load embedding model: {e}")
+        else:
+            self.embedding_dim = 128  # Fallback dimension
+        
+        # In-memory storage as fallback
         self.patterns = []
         self.pattern_embeddings = []
-        
-        # Simple embedding dimensions (would use proper embeddings in production)
-        self.embedding_dim = 128
     
     def _create_simple_embedding(self, text: str) -> np.ndarray:
         """
