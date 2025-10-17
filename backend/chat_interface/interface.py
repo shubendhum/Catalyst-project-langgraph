@@ -101,7 +101,7 @@ class ChatInterface:
             conversation_id=conversation_id,
             role="user",
             content=user_message,
-            timestamp=datetime.now()
+            timestamp=datetime.now(timezone.utc)
         )
         conversation.messages.append(user_msg)
         
