@@ -232,18 +232,19 @@ If not clear, suggest a name based on context."""
             project_id = project_response["metadata"]["project_id"]
         
         # Create task
-        from internal.models import Task
-        task = Task(
-            id=str(uuid.uuid4()),
-            project_id=project_id,
-            prompt=message,
-            graph_state={},
-            status="pending",
-            cost=0.0,
-            created_at=datetime.now()
-        )
+        task = {
+            "id": str(uuid.uuid4()),
+            "project_id": project_id,
+            "prompt": message,
+            "graph_state": {},
+            "status": "pending",
+            "cost": 0.0,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
         
-        await self.db.Tasks.insert_one(task.dict())
+        await self.db.tasks.insert_one(task)
+        
+        task_id = task["id"]
         
         # Start LangGraph orchestration in background
         import asyncio
