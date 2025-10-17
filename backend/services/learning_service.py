@@ -211,6 +211,33 @@ class LearningService:
     ) -> List[Dict]:
         """Find similar past projects"""
         
+        tech_stack = tech_stack or []
+        query_text = f"{task_description} {' '.join(tech_stack)}"
+        query_embedding = self._create_simple_embedding(query_text)
+        
+        # Try Qdrant first
+        if self.qdrant_client:
+            try:
+                search_results = self.qdrant_client.search(
+                    collection_name=self.collection_name,
+                    query_vector=query_embedding.tolist(),
+                    limit=limit
+                )
+                
+                results = []
+                for hit in search_results:
+                    result = {
+                        **hit.payload,
+                        "similarity": float(hit.score)
+                    }
+                    results.append(result)
+                
+                logger.info(f"✅ Found {len(results)} similar projects from Qdrant")
+                return results
+            except Exception as e:
+                logger.error(f"Error searching Qdrant: {e}")
+        
+        # Fall back to in-memory search
         if not self.patterns:
             # Load from database if available
             if self.db:
@@ -218,11 +245,6 @@ class LearningService:
         
         if not self.patterns:
             return []
-        
-        # Create embedding for query
-        tech_stack = tech_stack or []
-        query_text = f"{task_description} {' '.join(tech_stack)}"
-        query_embedding = self._create_simple_embedding(query_text)
         
         # Calculate similarities
         similarities = []
