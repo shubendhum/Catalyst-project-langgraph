@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:7
+    container_name: catalyst-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=catalyst_db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/catalyst_db --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - catalyst-network
+
+  # Redis for Caching
+  redis:
+    image: redis:7-alpine
+    container_name: catalyst-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - catalyst-network
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: catalyst-qdrant
+    ports:
+      - "6333:6333"  # HTTP API
+      - "6334:6334"  # gRPC API
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+      - QDRANT__LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - catalyst-network
+
+  # RabbitMQ Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: catalyst-rabbitmq
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=catalyst
+      - RABBITMQ_DEFAULT_PASS=catalyst_queue_2025
+      - RABBITMQ_DEFAULT_VHOST=catalyst
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - catalyst-network
+
+  # Backend API (optional - if running in Docker)
+  # backend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.backend
+  #   container_name: catalyst-backend
+  #   ports:
+  #     - "8001:8001"
+  #   environment:
+  #     - MONGO_URL=mongodb://mongodb:27017/catalyst_db
+  #     - REDIS_URL=redis://redis:6379
+  #     - QDRANT_URL=http://qdrant:6333
+  #     - RABBITMQ_URL=amqp://catalyst:catalyst_queue_2025@rabbitmq:5672/catalyst
+  #   depends_on:
+  #     - mongodb
+  #     - redis
+  #     - qdrant
+  #     - rabbitmq
+  #   networks:
+  #     - catalyst-network
+
+  # Frontend (optional - if running in Docker)
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.frontend
+  #   container_name: catalyst-frontend
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - catalyst-network
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  catalyst-network:
+    driver: bridge
