@@ -1,9 +1,8 @@
 # Catalyst Multi-Agent AI Platform - Main Makefile
-# One-command setup and management for local development
+# Docker-first setup and management (uses Docker Desktop)
 
-.PHONY: help setup install install-backend install-frontend install-mongo \
-        start stop restart status logs clean test docker \
-        docker-build docker-up docker-down docker-logs \
+.PHONY: help setup setup-local check-docker start stop restart status logs \
+        clean test docker-build docker-up docker-down docker-logs \
         k8s-deploy k8s-delete backup restore
 
 # Colors for output
@@ -14,11 +13,6 @@ BLUE := \033[0;34m
 NC := \033[0m # No Color
 
 # Configuration
-PYTHON := python3
-PIP := pip3
-NODE := node
-NPM := npm
-YARN := yarn
 DOCKER := docker
 DOCKER_COMPOSE := docker-compose
 KUBECTL := kubectl
@@ -30,11 +24,14 @@ K8S_DIR := k8s
 AWS_DIR := aws
 
 # MongoDB Configuration
-MONGO_CONTAINER := catalyst-mongo-local
+MONGO_CONTAINER := catalyst-mongo
 MONGO_PORT := 27017
 MONGO_USER := admin
 MONGO_PASS := catalyst_admin_pass
 MONGO_DB := catalyst_db
+
+# Docker Compose Project Name
+COMPOSE_PROJECT := catalyst
 
 # Default target
 .DEFAULT_GOAL := help
@@ -42,27 +39,35 @@ MONGO_DB := catalyst_db
 ##@ General
 
 help: ## Display this help message
-	@echo "$(BLUE)Catalyst Platform - Local Development$(NC)"
+	@echo "$(BLUE)Catalyst Platform - Docker Desktop Setup$(NC)"
+	@echo ""
+	@echo "$(YELLOW)All services run in Docker containers$(NC)"
 	@echo ""
 	@awk 'BEGIN {FS = ":.*##"; printf "Usage:\n  make $(BLUE)<target>$(NC)\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  $(BLUE)%-20s$(NC) %s\n", $$1, $$2 } /^##@/ { printf "\n$(YELLOW)%s$(NC)\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-##@ Setup & Installation
+##@ Docker Setup (Default)
 
-setup: ## Complete one-command setup (install everything and start services)
-	@echo "$(GREEN)Starting complete setup...$(NC)"
-	@$(MAKE) check-prerequisites
-	@$(MAKE) install
+setup: ## Complete Docker setup (ONE COMMAND - sets up everything in Docker)
+	@echo "$(GREEN)Starting Docker-based setup...$(NC)"
+	@$(MAKE) check-docker
 	@$(MAKE) setup-env
-	@$(MAKE) install-mongo
-	@echo "$(GREEN)Setup complete! Run 'make start' to launch services.$(NC)"
+	@$(MAKE) docker-build
+	@echo ""
+	@echo "$(GREEN)✓ Setup complete!$(NC)"
+	@echo ""
+	@echo "$(BLUE)Next step: Run 'make start' to launch all services$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Access points:$(NC)"
+	@echo "  Frontend:  http://localhost:3000"
+	@echo "  Backend:   http://localhost:8001/api"
+	@echo "  API Docs:  http://localhost:8001/docs"
 
-check-prerequisites: ## Check if required tools are installed
-	@echo "$(BLUE)Checking prerequisites...$(NC)"
-	@command -v $(PYTHON) >/dev/null 2>&1 || { echo "$(RED)Python 3 is not installed!$(NC)"; exit 1; }
-	@command -v $(NODE) >/dev/null 2>&1 || { echo "$(RED)Node.js is not installed!$(NC)"; exit 1; }
-	@command -v $(DOCKER) >/dev/null 2>&1 || { echo "$(RED)Docker is not installed!$(NC)"; exit 1; }
-	@command -v $(YARN) >/dev/null 2>&1 || { echo "$(YELLOW)Yarn not found, installing...$(NC)"; npm install -g yarn; }
-	@echo "$(GREEN)✓ All prerequisites are installed$(NC)"
+check-docker: ## Check if Docker is installed and running
+	@echo "$(BLUE)Checking Docker...$(NC)"
+	@command -v $(DOCKER) >/dev/null 2>&1 || { echo "$(RED)Docker is not installed! Please install Docker Desktop.$(NC)"; exit 1; }
+	@$(DOCKER) info >/dev/null 2>&1 || { echo "$(RED)Docker is not running! Please start Docker Desktop.$(NC)"; exit 1; }
+	@command -v $(DOCKER_COMPOSE) >/dev/null 2>&1 || { echo "$(RED)Docker Compose is not installed!$(NC)"; exit 1; }
+	@echo "$(GREEN)✓ Docker is installed and running$(NC)"
 
 install: install-backend install-frontend ## Install all dependencies (backend + frontend)
 	@echo "$(GREEN)All dependencies installed!$(NC)"
