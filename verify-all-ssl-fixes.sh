@@ -13,8 +13,16 @@ NC='\033[0m'
 total=0
 passed=0
 
-echo "1️⃣  Alpine Package Manager (apk) SSL Fix"
-echo "----------------------------------------"
+echo "1️⃣  Alpine Package Manager (apk) SSL Fixes"
+echo "------------------------------------------"
+if grep -q "apk add --update --no-check-certificate --no-cache ca-certificates" /app/Dockerfile.frontend.artifactory; then
+    echo -e "${GREEN}✓${NC} CA certificates installed without SSL check"
+    ((passed++))
+else
+    echo -e "${RED}✗${NC} Missing: apk --no-check-certificate command"
+fi
+((total++))
+
 if grep -q "sed -i 's/https/http/g' /etc/apk/repositories" /app/Dockerfile.frontend.artifactory; then
     echo -e "${GREEN}✓${NC} HTTP repositories configured for apk"
     ((passed++))
