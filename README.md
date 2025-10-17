@@ -216,8 +216,10 @@ aws ecs register-task-definition --cli-input-json file://aws/ecs-task-definition
 - **[API Documentation](http://localhost:8001/docs)** - Interactive API docs (when running)
 
 ### Deployment Documentation
-- **[YARN_INSTALL_FIX_APPLIED.md](YARN_INSTALL_FIX_APPLIED.md)** - ✅ **LATEST** - Yarn install failure fix
+- **[SSL_CERTIFICATE_FIX.md](SSL_CERTIFICATE_FIX.md)** - ✅ **LATEST** - SSL certificate verification disabled
+- **[YARN_INSTALL_FIX_APPLIED.md](YARN_INSTALL_FIX_APPLIED.md)** - Yarn install failure fix
 - **[YARN_INSTALL_TROUBLESHOOTING.md](YARN_INSTALL_TROUBLESHOOTING.md)** - Complete yarn troubleshooting
+- **[ARTIFACTORY_REGISTRY_CONFIG.md](ARTIFACTORY_REGISTRY_CONFIG.md)** - Registry configuration guide
 - **[ARTIFACTORY_QUICK_START.md](ARTIFACTORY_QUICK_START.md)** - Artifactory build quick reference
 - **[ARTIFACTORY_BUILD_FIX.md](ARTIFACTORY_BUILD_FIX.md)** - Detailed build context fix
 - **[ARTIFACTORY_SETUP.md](ARTIFACTORY_SETUP.md)** - Artifactory mirror configuration
