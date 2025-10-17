@@ -271,9 +271,9 @@ test-api: ## Test backend API endpoints
 	@echo "LLM Config:"
 	@curl -s http://localhost:8001/api/chat/config | python3 -m json.tool || echo "$(RED)API not responding$(NC)"
 
-##@ Docker Commands
+##@ Docker Commands (Main Interface)
 
-docker: docker-up ## Start services using Docker Compose
+docker: docker-up ## Alias for docker-up
 
 docker-build: ## Build Docker images
 	@echo "$(BLUE)Building Docker images...$(NC)"
