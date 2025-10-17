@@ -263,7 +263,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Fix Docker frontend entrypoint error"
+    - "Add AWS VPC Endpoint URL support for organization-specific AWS connections"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
