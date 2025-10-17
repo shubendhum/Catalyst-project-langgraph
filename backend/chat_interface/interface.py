@@ -327,35 +327,35 @@ I'll keep you updated on progress. You can check the status anytime!",
     async def _handle_help(self, conversation: Conversation, message: str) -> Dict:
         """Handle help request"""
         
-        help_text = """👋 **Hi! I'm your AI development team.**
+        help_text = """**Hi! I'm your AI development team.**
 
 I can help you with:
 
-🏯 **Project Management**
+**Project Management**
 - "Create a new project called X"
 - "Start a project for Y"
 
-🛠️ **Development**
+**Development**
 - "Build me a todo app with React"
 - "Create a REST API for user management"
 - "Develop a dashboard with charts"
 
-✨ **Features & Fixes**
+**Features & Fixes**
 - "Add authentication to my app"
 - "Fix the login bug"
 - "Implement dark mode"
 
-🔍 **System Analysis**
+**System Analysis**
 - "Analyze my GitHub repository"
 - "Explore the codebase at [URL]"
 - "Audit our existing system"
 
-📊 **Status & Info**
+**Status & Info**
 - "What's the status?"
 - "Show me progress"
 - "How's it going?"
 
-Just talk to me naturally - like you would with your dev team! 🚀
+Just talk to me naturally - like you would with your dev team!
 """
         
         return {
