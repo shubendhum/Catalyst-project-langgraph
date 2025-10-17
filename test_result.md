@@ -231,7 +231,9 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Create ChatInterface component to replace Dashboard"
+    - "Create LLM Settings component for provider/key selection"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
