@@ -16,19 +16,26 @@ class Phase4Tester:
         self.tests_passed = 0
         self.failed_tests = []
 
-    def test_endpoint(self, name, method, endpoint, data=None, expected_status=200, timeout=15):
+    def test_endpoint(self, name, method, endpoint, data=None, params=None, expected_status=200, timeout=15):
         """Test a single endpoint"""
         url = f"{self.base_url}/api/{endpoint}"
-        headers = {'Content-Type': 'application/json'}
         
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers, timeout=timeout)
+                response = requests.get(url, params=params, timeout=timeout)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers, timeout=timeout)
+                if data:
+                    # For POST with JSON body
+                    headers = {'Content-Type': 'application/json'}
+                    response = requests.post(url, json=data, headers=headers, timeout=timeout)
+                elif params:
+                    # For POST with form data/params
+                    response = requests.post(url, data=params, timeout=timeout)
+                else:
+                    response = requests.post(url, timeout=timeout)
             
             success = response.status_code == expected_status
             if success:
