@@ -121,7 +121,7 @@ class ChatInterface:
             conversation_id=conversation_id,
             role="assistant",
             content=assistant_response["content"],
-            timestamp=datetime.now(),
+            timestamp=datetime.now(timezone.utc),
             metadata=assistant_response.get("metadata", {})
         )
         conversation.messages.append(assistant_msg)
