@@ -102,3 +102,18 @@ isort>=5.13.2
 flake8>=7.0.0
 mypy>=1.8.0
 bandit>=1.7.7  # Security linter
+
+# ============================================
+# Phase 3: Cloud & Integration Services
+# ============================================
+# Google Cloud Platform
+google-cloud-compute>=1.40.0
+google-cloud-core>=2.4.3
+google-cloud-functions>=1.21.0
+google-cloud-storage>=3.4.1
+
+# Slack Integration
+slack-sdk>=3.27.0
+
+# Additional Enterprise Features
+redis>=5.0.0  # Caching service
