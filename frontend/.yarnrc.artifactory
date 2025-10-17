@@ -1,0 +1,11 @@
+# Artifactory Yarn Registry Configuration
+# This file configures yarn to use Artifactory as the registry
+
+# Set Artifactory as the registry
+registry "https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/"
+
+# Timeout settings
+network-timeout 300000
+
+# Disable strict SSL if needed (uncomment if certificate issues)
+# strict-ssl false
