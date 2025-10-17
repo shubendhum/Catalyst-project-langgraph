@@ -26,13 +26,15 @@ COPY backend/requirements.txt backend/requirements-langgraph.txt ./
 # Configure pip to use public PyPI with SSL verification disabled
 RUN pip config set global.index-url https://pypi.org/simple && \
     pip config set global.trusted-host pypi.org && \
-    pip config set global.trusted-host files.pythonhosted.org
+    pip config set global.trusted-host files.pythonhosted.org && \
+    pip config set global.trusted-host d33sy5i8bnduwe.cloudfront.net
 
 # Install Python dependencies with SSL verification disabled
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org && \
     pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt && \
     pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements-langgraph.txt && \
-    pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
+    pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host d33sy5i8bnduwe.cloudfront.net \
+        emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
 
 # Stage 2: Runtime stage
 FROM artifactory.devtools.syd.c1.macquarie.com:9996/python:3.11-slim
