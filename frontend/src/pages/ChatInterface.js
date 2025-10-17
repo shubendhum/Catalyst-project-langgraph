@@ -202,6 +202,24 @@ const ChatInterface = () => {
                 />
               </div>
 
+              {llmConfig.provider === 'emergent' && (
+                <div style={{ padding: '12px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '18px' }}>
+                      {llmConfig.emergent_key_available ? '✅' : '⚠️'}
+                    </span>
+                    <strong style={{ color: llmConfig.emergent_key_available ? '#16a34a' : '#ea580c' }}>
+                      {llmConfig.emergent_key_available ? 'Emergent LLM Key Configured' : 'Emergent LLM Key Not Found'}
+                    </strong>
+                  </div>
+                  <p style={{ fontSize: '13px', color: '#65a30d', margin: 0 }}>
+                    {llmConfig.emergent_key_available 
+                      ? 'Using your universal key for OpenAI, Anthropic, and Google models.'
+                      : 'Please configure EMERGENT_LLM_KEY in backend .env file.'}
+                  </p>
+                </div>
+              )}
+
               {llmConfig.provider === 'anthropic' && (
                 <div>
                   <Label>Anthropic API Key</Label>
