@@ -40,7 +40,6 @@ The custom user lacked permissions to:
 ### Fix 1: Complete nginx.conf Structure
 Updated `/app/frontend/nginx.conf` to include full nginx configuration:
 ```nginx
-user nginx;
 worker_processes auto;
 error_log /var/log/nginx/error.log warn;
 pid /var/run/nginx.pid;
@@ -60,6 +59,8 @@ http {
     }
 }
 ```
+
+**Note**: The `user` directive is omitted because nginx in containers determines the user at runtime. Including `user nginx;` would cause "directive is not allowed here" errors when nginx doesn't start as root.
 
 ### Fix 2: Use Default nginx User
 Updated `/app/Dockerfile.frontend.artifactory`:
