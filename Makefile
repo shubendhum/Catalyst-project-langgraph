@@ -400,16 +400,19 @@ reset: clean-all setup ## Complete reset and setup
 
 ##@ Development Helpers
 
-dev: ## Quick start for development (setup + start all)
+dev: ## Quick start for development (Docker-based)
 	@$(MAKE) setup
+	@$(MAKE) start
+	@echo "$(GREEN)✓ Development environment ready!$(NC)"
+
+dev-local: ## Quick start for local development
+	@$(MAKE) setup-local
 	@echo ""
 	@echo "$(YELLOW)Starting services in separate terminals...$(NC)"
-	@echo "$(BLUE)1. Start backend: make start-backend$(NC)"
-	@echo "$(BLUE)2. Start frontend: make start-frontend$(NC)"
-	@echo ""
-	@echo "$(YELLOW)Or use Docker: make docker-up$(NC)"
+	@echo "$(BLUE)1. Start backend: make start-backend-local$(NC)"
+	@echo "$(BLUE)2. Start frontend: make start-frontend-local$(NC)"
 
-quick-start: install-mongo start ## Quick start (assumes dependencies installed)
+quick-start: start ## Quick start (assumes setup already done)
 
 watch-backend: ## Watch backend logs in real-time
 	@cd $(BACKEND_DIR) && . venv/bin/activate && uvicorn server:app --host 0.0.0.0 --port 8001 --reload --log-level debug
