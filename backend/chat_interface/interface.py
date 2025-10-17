@@ -368,20 +368,21 @@ Just talk to me naturally - like you would with your dev team!
         """Handle general conversation"""
         
         # Use LLM for general conversation with context
+        from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+        
         context_messages = []
         
         # Add conversation history (last 5 messages)
         for msg in conversation.messages[-5:]:
-            context_messages.append({
-                "role": msg.role,
-                "content": msg.content
-            })
+            if msg.role == "user":
+                context_messages.append(HumanMessage(content=msg.content))
+            elif msg.role == "assistant":
+                context_messages.append(AIMessage(content=msg.content))
+            elif msg.role == "system":
+                context_messages.append(SystemMessage(content=msg.content))
         
         # Add current message
-        context_messages.append({
-            "role": "user",
-            "content": message
-        })
+        context_messages.append(HumanMessage(content=message))
         
         # System prompt
         system_prompt = """You are Catalyst, an AI development team assistant. 
@@ -389,10 +390,10 @@ You help users build applications through natural conversation.
 Be friendly, helpful, and proactive in suggesting what you can do.
 If a user's request is unclear, ask clarifying questions."""
         
-        response = await self.llm.ainvoke([
-            {"role": "system", "content": system_prompt},
-            *context_messages
-        ])
+        response = await self.llm.ainvoke(
+            context_messages,
+            system_message=system_prompt
+        )
         
         return {
             "content": response.content,
