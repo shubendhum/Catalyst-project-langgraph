@@ -252,8 +252,8 @@ def get_chat_interface():
         # Get LLM client
         llm = get_llm_client(_llm_config)
         
-        # Initialize Phase1 orchestrator
-        _langgraph_orchestrator = get_phase1_orchestrator(db, manager, _llm_config or {})
+        # Initialize Phase2 orchestrator (complete agent suite)
+        _langgraph_orchestrator = get_phase2_orchestrator(db, manager, _llm_config or {})
         
         # Initialize chat interface
         _chat_interface = ChatInterface(db, llm, _langgraph_orchestrator)
