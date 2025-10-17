@@ -27,12 +27,14 @@ COPY package.json yarn.lock ./
 
 # Install dependencies with increased timeout and retry logic
 # Now using Artifactory registry configured above
+# SSL verification disabled for corporate Artifactory
 RUN yarn install --frozen-lockfile \
     --network-timeout 600000 \
-    --network-concurrency 1 || \
+    --network-concurrency 1 \
+    --disable-ssl || \
     (echo "Retrying yarn install..." && \
      yarn cache clean && \
-     yarn install --network-timeout 600000 --network-concurrency 1)
+     yarn install --network-timeout 600000 --network-concurrency 1 --disable-ssl)
 
 # Copy source code
 COPY . ./
