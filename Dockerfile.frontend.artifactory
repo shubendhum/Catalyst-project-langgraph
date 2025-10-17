@@ -15,11 +15,16 @@ RUN apk add --no-cache \
     git \
     && yarn --version
 
+# Configure yarn/npm to use Artifactory registry
+RUN yarn config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
+    npm config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
+    yarn config list
+
 # Copy package files from frontend directory
 COPY package.json yarn.lock ./
 
 # Install dependencies with increased timeout and retry logic
-# Increased timeout to 10 minutes and limited concurrency
+# Now using Artifactory registry configured above
 RUN yarn install --frozen-lockfile \
     --network-timeout 600000 \
     --network-concurrency 1 || \
