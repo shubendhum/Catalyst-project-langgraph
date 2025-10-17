@@ -1,4 +1,4 @@
-# Catalyst Frontend Dockerfile - Artifactory Version (Fixed)
+# Catalyst Frontend Dockerfile - Artifactory Version
 # Multi-stage build for optimized production image
 # Build context: /app/frontend (frontend directory)
 
@@ -7,25 +7,19 @@ FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:18-alpine as builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install build dependencies and configure npm for potential Artifactory use
 RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    git \
     && yarn --version
 
 # Copy package files from frontend directory
 COPY package.json yarn.lock ./
 
-# Install dependencies with increased timeout and retry logic
-# Increased timeout to 10 minutes and limited concurrency
-RUN yarn install --frozen-lockfile \
-    --network-timeout 600000 \
-    --network-concurrency 1 || \
-    (echo "Retrying yarn install..." && \
-     yarn cache clean && \
-     yarn install --network-timeout 600000 --network-concurrency 1)
+# Install dependencies with increased timeout and network retry
+# Using network-timeout to handle slow connections
+RUN yarn install --frozen-lockfile --network-timeout 300000 --network-concurrency 1
 
 # Copy source code
 COPY . ./
