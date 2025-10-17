@@ -3,12 +3,11 @@
 from typing import TypedDict, Annotated, Sequence, Literal
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
-from langchain_anthropic import ChatAnthropic
-from langchain_aws import ChatBedrock
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 import operator
 import os
 from datetime import datetime
+from llm_client import get_llm_client
 
 
 class AgentState(TypedDict):
