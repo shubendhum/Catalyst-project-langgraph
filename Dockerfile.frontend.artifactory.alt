@@ -19,8 +19,10 @@ RUN apk add --no-cache \
 
 # Configure npm/yarn for Artifactory if needed
 # Uncomment and configure if using Artifactory npm registry
-# RUN yarn config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual
-# RUN npm config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual
+RUN yarn config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
+    npm config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
+    yarn config set strict-ssl false && \
+    npm config set strict-ssl false
 
 # Copy package files
 COPY package.json yarn.lock* ./
