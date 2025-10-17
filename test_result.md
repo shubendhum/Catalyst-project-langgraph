@@ -277,8 +277,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Phase 2: Complete Agent Suite Implementation"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
