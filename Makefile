@@ -449,11 +449,15 @@ info: ## Show configuration information
 	@echo "  Frontend: http://localhost:3000"
 	@echo "  API Docs: http://localhost:8001/docs"
 	@echo ""
-	@echo "$(YELLOW)Tools:$(NC)"
-	@echo "  Python:        $$($(PYTHON) --version 2>&1)"
-	@echo "  Node:          $$($(NODE) --version 2>&1)"
+	@echo "$(YELLOW)Docker Setup (Default):$(NC)"
 	@echo "  Docker:        $$($(DOCKER) --version 2>&1)"
 	@echo "  Docker Compose: $$($(DOCKER_COMPOSE) --version 2>&1)"
+	@echo ""
+	@echo "$(YELLOW)Quick Commands:$(NC)"
+	@echo "  Setup:    make setup"
+	@echo "  Start:    make start"
+	@echo "  Stop:     make stop"
+	@echo "  Status:   make status"
 
 version: ## Show version information
 	@echo "Catalyst v1.0.0"
