@@ -108,7 +108,134 @@ class DeployerAgent:
             
             return deployment_result
     
-    async def _generate_backend_dockerfile(self, architecture: Dict) -> str:
+    async def _generate_docker_files(
+        self,
+        project_name: str,
+        architecture: Dict,
+        task_id: Optional[str] = None
+    ) -> Dict:
+        """Generate Docker-related files"""
+        
+        docker_files = {}
+        
+        # Generate Dockerfiles
+        docker_files["backend/Dockerfile"] = await self._generate_backend_dockerfile(architecture)
+        docker_files["frontend/Dockerfile"] = await self._generate_frontend_dockerfile(architecture)
+        
+        # Generate .dockerignore files
+        docker_files["backend/.dockerignore"] = self._generate_dockerignore("backend")
+        docker_files["frontend/.dockerignore"] = self._generate_dockerignore("frontend")
+        
+        # Generate nginx config
+        docker_files["frontend/nginx.conf"] = self._generate_nginx_config()
+        
+        return docker_files
+    
+    async def _generate_docker_deployment(
+        self,
+        project_name: str,
+        architecture: Dict,
+        task_id: Optional[str] = None
+    ) -> Dict:
+        """Generate Docker-specific deployment files"""
+        
+        deployment_files = {}
+        
+        # Docker compose
+        deployment_files["docker-compose.yml"] = await self._generate_docker_compose(project_name, architecture)
+        
+        # Deployment script
+        deployment_files["deploy.sh"] = self._generate_deploy_script(project_name)
+        
+        # Environment file
+        deployment_files[".env.production"] = self._generate_production_env(architecture)
+        
+        # README
+        deployment_files["README.DEPLOYMENT.md"] = await self._generate_docker_readme(project_name)
+        
+        return deployment_files
+    
+    async def _generate_ec2_deployment(
+        self,
+        project_name: str,
+        architecture: Dict,
+        config: Dict,
+        task_id: Optional[str] = None
+    ) -> Dict:
+        """Generate EC2 deployment files"""
+        
+        if task_id:
+            await self._log(task_id, "☁️  Generating EC2 deployment configuration...")
+        
+        deployment_files = {}
+        
+        # Generate EC2 user data script
+        deployment_files["ec2-user-data.sh"] = await self._generate_ec2_user_data(project_name, architecture)
+        
+        # Generate Terraform configuration for EC2
+        deployment_files["terraform/main.tf"] = await self._generate_ec2_terraform(project_name, architecture, config)
+        deployment_files["terraform/variables.tf"] = self._generate_terraform_variables(config)
+        deployment_files["terraform/outputs.tf"] = self._generate_terraform_outputs()
+        
+        # Generate CloudFormation template (alternative to Terraform)
+        deployment_files["cloudformation/stack.yaml"] = await self._generate_ec2_cloudformation(project_name, architecture, config)
+        
+        # Generate deployment script
+        deployment_files["deploy-ec2.sh"] = self._generate_ec2_deploy_script(project_name)
+        
+        # Generate environment file for EC2
+        deployment_files[".env.ec2"] = self._generate_ec2_env(architecture)
+        
+        # Generate README
+        deployment_files["README.EC2.md"] = await self._generate_ec2_readme(project_name, config)
+        
+        return deployment_files
+    
+    async def _generate_eks_deployment(
+        self,
+        project_name: str,
+        architecture: Dict,
+        config: Dict,
+        task_id: Optional[str] = None
+    ) -> Dict:
+        """Generate EKS (Kubernetes) deployment files"""
+        
+        if task_id:
+            await self._log(task_id, "☸️  Generating EKS deployment configuration...")
+        
+        deployment_files = {}
+        
+        # Kubernetes manifests
+        deployment_files["k8s/namespace.yaml"] = self._generate_k8s_namespace(project_name)
+        deployment_files["k8s/backend-deployment.yaml"] = await self._generate_k8s_backend_deployment(project_name, architecture)
+        deployment_files["k8s/frontend-deployment.yaml"] = await self._generate_k8s_frontend_deployment(project_name, architecture)
+        deployment_files["k8s/mongodb-statefulset.yaml"] = self._generate_k8s_mongodb_statefulset(project_name)
+        deployment_files["k8s/services.yaml"] = self._generate_k8s_services(project_name)
+        deployment_files["k8s/ingress.yaml"] = await self._generate_k8s_ingress(project_name, config)
+        deployment_files["k8s/configmap.yaml"] = self._generate_k8s_configmap(project_name, architecture)
+        deployment_files["k8s/secrets.yaml"] = self._generate_k8s_secrets(project_name)
+        
+        # Helm chart
+        deployment_files["helm/Chart.yaml"] = self._generate_helm_chart(project_name)
+        deployment_files["helm/values.yaml"] = await self._generate_helm_values(project_name, architecture, config)
+        deployment_files["helm/templates/deployment.yaml"] = "{{- include \"common.deployment\" . }}"
+        
+        # EKS-specific Terraform
+        deployment_files["terraform-eks/main.tf"] = await self._generate_eks_terraform(project_name, config)
+        deployment_files["terraform-eks/variables.tf"] = self._generate_eks_terraform_variables(config)
+        deployment_files["terraform-eks/outputs.tf"] = self._generate_eks_terraform_outputs()
+        
+        # Deployment scripts
+        deployment_files["deploy-eks.sh"] = self._generate_eks_deploy_script(project_name)
+        deployment_files["setup-eks-cluster.sh"] = self._generate_eks_cluster_setup_script(project_name, config)
+        
+        # CI/CD pipeline for EKS
+        deployment_files[".github/workflows/deploy-eks.yml"] = await self._generate_eks_github_actions(project_name)
+        
+        # README
+        deployment_files["README.EKS.md"] = await self._generate_eks_readme(project_name, config)
+        
+        return deployment_files
         """Generate Dockerfile for backend"""
         
         prompt = """Generate a production-ready Dockerfile for FastAPI backend.
