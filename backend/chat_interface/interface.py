@@ -212,7 +212,7 @@ If not clear, suggest a name based on context."""
         conversation.project_id = project_id
         
         return {
-            "content": f"✅ Project '{project_name}' created! I'm ready to help you build it. What would you like to create?",
+            "content": f"Project '{project_name}' created! I'm ready to help you build it. What would you like to create?",
             "metadata": {
                 "action": "project_created",
                 "project_id": project_id,
