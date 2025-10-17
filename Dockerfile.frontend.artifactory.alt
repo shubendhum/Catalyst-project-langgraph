@@ -35,12 +35,12 @@ RUN yarn config set registry https://artifactory.devtools.syd.c1.macquarie.com:9
 COPY package.json yarn.lock* ./
 
 # Install dependencies with relaxed constraints
-# Option 1: Without frozen-lockfile (generates new lock if needed)
-RUN yarn install --network-timeout 600000 --network-concurrency 1 --disable-ssl || \
+# SSL verification disabled via config
+RUN yarn install --network-timeout 600000 --network-concurrency 1 || \
     (echo "First install attempt failed, retrying..." && \
      rm -rf node_modules && \
      yarn cache clean && \
-     yarn install --network-timeout 600000 --network-concurrency 1 --disable-ssl)
+     yarn install --network-timeout 600000 --network-concurrency 1)
 
 # Copy source code
 COPY . ./
