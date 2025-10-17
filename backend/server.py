@@ -303,16 +303,31 @@ async def get_llm_config():
     """Get current LLM configuration"""
     global _llm_config
     
+    # Auto-detect Emergent LLM key from environment
+    emergent_key = os.getenv("EMERGENT_LLM_KEY")
+    
     if _llm_config is None:
-        _llm_config = {
-            "provider": os.getenv("DEFAULT_LLM_PROVIDER", "emergent"),
-            "model": os.getenv("DEFAULT_LLM_MODEL", "claude-3-7-sonnet-20250219"),
-            "api_key": None,
-            "aws_config": None
-        }
+        # Initialize with Emergent LLM key if available
+        if emergent_key:
+            _llm_config = {
+                "provider": "emergent",
+                "model": "claude-3-7-sonnet-20250219",
+                "api_key": None,
+                "aws_config": None
+            }
+        else:
+            _llm_config = {
+                "provider": os.getenv("DEFAULT_LLM_PROVIDER", "emergent"),
+                "model": os.getenv("DEFAULT_LLM_MODEL", "claude-3-7-sonnet-20250219"),
+                "api_key": None,
+                "aws_config": None
+            }
     
     # Transform backend format to frontend format
     safe_config = _llm_config.copy()
+    
+    # Indicate if Emergent key is available
+    safe_config["emergent_key_available"] = bool(emergent_key)
     
     # Handle AWS Bedrock config
     if safe_config.get("aws_config"):
