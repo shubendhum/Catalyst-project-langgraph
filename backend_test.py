@@ -735,7 +735,8 @@ class CatalystAPITester:
     def test_context_truncate_sliding_window(self):
         """Test context truncation with sliding window strategy"""
         messages = [
-            {"role": "system", "content": "You are a helpful assistant"},
+            {"role": "system", "content": "You are a helpful assistant"}
+        ] + [
             {"role": "user", "content": f"Message {i}: " + "X" * 100} for i in range(100)
         ]
         
