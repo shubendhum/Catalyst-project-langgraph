@@ -4,6 +4,8 @@ Planner → Architect → Coder → Tester → Reviewer → Deployer
 Plus standalone Explorer Agent
 """
 import logging
+import subprocess
+import os
 from typing import Dict, Optional
 from datetime import datetime, timezone
 
