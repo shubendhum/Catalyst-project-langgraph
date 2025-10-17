@@ -20,6 +20,10 @@ RUN apk add --no-cache \
 COPY .npmrc.artifactory .npmrc
 COPY .yarnrc.artifactory .yarnrc
 
+# Disable SSL verification for Artifactory
+RUN yarn config set strict-ssl false && \
+    npm config set strict-ssl false
+
 # Verify registry configuration
 RUN echo "Configured registries:" && \
     cat .npmrc && \
