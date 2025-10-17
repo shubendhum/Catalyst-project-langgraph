@@ -1,20 +1,132 @@
 version: '3.8'
 
-# Production overrides for docker-compose.yml
 services:
-  backend:
-    environment:
-      - PYTHONUNBUFFERED=1
-      - ENVIRONMENT=production
-    command: ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4"]
+  # MongoDB Database
+  mongodb:
+    image: mongo:5.0
+    container_name: catalyst-mongo-prod
     restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-catalyst_admin_pass}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-catalyst_db}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+      - ./backups:/backups
+    networks:
+      - catalyst-network
+    command: mongod --auth
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: catalyst-backend-prod
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-catalyst_admin_pass}@mongodb:27017
+      - DB_NAME=${DB_NAME:-catalyst_db}
+      - EMERGENT_LLM_KEY=${EMERGENT_LLM_KEY:-sk-emergent-b14E29723DeDaF2A74}
+      - DEFAULT_LLM_PROVIDER=${DEFAULT_LLM_PROVIDER:-emergent}
+      - DEFAULT_LLM_MODEL=${DEFAULT_LLM_MODEL:-claude-3-7-sonnet-20250219}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-anthropic.claude-3-sonnet-20240229-v1:0}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=production
+      - MAX_CONCURRENT_TASKS=10
+      - AGENT_TIMEOUT=600
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - catalyst-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Frontend Application
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend.prod
+      dockerfile: Dockerfile.frontend
+      args:
+        REACT_APP_BACKEND_URL: ${REACT_APP_BACKEND_URL:-http://localhost:8001}
+    container_name: catalyst-frontend-prod
     restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - catalyst-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  mongodb:
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: catalyst-nginx
     restart: always
-    command: mongod --auth
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - catalyst-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  catalyst-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
