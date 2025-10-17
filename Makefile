@@ -305,6 +305,43 @@ docker-prod: ## Start production Docker services
 	@$(DOCKER_COMPOSE) -f docker-compose.prod.yml up -d
 	@echo "$(GREEN)✓ Production services started$(NC)"
 
+##@ Artifactory Setup (For Organizations)
+
+setup-artifactory: ## Setup with Artifactory mirror
+	@echo "$(GREEN)Starting Artifactory-based setup...$(NC)"
+	@$(MAKE) check-docker
+	@$(MAKE) setup-env
+	@$(MAKE) build-artifactory
+	@echo ""
+	@echo "$(GREEN)✓ Artifactory setup complete!$(NC)"
+	@echo ""
+	@echo "$(BLUE)Next step: Run 'make start-artifactory' to launch services$(NC)"
+
+build-artifactory: ## Build images using Artifactory mirror
+	@echo "$(BLUE)Building images from Artifactory...$(NC)"
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml build
+	@echo "$(GREEN)✓ Artifactory images built$(NC)"
+
+start-artifactory: ## Start services with Artifactory images
+	@echo "$(BLUE)Starting services with Artifactory...$(NC)"
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml up -d
+	@echo "$(GREEN)✓ Artifactory services started$(NC)"
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml ps
+
+stop-artifactory: ## Stop Artifactory services
+	@echo "$(BLUE)Stopping Artifactory services...$(NC)"
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml down
+	@echo "$(GREEN)✓ Artifactory services stopped$(NC)"
+
+restart-artifactory: stop-artifactory start-artifactory ## Restart Artifactory services
+
+logs-artifactory: ## Show Artifactory service logs
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml logs -f
+
+status-artifactory: ## Show Artifactory service status
+	@echo "$(BLUE)Artifactory Service Status:$(NC)"
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml ps
+
 ##@ Database Management
 
 db-shell: ## Open MongoDB shell
