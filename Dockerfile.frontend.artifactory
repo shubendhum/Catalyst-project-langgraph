@@ -8,6 +8,9 @@ FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:18-alpine as builder
 WORKDIR /app
 
 # Disable SSL verification for Alpine package manager due to certificate issues
+# First, update apk and install ca-certificates without checking certificates
+RUN apk add --update --no-check-certificate --no-cache ca-certificates
+
 # Change Alpine repositories to use HTTP instead of HTTPS
 RUN sed -i 's/https/http/g' /etc/apk/repositories
 
