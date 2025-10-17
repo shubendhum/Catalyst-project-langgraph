@@ -94,7 +94,7 @@ class LangGraphOrchestrator:
     # Node implementations
     async def planner_node(self, state: AgentState) -> AgentState:
         """Planner agent node"""
-        await self._log(state["task_id"], "Planner", "🧠 Analyzing requirements...")
+        await self._log(state["task_id"], "Planner", "[PLAN] Analyzing requirements...")
         
         prompt = f"""You are a planning agent. Analyze this requirement and create a structured plan:
 
@@ -105,7 +105,7 @@ Provide a JSON plan with: phases, tech_stack, requirements, and estimated timeli
         messages = [HumanMessage(content=prompt)]
         response = await self.llm.ainvoke(messages)
         
-        await self._log(state["task_id"], "Planner", "✅ Plan created")
+        await self._log(state["task_id"], "Planner", "[OK] Plan created")
         
         state["plan"] = response.content
         state["status"] = "architecting"
@@ -116,7 +116,7 @@ Provide a JSON plan with: phases, tech_stack, requirements, and estimated timeli
     
     async def architect_node(self, state: AgentState) -> AgentState:
         """Architect agent node"""
-        await self._log(state["task_id"], "Architect", "🏗️ Designing architecture...")
+        await self._log(state["task_id"], "Architect", "[ARCH] Designing architecture...")
         
         prompt = f"""You are an architect agent. Based on this plan, design the system architecture:
 
@@ -127,7 +127,7 @@ Provide: data models, API endpoints, file structure, and component hierarchy."""
         messages = [HumanMessage(content=prompt)]
         response = await self.llm.ainvoke(messages)
         
-        await self._log(state["task_id"], "Architect", "✅ Architecture designed")
+        await self._log(state["task_id"], "Architect", "[OK] Architecture designed")
         
         state["architecture"] = response.content
         state["status"] = "coding"
@@ -139,9 +139,9 @@ Provide: data models, API endpoints, file structure, and component hierarchy."""
     async def coder_node(self, state: AgentState) -> AgentState:
         """Coder agent node"""
         if state.get("feedback"):
-            await self._log(state["task_id"], "Coder", "🔄 Fixing code based on feedback...")
+            await self._log(state["task_id"], "Coder", "[RETRY] Fixing code based on feedback...")
         else:
-            await self._log(state["task_id"], "Coder", "💻 Writing code...")
+            await self._log(state["task_id"], "Coder", "[CODE] Writing code...")
         
         prompt = f"""You are a coder agent. Generate production-ready code:
 
@@ -154,7 +154,7 @@ Provide complete, working code with error handling and comments."""
         messages = [HumanMessage(content=prompt)]
         response = await self.llm.ainvoke(messages)
         
-        await self._log(state["task_id"], "Coder", "✅ Code generated")
+        await self._log(state["task_id"], "Coder", "[OK] Code generated")
         
         state["code"] = response.content
         state["status"] = "testing"
@@ -165,7 +165,7 @@ Provide complete, working code with error handling and comments."""
     
     async def tester_node(self, state: AgentState) -> AgentState:
         """Tester agent node"""
-        await self._log(state["task_id"], "Tester", "🧪 Running tests...")
+        await self._log(state["task_id"], "Tester", "[TEST] Running tests...")
         
         prompt = f"""You are a tester agent. Analyze this code and provide test results:
 
@@ -181,9 +181,9 @@ Identify: bugs, edge cases, security issues. Return JSON with: passed (bool), is
         test_passed = random.random() > 0.3  # 70% pass rate
         
         if test_passed:
-            await self._log(state["task_id"], "Tester", "✅ All tests passed")
+            await self._log(state["task_id"], "Tester", "[OK] All tests passed")
         else:
-            await self._log(state["task_id"], "Tester", "⚠️ Tests found issues")
+            await self._log(state["task_id"], "Tester", "[WARN] Tests found issues")
             state["feedback"] = response.content
             state["retry_count"] = state.get("retry_count", 0) + 1
         
@@ -194,7 +194,7 @@ Identify: bugs, edge cases, security issues. Return JSON with: passed (bool), is
     
     async def reviewer_node(self, state: AgentState) -> AgentState:
         """Reviewer agent node"""
-        await self._log(state["task_id"], "Reviewer", "👀 Reviewing code quality...")
+        await self._log(state["task_id"], "Reviewer", "[REV] Reviewing code quality...")
         
         prompt = f"""You are a code reviewer. Review this code:
 
@@ -206,7 +206,7 @@ Provide: quality score, security assessment, recommendations, and approval statu
         messages = [HumanMessage(content=prompt)]
         response = await self.llm.ainvoke(messages)
         
-        await self._log(state["task_id"], "Reviewer", "✅ Review completed - Approved")
+        await self._log(state["task_id"], "Reviewer", "[OK] Review completed - Approved")
         
         state["review_results"] = response.content
         state["status"] = "deploying"
@@ -217,16 +217,16 @@ Provide: quality score, security assessment, recommendations, and approval statu
     
     async def deployer_node(self, state: AgentState) -> AgentState:
         """Deployer agent node"""
-        await self._log(state["task_id"], "Deployer", "🚀 Deploying application...")
+        await self._log(state["task_id"], "Deployer", "[DEPLOY] Deploying application...")
         
         # Simulate deployment
         import hashlib
         commit_sha = hashlib.sha256(state["code"].encode()).hexdigest()[:12]
         deployment_url = f"https://catalyst-{state['project_id'][:8]}.deploy.catalyst.ai"
         
-        await self._log(state["task_id"], "Deployer", "📦 Building...")
-        await self._log(state["task_id"], "Deployer", "☁️ Deploying...")
-        await self._log(state["task_id"], "Deployer", f"✅ Deployed: {deployment_url}")
+        await self._log(state["task_id"], "Deployer", "[BUILD] Building...")
+        await self._log(state["task_id"], "Deployer", "[CLOUD] Deploying...")
+        await self._log(state["task_id"], "Deployer", f"[OK] Deployed: {deployment_url}")
         
         state["deployment_url"] = deployment_url
         state["status"] = "completed"
