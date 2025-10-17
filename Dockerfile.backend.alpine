@@ -1,0 +1,63 @@
+# Catalyst Backend - Minimal Dockerfile
+# Ultra-lightweight image for production
+
+FROM python:3.11-alpine
+
+# Metadata
+LABEL maintainer="Catalyst AI Platform"
+LABEL version="1.0.0-minimal"
+LABEL description="Catalyst Backend API - Minimal Alpine"
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Install build dependencies and runtime dependencies
+RUN apk add --no-cache --virtual .build-deps \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    openssl-dev \
+    make \
+    g++ \
+    && apk add --no-cache \
+    curl \
+    ca-certificates \
+    libstdc++
+
+# Set working directory
+WORKDIR /app/backend
+
+# Copy requirements
+COPY backend/requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir emergentintegrations \
+        --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
+
+# Remove build dependencies to reduce image size
+RUN apk del .build-deps
+
+# Copy application code
+COPY backend/ .
+
+# Create non-root user
+RUN addgroup -S catalyst && \
+    adduser -S -G catalyst -u 1000 catalyst && \
+    chown -R catalyst:catalyst /app/backend
+
+# Switch to non-root user
+USER catalyst
+
+# Expose port
+EXPOSE 8001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8001/api/ || exit 1
+
+# Run the application
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "2"]

@@ -1,0 +1,184 @@
+# Backend .dockerignore
+# Optimizes Docker build by excluding unnecessary files
+
+# ============================================
+# Python
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+PIPFILE.lock
+
+# ============================================
+# Virtual Environments
+# ============================================
+venv/
+ENV/
+env/
+.venv/
+virtualenv/
+
+# ============================================
+# IDE & Editors
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# Testing
+# ============================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.cache/
+
+# ============================================
+# Logs
+# ============================================
+*.log
+logs/
+*.log.*
+
+# ============================================
+# OS Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================
+# Git
+# ============================================
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# ============================================
+# Docker
+# ============================================
+Dockerfile*
+docker-compose*
+.dockerignore
+.docker/
+
+# ============================================
+# Documentation
+# ============================================
+*.md
+DOCS/
+docs/
+*.rst
+*.txt
+!requirements.txt
+
+# ============================================
+# Frontend Files (not needed in backend)
+# ============================================
+../frontend/
+node_modules/
+package.json
+package-lock.json
+yarn.lock
+
+# ============================================
+# Tests & Reports
+# ============================================
+tests/
+test_reports/
+*.test.py
+test_*.py
+
+# ============================================
+# Temporary Files
+# ============================================
+temp/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# ============================================
+# Environment & Config
+# ============================================
+.env.local
+.env.*.local
+.env.example
+config.yaml
+*.env.backup
+
+# ============================================
+# Database Files (if local)
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# ============================================
+# Uploads & Media (if any)
+# ============================================
+uploads/
+media/
+static/
+
+# ============================================
+# CI/CD
+# ============================================
+.circleci/
+.travis.yml
+.gitlab-ci.yml
+Jenkinsfile
+
+# ============================================
+# Miscellaneous
+# ============================================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+
+# ============================================
+# Backups
+# ============================================
+*.backup
+backups/
+*.dump
+*.archive
