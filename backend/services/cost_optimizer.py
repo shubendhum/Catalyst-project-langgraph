@@ -107,14 +107,33 @@ class CostOptimizer:
         """Check cache for existing response"""
         cache_key = self.generate_cache_key(prompt, model, temperature)
         
+        # Try Redis first
+        if self.redis_client:
+            try:
+                cached_str = self.redis_client.get(f"llm_cache:{cache_key}")
+                if cached_str:
+                    cached = json.loads(cached_str)
+                    logger.info(f"✅ Redis cache hit (saved ${cached.get('cost_saved', 0):.4f})")
+                    return {
+                        "response": cached["response"],
+                        "cached": True,
+                        "cache_timestamp": cached["timestamp"],
+                        "cost_saved": cached.get("cost_saved", 0),
+                        "cache_type": "redis"
+                    }
+            except Exception as e:
+                logger.error(f"Redis cache read error: {e}")
+        
+        # Fall back to in-memory cache
         cached = self.response_cache.get(cache_key)
         if cached:
-            logger.info(f"Cache hit for prompt (saved ${cached.get('cost_saved', 0):.4f})")
+            logger.info(f"✅ Memory cache hit (saved ${cached.get('cost_saved', 0):.4f})")
             return {
                 "response": cached["response"],
                 "cached": True,
                 "cache_timestamp": cached["timestamp"],
-                "cost_saved": cached.get("cost_saved", 0)
+                "cost_saved": cached.get("cost_saved", 0),
+                "cache_type": "memory"
             }
         
         return None
