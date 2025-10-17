@@ -768,7 +768,8 @@ class CatalystAPITester:
     def test_context_truncate_important_first(self):
         """Test context truncation with important_first strategy"""
         messages = [
-            {"role": "system", "content": "You are a helpful assistant"},
+            {"role": "system", "content": "You are a helpful assistant"}
+        ] + [
             {"role": "user", "content": f"Message {i}: " + "Y" * 100} for i in range(100)
         ]
         
