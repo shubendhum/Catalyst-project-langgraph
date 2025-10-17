@@ -1649,11 +1649,50 @@ def main():
     
     tester = CatalystAPITester()
     
-    # Test sequence - Phase 2 comprehensive testing
+    # Test sequence - Phase 4 MVP comprehensive testing
     tests = [
         ("API Root", tester.test_api_root),
         
-        # 1. Basic Chat Functionality Tests (HIGH PRIORITY)
+        # 1. PHASE 4 MVP FEATURES - CONTEXT MANAGEMENT (HIGH PRIORITY)
+        ("Context Check (10 messages)", tester.test_context_check_10_messages),
+        ("Context Check (150K tokens)", tester.test_context_check_large_tokens),
+        ("Context Check (180K tokens)", tester.test_context_check_critical_tokens),
+        ("Context Truncate (Sliding Window)", tester.test_context_truncate_sliding_window),
+        ("Context Truncate (Important First)", tester.test_context_truncate_important_first),
+        
+        # 2. PHASE 4 MVP FEATURES - COST OPTIMIZER (HIGH PRIORITY)
+        ("Cost Optimizer (Simple Task)", tester.test_cost_optimizer_simple_task),
+        ("Cost Optimizer (Complex Task)", tester.test_cost_optimizer_complex_task),
+        ("Cost Optimizer Cache Stats", tester.test_cost_optimizer_cache_stats),
+        ("Set Project Budget", tester.test_cost_optimizer_set_budget),
+        ("Get Project Budget", tester.test_cost_optimizer_get_budget),
+        ("Cost Analytics", tester.test_cost_optimizer_analytics),
+        
+        # 3. PHASE 4 MVP FEATURES - LEARNING SERVICE (HIGH PRIORITY)
+        ("Learning Service (Auth Project)", tester.test_learning_service_learn_auth_project),
+        ("Learning Service (CRUD Project)", tester.test_learning_service_learn_crud_project),
+        ("Learning Service (Find Similar)", tester.test_learning_service_find_similar),
+        ("Learning Service (Predict Success)", tester.test_learning_service_predict_success),
+        ("Learning Service Stats", tester.test_learning_service_stats),
+        
+        # 4. PHASE 4 MVP FEATURES - WORKSPACE SERVICE (HIGH PRIORITY)
+        ("Create Workspace", tester.test_workspace_service_create),
+        ("Get Workspace", tester.test_workspace_service_get),
+        ("List User Workspaces", tester.test_workspace_service_list_user),
+        ("Invite Workspace Member", tester.test_workspace_service_invite_member),
+        ("Workspace Analytics", tester.test_workspace_service_analytics),
+        
+        # 5. PHASE 4 MVP FEATURES - ANALYTICS SERVICE (HIGH PRIORITY)
+        ("Track Completion Time Metric", tester.test_analytics_service_track_completion_time),
+        ("Track Token Usage Metric", tester.test_analytics_service_track_token_usage),
+        ("Track Cost Metric", tester.test_analytics_service_track_cost),
+        ("Track Quality Score Metric", tester.test_analytics_service_track_quality_score),
+        ("Performance Dashboard", tester.test_analytics_service_performance_dashboard),
+        ("Cost Dashboard", tester.test_analytics_service_cost_dashboard),
+        ("Quality Dashboard", tester.test_analytics_service_quality_dashboard),
+        ("Generate Insights", tester.test_analytics_service_insights),
+        
+        # 6. Basic Chat Functionality Tests (MEDIUM PRIORITY)
         ("Set LLM Config (Emergent)", tester.test_set_llm_config_emergent),
         ("Get LLM Config", tester.test_get_llm_config),
         ("Create Conversation", tester.test_create_conversation),
@@ -1661,29 +1700,29 @@ def main():
         ("Send Create Project Message", tester.test_send_create_project_message),
         ("Get Conversation Messages", tester.test_get_conversation_messages),
         
-        # 2. Individual Agent Tests (CRITICAL)
+        # 7. Individual Agent Tests (MEDIUM PRIORITY)
         ("Agent Import Test", tester.test_agent_imports),
         ("LLM Client Initialization", tester.test_llm_client_initialization),
         ("FileSystem Service Test", tester.test_file_system_service),
         ("GitHub Service Basic Test", tester.test_github_service_basic),
         ("Phase2 Orchestrator Initialization", tester.test_phase2_orchestrator_initialization),
         
-        # 3. Database Operations Tests
+        # 8. Database Operations Tests (MEDIUM PRIORITY)
         ("Database Connections Test", tester.test_database_connections),
         
-        # 4. Phase 2 Orchestrator Workflow Test
+        # 9. Phase 2 Orchestrator Workflow Test (LOW PRIORITY)
         ("Create Project", tester.test_create_project),
         ("Phase 2 Simple Workflow", tester.test_phase2_simple_workflow),
         ("Check Generated Files", tester.test_check_generated_files),
         
-        # 5. Additional Chat Tests
+        # 10. Additional Chat Tests (LOW PRIORITY)
         ("Send Build App Message", tester.test_send_build_app_message),
         ("Send Status Message", tester.test_send_status_message),
         ("List Conversations", tester.test_list_conversations),
         ("Get Conversation", tester.test_get_conversation),
         ("Delete Conversation", tester.test_delete_conversation),
         
-        # 6. Legacy Tests (for completeness)
+        # 11. Legacy Tests (LOW PRIORITY)
         ("Get Projects", tester.test_get_projects),
         ("Get Project", tester.test_get_project),
         ("Get Tasks", tester.test_get_tasks),
