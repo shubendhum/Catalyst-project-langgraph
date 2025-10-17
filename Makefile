@@ -196,19 +196,21 @@ start-frontend-local: ## Start frontend development server locally
 	@echo "$(YELLOW)Press Ctrl+C to stop, or run 'make stop-frontend-local' in another terminal$(NC)"
 	@cd $(FRONTEND_DIR) && yarn start
 
-stop: stop-backend stop-frontend stop-mongo ## Stop all services
-	@echo "$(GREEN)All services stopped$(NC)"
+stop: docker-down ## Stop all services (Docker default)
+
+stop-local: stop-backend-local stop-frontend-local stop-mongo ## Stop all local services
+	@echo "$(GREEN)All local services stopped$(NC)"
 
 stop-mongo: ## Stop MongoDB
 	@echo "$(BLUE)Stopping MongoDB...$(NC)"
 	@$(DOCKER) stop $(MONGO_CONTAINER) 2>/dev/null || echo "$(YELLOW)MongoDB not running$(NC)"
 
-stop-backend: ## Stop backend server
-	@echo "$(BLUE)Stopping backend...$(NC)"
+stop-backend-local: ## Stop local backend server
+	@echo "$(BLUE)Stopping local backend...$(NC)"
 	@pkill -f "uvicorn server:app" || echo "$(YELLOW)Backend not running$(NC)"
 
-stop-frontend: ## Stop frontend server
-	@echo "$(BLUE)Stopping frontend...$(NC)"
+stop-frontend-local: ## Stop local frontend server
+	@echo "$(BLUE)Stopping local frontend...$(NC)"
 	@pkill -f "react-scripts start" || echo "$(YELLOW)Frontend not running$(NC)"
 
 restart: stop start ## Restart all services
