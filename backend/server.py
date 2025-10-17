@@ -311,12 +311,34 @@ async def get_llm_config():
             "aws_config": None
         }
     
-    # Don't expose API keys
+    # Transform backend format to frontend format
     safe_config = _llm_config.copy()
-    if safe_config.get("api_key"):
-        safe_config["api_key"] = "***"
-    if safe_config.get("aws_config") and safe_config["aws_config"].get("secret_access_key"):
-        safe_config["aws_config"]["secret_access_key"] = "***"
+    
+    # Handle AWS Bedrock config
+    if safe_config.get("aws_config"):
+        aws_config = safe_config.pop("aws_config")
+        safe_config["aws_access_key_id"] = "***" if aws_config.get("access_key_id") else ""
+        safe_config["aws_secret_access_key"] = "***" if aws_config.get("secret_access_key") else ""
+        safe_config["aws_region"] = aws_config.get("region", "us-east-1")
+        safe_config["aws_endpoint_url"] = aws_config.get("endpoint_url", "")
+        safe_config["bedrock_model_id"] = safe_config.get("model", "")
+    else:
+        # Initialize empty AWS fields for frontend
+        safe_config["aws_access_key_id"] = ""
+        safe_config["aws_secret_access_key"] = ""
+        safe_config["aws_region"] = "us-east-1"
+        safe_config["aws_endpoint_url"] = ""
+        safe_config["bedrock_model_id"] = ""
+    
+    # Handle Anthropic API key
+    if safe_config.get("provider") == "anthropic" and safe_config.get("api_key"):
+        safe_config["anthropic_api_key"] = "***"
+    else:
+        safe_config["anthropic_api_key"] = ""
+    
+    # Don't expose the internal api_key field
+    if "api_key" in safe_config:
+        safe_config.pop("api_key")
     
     return safe_config
 
