@@ -16,13 +16,17 @@ This guide explains how to configure Catalyst to use your organization's Artifac
 ### Using Artifactory Docker Files
 
 ```bash
-# 1. Use Artifactory docker-compose
-docker-compose -f docker-compose.artifactory.yml up -d
+# 1. Use Artifactory docker-compose (RECOMMENDED)
+docker-compose -f docker-compose.artifactory.yml up -d --build
 
 # Or with Makefile
 make setup-artifactory
 make start-artifactory
 ```
+
+**⚠️ Important**: The Dockerfiles use the correct build context automatically when using docker-compose or Makefile.
+
+**If you get "failed to compute cache key" error**, see [DOCKER_BUILD_TROUBLESHOOTING.md](DOCKER_BUILD_TROUBLESHOOTING.md)
 
 ---
 
