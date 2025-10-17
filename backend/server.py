@@ -22,7 +22,7 @@ from agents.deployer import DeployerAgent
 from agents.explorer import ExplorerAgent
 from orchestrator.executor import TaskExecutor
 from chat_interface.interface import ChatInterface, ChatMessage, Conversation
-from langgraph_orchestrator.orchestrator import LangGraphOrchestrator
+from orchestrator.phase1_orchestrator import get_phase1_orchestrator
 from llm_client import get_llm_client
 
 ROOT_DIR = Path(__file__).parent
