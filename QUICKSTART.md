@@ -8,24 +8,25 @@ Get Catalyst up and running in 5 minutes!
 
 ## Choose Your Deployment Method
 
-### 🚀 Option 1: Makefile (Fastest - One Command!)
+### 🐳 Option 1: Makefile + Docker Desktop (Fastest!)
+
+**Prerequisites**: Docker Desktop only
 
 ```bash
-# Complete setup + start services
+# Complete setup (builds images)
 make setup
-make start
 
-# Or for Docker
-make docker-up
+# Start all services
+make start
 ```
 
 **Access**: http://localhost:3000
 
-**That's it!** See [MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md) for all Makefile commands.
+**That's it! Everything in Docker.** See [DOCKER_MAKEFILE_GUIDE.md](DOCKER_MAKEFILE_GUIDE.md) for details.
 
 ---
 
-### 2. Local Development (Manual)
+### 2. Docker Compose (Direct)
 
 ```bash
 # Start MongoDB
