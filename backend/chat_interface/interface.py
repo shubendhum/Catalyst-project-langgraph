@@ -208,15 +208,15 @@ If not clear, suggest a name based on context."""
         project_name = project["name"]
         
         # Update conversation context
-        conversation.context["current_project_id"] = project.id
-        conversation.project_id = project.id
+        conversation.context["current_project_id"] = project_id
+        conversation.project_id = project_id
         
         return {
-            "content": f"✅ Project '{project.name}' created! I'm ready to help you build it. What would you like to create?",
+            "content": f"✅ Project '{project_name}' created! I'm ready to help you build it. What would you like to create?",
             "metadata": {
                 "action": "project_created",
-                "project_id": project.id,
-                "project_name": project.name
+                "project_id": project_id,
+                "project_name": project_name
             }
         }
     
