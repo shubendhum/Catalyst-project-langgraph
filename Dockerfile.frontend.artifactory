@@ -7,11 +7,19 @@ FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:18-alpine as builder
 
 WORKDIR /app
 
+# Install build dependencies and configure npm for potential Artifactory use
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    && yarn --version
+
 # Copy package files from frontend directory
 COPY package.json yarn.lock ./
 
-# Install dependencies
-RUN yarn install --frozen-lockfile
+# Install dependencies with increased timeout and network retry
+# Using network-timeout to handle slow connections
+RUN yarn install --frozen-lockfile --network-timeout 300000 --network-concurrency 1
 
 # Copy source code
 COPY . ./
