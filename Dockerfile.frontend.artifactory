@@ -24,7 +24,9 @@ RUN apk add --no-cache \
     && yarn --version
 
 # Set environment to bypass SSL for npm packages
+# Set NODE_ENV to development to ensure devDependencies are installed
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+ENV NODE_ENV=development
 
 # Configure yarn/npm to use PUBLIC npm registry with SSL disabled
 RUN yarn config set registry https://registry.npmjs.org/ && \
