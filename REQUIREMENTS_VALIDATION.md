@@ -9,7 +9,7 @@
 ### ✅ Multi-Agent AI Platform Named "Catalyst"
 - **Status**: COMPLETE
 - **Evidence**: Platform branded as "Catalyst" in UI and API responses
-- **URL**: https://catalyst-agents.preview.emergentagent.com
+- **URL**: https://catalyst-app-1.preview.emergentagent.com
 - **API Response**: `{"message":"Catalyst AI Platform API","version":"1.0.0"}`
 
 ### ✅ Tech Stack Adaptation
@@ -366,7 +366,7 @@ DB_NAME="catalyst_db"
 EMERGENT_LLM_KEY=sk-emergent-b14E29723DeDaF2A74
 
 # Frontend (.env)
-REACT_APP_BACKEND_URL=https://catalyst-agents.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://catalyst-app-1.preview.emergentagent.com
 ```
 
 ### ✅ GitHub Integration (Planned)
@@ -461,7 +461,7 @@ From original requirements:
 **Real-Time Updates**: WebSocket streaming operational  
 **Enterprise Safety**: Read-only mode with audit trails  
 
-**Live Demo**: https://catalyst-agents.preview.emergentagent.com
+**Live Demo**: https://catalyst-app-1.preview.emergentagent.com
 
 ---
 
