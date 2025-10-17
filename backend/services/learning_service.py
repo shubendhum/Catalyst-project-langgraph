@@ -76,9 +76,18 @@ class LearningService:
     
     def _create_simple_embedding(self, text: str) -> np.ndarray:
         """
-        Create simple embedding from text
-        In production, this would use a proper embedding model like Sentence Transformers
+        Create embedding from text
+        Uses sentence-transformers if available, otherwise simple hashing
         """
+        # Use proper embedding model if available
+        if self.embedding_model:
+            try:
+                embedding = self.embedding_model.encode(text, convert_to_numpy=True)
+                return embedding
+            except Exception as e:
+                logger.error(f"Error creating embedding: {e}")
+        
+        # Fallback to simple embedding
         # Normalize text
         text = text.lower().strip()
         
