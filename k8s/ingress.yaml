@@ -1,0 +1,35 @@
+# Ingress Configuration for Kubernetes
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: catalyst-ingress
+  namespace: catalyst
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/websocket-services: "catalyst-backend"
+spec:
+  tls:
+  - hosts:
+    - catalyst.yourdomain.com
+    secretName: catalyst-tls
+  rules:
+  - host: catalyst.yourdomain.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: catalyst-backend
+            port:
+              number: 8001
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: catalyst-frontend
+            port:
+              number: 80
