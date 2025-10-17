@@ -292,19 +292,18 @@ Provide: quality score, security assessment, recommendations, and approval statu
     # Helper methods
     async def _log(self, task_id: str, agent_name: str, message: str):
         """Log agent activity"""
-        from internal.models import AgentLog
         import uuid
         
-        log = AgentLog(
-            id=str(uuid.uuid4()),
-            task_id=task_id,
-            agent_name=agent_name,
-            message=message,
-            timestamp=datetime.now()
-        )
+        log = {
+            "id": str(uuid.uuid4()),
+            "task_id": task_id,
+            "agent_name": agent_name,
+            "message": message,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
         
-        await self.db.Logs.insert_one(log.dict())
-        self.ws_manager.send_log(task_id, log.dict())
+        await self.db.agent_logs.insert_one(log)
+        self.ws_manager.send_log(task_id, log)
     
     async def _update_task_status(self, task_id: str, status: str, cost: float):
         """Update task status in database"""
