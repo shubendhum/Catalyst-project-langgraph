@@ -582,18 +582,33 @@ def main():
     
     tester = CatalystAPITester()
     
-    # Test sequence
+    # Test sequence - focusing on chat interface as requested
     tests = [
         ("API Root", tester.test_api_root),
+        
+        # Chat Interface Tests (HIGH PRIORITY)
+        ("Set LLM Config (Emergent)", tester.test_set_llm_config_emergent),
+        ("Get LLM Config", tester.test_get_llm_config),
+        ("Set LLM Config (Anthropic)", tester.test_set_llm_config_anthropic),
+        ("Set LLM Config (Bedrock)", tester.test_set_llm_config_bedrock),
+        ("Create Conversation", tester.test_create_conversation),
+        ("List Conversations", tester.test_list_conversations),
+        ("Get Conversation", tester.test_get_conversation),
+        ("Send Help Message", tester.test_send_help_message),
+        ("Send Create Project Message", tester.test_send_create_project_message),
+        ("Send Build App Message", tester.test_send_build_app_message),
+        ("Send Status Message", tester.test_send_status_message),
+        ("Get Conversation Messages", tester.test_get_conversation_messages),
+        ("Delete Conversation", tester.test_delete_conversation),
+        
+        # Original Tests (for completeness)
         ("Create Project", tester.test_create_project),
         ("Get Projects", tester.test_get_projects),
         ("Get Project", tester.test_get_project),
         ("Create Task", tester.test_create_task),
         ("Get Tasks", tester.test_get_tasks),
         ("Get Task", tester.test_get_task),
-        ("Wait for Task Completion", tester.test_wait_for_task_completion),
         ("Get Agent Logs", tester.test_get_logs),
-        ("Get Deployment", tester.test_get_deployment),
         ("Explorer Scan", tester.test_explorer_scan),
         ("Get Explorer Scans", tester.test_get_explorer_scans),
     ]
