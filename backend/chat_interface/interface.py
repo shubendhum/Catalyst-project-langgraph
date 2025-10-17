@@ -2,7 +2,7 @@
 
 from typing import List, Dict, Optional
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 import json
 import re
