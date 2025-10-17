@@ -1,9 +1,11 @@
 """
 Learning Service
 Learns from past projects to improve future performance
+Uses Qdrant vector DB when available, falls back to in-memory storage
 """
 
 import numpy as np
+import os
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 from sklearn.metrics.pairwise import cosine_similarity
@@ -11,6 +13,23 @@ import logging
 import json
 
 logger = logging.getLogger(__name__)
+
+# Try to import Qdrant
+try:
+    from qdrant_client import QdrantClient
+    from qdrant_client.models import Distance, VectorParams, PointStruct
+    QDRANT_AVAILABLE = True
+except ImportError:
+    QDRANT_AVAILABLE = False
+    logger.warning("Qdrant not available, using in-memory vector storage")
+
+# Try to import proper embedding model
+try:
+    from sentence_transformers import SentenceTransformer
+    EMBEDDINGS_AVAILABLE = True
+except ImportError:
+    EMBEDDINGS_AVAILABLE = False
+    logger.warning("Sentence Transformers not available, using simple embeddings")
 
 
 class LearningService:
