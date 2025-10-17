@@ -2,6 +2,7 @@
 EKS (Kubernetes) Deployment Methods for Deployer Agent
 Contains all Kubernetes/EKS deployment generation methods
 """
+from typing import Dict, Optional
 
 
 def generate_k8s_namespace(self, project_name: str) -> str:
