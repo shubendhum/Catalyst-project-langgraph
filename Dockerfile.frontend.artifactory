@@ -49,11 +49,11 @@ RUN echo "Checking package files:" && \
 # Install dependencies with increased timeout
 # SSL verification disabled via config (strict-ssl false)
 # NOTE: Install production + dev dependencies (craco is in devDependencies)
+# Removed --frozen-lockfile to allow yarn to regenerate if needed
 RUN echo "Starting yarn install..." && \
-    yarn install --frozen-lockfile \
+    yarn install \
     --network-timeout 600000 \
     --network-concurrency 1 \
-    --production=false \
     --verbose && \
     echo "Yarn install completed successfully" && \
     echo "Checking node_modules directory:" && \
