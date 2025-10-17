@@ -285,6 +285,297 @@ class CatalystAPITester:
             return True
         return False
 
+    # ==================== CHAT INTERFACE TESTS ====================
+    
+    def test_set_llm_config_emergent(self):
+        """Test setting LLM config to emergent provider"""
+        config_data = {
+            "provider": "emergent",
+            "model": "claude-3-7-sonnet-20250219",
+            "api_key": None,
+            "aws_config": None
+        }
+        
+        success, response = self.run_test(
+            "Set LLM Config (Emergent)",
+            "POST",
+            "chat/config",
+            200,
+            data=config_data
+        )
+        
+        if success and response.get("status") == "success":
+            print(f"   Provider: {response.get('config', {}).get('provider')}")
+            print(f"   Model: {response.get('config', {}).get('model')}")
+            return True
+        return False
+
+    def test_set_llm_config_anthropic(self):
+        """Test setting LLM config to anthropic provider"""
+        config_data = {
+            "provider": "anthropic",
+            "model": "claude-3-sonnet-20240229",
+            "api_key": "test-key",
+            "aws_config": None
+        }
+        
+        success, response = self.run_test(
+            "Set LLM Config (Anthropic)",
+            "POST",
+            "chat/config",
+            200,
+            data=config_data
+        )
+        
+        if success and response.get("status") == "success":
+            print(f"   Provider: {response.get('config', {}).get('provider')}")
+            return True
+        return False
+
+    def test_set_llm_config_bedrock(self):
+        """Test setting LLM config to bedrock provider"""
+        config_data = {
+            "provider": "bedrock",
+            "model": "anthropic.claude-3-sonnet-20240229-v1:0",
+            "api_key": None,
+            "aws_config": {
+                "access_key_id": "test-key",
+                "secret_access_key": "test-secret",
+                "region": "us-east-1"
+            }
+        }
+        
+        success, response = self.run_test(
+            "Set LLM Config (Bedrock)",
+            "POST",
+            "chat/config",
+            200,
+            data=config_data
+        )
+        
+        if success and response.get("status") == "success":
+            print(f"   Provider: {response.get('config', {}).get('provider')}")
+            return True
+        return False
+
+    def test_get_llm_config(self):
+        """Test getting current LLM config"""
+        success, response = self.run_test(
+            "Get LLM Config",
+            "GET",
+            "chat/config",
+            200
+        )
+        
+        if success and "provider" in response:
+            print(f"   Provider: {response.get('provider')}")
+            print(f"   Model: {response.get('model')}")
+            print(f"   API Key: {response.get('api_key', 'None')}")
+            return True
+        return False
+
+    def test_create_conversation(self):
+        """Test creating a new conversation"""
+        success, response = self.run_test(
+            "Create Conversation",
+            "POST",
+            "chat/conversations",
+            200
+        )
+        
+        if success and "id" in response:
+            self.conversation_id = response["id"]
+            print(f"   Conversation ID: {self.conversation_id}")
+            print(f"   Title: {response.get('title')}")
+            return True
+        return False
+
+    def test_list_conversations(self):
+        """Test listing all conversations"""
+        success, response = self.run_test(
+            "List Conversations",
+            "GET",
+            "chat/conversations",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} conversations")
+            return True
+        return False
+
+    def test_get_conversation(self):
+        """Test getting specific conversation"""
+        if not self.conversation_id:
+            print("❌ Skipping - No conversation ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Get Conversation",
+            "GET",
+            f"chat/conversations/{self.conversation_id}",
+            200
+        )
+        
+        if success and response.get("id") == self.conversation_id:
+            print(f"   Title: {response.get('title')}")
+            print(f"   Messages: {len(response.get('messages', []))}")
+            return True
+        return False
+
+    def test_send_help_message(self):
+        """Test sending help message"""
+        if not self.conversation_id:
+            print("❌ Skipping - No conversation ID available")
+            return False
+            
+        message_data = {
+            "message": "help",
+            "conversation_id": self.conversation_id
+        }
+        
+        success, response = self.run_test(
+            "Send Help Message",
+            "POST",
+            "chat/send",
+            200,
+            data=message_data,
+            timeout=60
+        )
+        
+        if success and response.get("status") == "success":
+            message_content = response.get("message", {}).get("content", "")
+            print(f"   Response length: {len(message_content)} chars")
+            print(f"   Contains help info: {'help' in message_content.lower()}")
+            return True
+        return False
+
+    def test_send_create_project_message(self):
+        """Test sending create project message"""
+        if not self.conversation_id:
+            print("❌ Skipping - No conversation ID available")
+            return False
+            
+        message_data = {
+            "message": "create a new project called TestChatApp for testing the chat interface",
+            "conversation_id": self.conversation_id
+        }
+        
+        success, response = self.run_test(
+            "Send Create Project Message",
+            "POST",
+            "chat/send",
+            200,
+            data=message_data,
+            timeout=60
+        )
+        
+        if success and response.get("status") == "success":
+            message_content = response.get("message", {}).get("content", "")
+            metadata = response.get("message", {}).get("metadata", {})
+            print(f"   Response: {message_content[:100]}...")
+            print(f"   Action: {metadata.get('action')}")
+            if metadata.get("project_id"):
+                print(f"   Project ID: {metadata.get('project_id')}")
+            return True
+        return False
+
+    def test_send_build_app_message(self):
+        """Test sending build app message"""
+        if not self.conversation_id:
+            print("❌ Skipping - No conversation ID available")
+            return False
+            
+        message_data = {
+            "message": "build me a simple todo list app with React frontend and FastAPI backend",
+            "conversation_id": self.conversation_id
+        }
+        
+        success, response = self.run_test(
+            "Send Build App Message",
+            "POST",
+            "chat/send",
+            200,
+            data=message_data,
+            timeout=60
+        )
+        
+        if success and response.get("status") == "success":
+            message_content = response.get("message", {}).get("content", "")
+            metadata = response.get("message", {}).get("metadata", {})
+            print(f"   Response: {message_content[:100]}...")
+            print(f"   Action: {metadata.get('action')}")
+            if metadata.get("task_id"):
+                print(f"   Task ID: {metadata.get('task_id')}")
+            return True
+        return False
+
+    def test_send_status_message(self):
+        """Test sending status check message"""
+        if not self.conversation_id:
+            print("❌ Skipping - No conversation ID available")
+            return False
+            
+        message_data = {
+            "message": "what's the status?",
+            "conversation_id": self.conversation_id
+        }
+        
+        success, response = self.run_test(
+            "Send Status Message",
+            "POST",
+            "chat/send",
+            200,
+            data=message_data,
+            timeout=60
+        )
+        
+        if success and response.get("status") == "success":
+            message_content = response.get("message", {}).get("content", "")
+            metadata = response.get("message", {}).get("metadata", {})
+            print(f"   Response: {message_content[:100]}...")
+            print(f"   Action: {metadata.get('action')}")
+            return True
+        return False
+
+    def test_get_conversation_messages(self):
+        """Test getting conversation messages"""
+        if not self.conversation_id:
+            print("❌ Skipping - No conversation ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Get Conversation Messages",
+            "GET",
+            f"chat/conversations/{self.conversation_id}/messages",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} messages")
+            for i, msg in enumerate(response[:3]):  # Show first 3 messages
+                print(f"   Message {i+1}: {msg.get('role')} - {msg.get('content', '')[:50]}...")
+            return True
+        return False
+
+    def test_delete_conversation(self):
+        """Test deleting a conversation"""
+        if not self.conversation_id:
+            print("❌ Skipping - No conversation ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Delete Conversation",
+            "DELETE",
+            f"chat/conversations/{self.conversation_id}",
+            200
+        )
+        
+        if success and response.get("status") == "success":
+            print(f"   Message: {response.get('message')}")
+            return True
+        return False
+
 def main():
     print("🚀 Starting Catalyst API Testing...")
     print("=" * 60)
