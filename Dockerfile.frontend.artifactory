@@ -65,8 +65,13 @@ RUN echo "Starting yarn install attempt 1..." && \
 
 # Verify dependencies installed
 RUN echo "=== Verifying installed packages ===" && \
-    ls -la node_modules/.bin/ | grep craco || echo "WARNING: craco not found in node_modules/.bin" && \
-    test -f node_modules/.bin/craco && echo "✓ craco binary found" || echo "✗ craco binary NOT found"
+    ls -la node_modules/.bin/ | head -20 && \
+    if [ -f node_modules/.bin/craco ]; then \
+        echo "✓ craco binary found"; \
+    else \
+        echo "✗ craco binary NOT found"; \
+        exit 1; \
+    fi
 
 # Copy source code
 COPY . ./
