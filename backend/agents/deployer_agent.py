@@ -1,6 +1,6 @@
 """
 Deployer Agent
-Creates Docker containers and handles deployment configuration
+Creates Docker containers and handles deployment to Docker, EC2, and EKS
 """
 import logging
 import subprocess
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class DeployerAgent:
     """
-    Agent responsible for deployment via Docker
+    Agent responsible for deployment via Docker, EC2, and EKS
     """
     
     def __init__(self, llm_client, db, manager, file_service):
@@ -28,83 +28,73 @@ class DeployerAgent:
         self,
         project_name: str,
         architecture: Dict,
+        deployment_target: str = "docker",  # "docker", "ec2", "eks"
+        deployment_config: Optional[Dict] = None,
         task_id: Optional[str] = None
     ) -> Dict:
         """
-        Create Docker configuration and deployment files
+        Create deployment configuration for specified target
         
         Args:
             project_name: Name of the project
             architecture: Technical architecture
+            deployment_target: Target platform (docker, ec2, eks)
+            deployment_config: Optional deployment configuration
             task_id: Task ID for logging
             
         Returns:
             Dictionary with deployment results
         """
-        logger.info(f"Creating deployment configuration for: {project_name}")
+        logger.info(f"Creating {deployment_target} deployment for: {project_name}")
         
         if task_id:
-            await self._log(task_id, "🐳 Starting Docker deployment configuration...")
+            await self._log(task_id, f"🚀 Starting {deployment_target.upper()} deployment configuration...")
         
         deployment_result = {
+            "deployment_target": deployment_target,
             "docker_files": {},
+            "deployment_files": {},
             "deployment_instructions": "",
             "status": "pending"
         }
         
         try:
-            # Generate Dockerfiles
+            # Always generate Docker files (needed for all deployment types)
             if task_id:
-                await self._log(task_id, "📝 Generating Dockerfiles...")
+                await self._log(task_id, "📝 Generating Docker configuration...")
             
-            backend_dockerfile = await self._generate_backend_dockerfile(architecture)
-            frontend_dockerfile = await self._generate_frontend_dockerfile(architecture)
+            docker_files = await self._generate_docker_files(project_name, architecture, task_id)
+            deployment_result["docker_files"] = docker_files
             
-            # Generate docker-compose.yml
+            # Generate deployment-specific files
+            if deployment_target == "docker":
+                deployment_files = await self._generate_docker_deployment(project_name, architecture, task_id)
+            elif deployment_target == "ec2":
+                deployment_files = await self._generate_ec2_deployment(
+                    project_name, architecture, deployment_config or {}, task_id
+                )
+            elif deployment_target == "eks":
+                deployment_files = await self._generate_eks_deployment(
+                    project_name, architecture, deployment_config or {}, task_id
+                )
+            else:
+                raise ValueError(f"Unknown deployment target: {deployment_target}")
+            
+            deployment_result["deployment_files"] = deployment_files
+            
+            # Save all files
             if task_id:
-                await self._log(task_id, "🔧 Generating docker-compose configuration...")
+                await self._log(task_id, "💾 Saving deployment files...")
             
-            docker_compose = await self._generate_docker_compose(project_name, architecture)
-            
-            # Generate .dockerignore files
-            backend_dockerignore = self._generate_dockerignore("backend")
-            frontend_dockerignore = self._generate_dockerignore("frontend")
-            
-            # Generate deployment script
-            deploy_script = self._generate_deploy_script(project_name)
-            
-            # Generate environment files
-            env_production = self._generate_production_env(architecture)
-            
-            # Generate nginx config for frontend
-            nginx_config = self._generate_nginx_config()
-            
-            deployment_files = {
-                "backend/Dockerfile": backend_dockerfile,
-                "frontend/Dockerfile": frontend_dockerfile,
-                "docker-compose.yml": docker_compose,
-                "backend/.dockerignore": backend_dockerignore,
-                "frontend/.dockerignore": frontend_dockerignore,
-                "deploy.sh": deploy_script,
-                ".env.production": env_production,
-                "frontend/nginx.conf": nginx_config,
-                "README.DEPLOYMENT.md": await self._generate_deployment_readme(project_name)
-            }
-            
-            # Save all deployment files
-            if task_id:
-                await self._log(task_id, "💾 Saving deployment configuration files...")
-            
-            for file_path, content in deployment_files.items():
+            all_files = {**docker_files, **deployment_files}
+            for file_path, content in all_files.items():
                 self.file_service.write_file(project_name, file_path, content)
             
-            deployment_result["docker_files"] = deployment_files
             deployment_result["status"] = "success"
             deployment_result["timestamp"] = datetime.now(timezone.utc).isoformat()
             
             if task_id:
-                await self._log(task_id, "✅ Docker deployment configuration complete!")
-                await self._log(task_id, "📦 Run: cd project && docker-compose up --build")
+                await self._log(task_id, f"✅ {deployment_target.upper()} deployment configuration complete!")
             
             return deployment_result
             
