@@ -15,9 +15,11 @@ RUN apk add --no-cache \
     git \
     && yarn --version
 
-# Configure yarn/npm to use Artifactory registry
+# Configure yarn/npm to use Artifactory registry and disable SSL verification
 RUN yarn config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
     npm config set registry https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
+    yarn config set strict-ssl false && \
+    npm config set strict-ssl false && \
     yarn config list
 
 # Copy package files from frontend directory
