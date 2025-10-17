@@ -285,7 +285,7 @@ Provide: quality score, security assessment, recommendations, and approval statu
             return final_state
         
         except Exception as e:
-            await self._log(task_id, "Orchestrator", f"❌ Error: {str(e)}")
+            await self._log(task_id, "Orchestrator", f"[ERROR] Error: {str(e)}")
             await self._update_task_status(task_id, "failed", 0)
             raise
     
