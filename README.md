@@ -216,7 +216,8 @@ aws ecs register-task-definition --cli-input-json file://aws/ecs-task-definition
 - **[API Documentation](http://localhost:8001/docs)** - Interactive API docs (when running)
 
 ### Deployment Documentation
-- **[ALPINE_SSL_FIX.md](ALPINE_SSL_FIX.md)** - ⭐ **LATEST** - Alpine apk SSL certificate fix
+- **[ALPINE_SSL_FIX_FINAL.md](ALPINE_SSL_FIX_FINAL.md)** - ⭐ **LATEST** - Complete Alpine SSL solution
+- **[ALPINE_SSL_FIX.md](ALPINE_SSL_FIX.md)** - Alpine apk SSL certificate fix
 - **[SSL_CERTIFICATE_FIX.md](SSL_CERTIFICATE_FIX.md)** - Yarn/NPM SSL certificate fix
 - **[YARN_INSTALL_FIX_APPLIED.md](YARN_INSTALL_FIX_APPLIED.md)** - Yarn install failure fix
 - **[YARN_INSTALL_TROUBLESHOOTING.md](YARN_INSTALL_TROUBLESHOOTING.md)** - Complete yarn troubleshooting
