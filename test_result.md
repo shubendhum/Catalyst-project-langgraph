@@ -337,8 +337,10 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus: 
+    - "Phase 4 MVP: Workspace Service ObjectId serialization fix"
+  stuck_tasks: 
+    - "Phase 4 MVP: Workspace Service GET endpoints (MongoDB ObjectId serialization)"
   test_all: false
   test_priority: "high_first"
 
