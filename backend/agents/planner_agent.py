@@ -317,19 +317,13 @@ Format your response as structured JSON that can be parsed. Use this structure:
             "api_endpoints": self._extract_endpoints_from_text(""),
             "metadata": {
                 "project_name": project_name,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "agent": self.agent_name,
                 "fallback": True
             }
         }
 
 
-# Singleton instance
-_planner_agent = None
-
-def get_planner_agent() -> PlannerAgent:
-    """Get the singleton PlannerAgent instance"""
-    global _planner_agent
-    if _planner_agent is None:
-        _planner_agent = PlannerAgent()
-    return _planner_agent
+def get_planner_agent(llm_client) -> PlannerAgent:
+    """Get PlannerAgent instance"""
+    return PlannerAgent(llm_client)
