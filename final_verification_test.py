@@ -6,7 +6,7 @@ Final verification test for all chat interface functionality
 import requests
 import json
 
-BASE_URL = "https://catalyst-stack.preview.emergentagent.com/api"
+BASE_URL = "https://catalyst-agents.preview.emergentagent.com/api"
 
 def test_endpoint(name, method, endpoint, data=None, timeout=15):
     """Test endpoint with detailed logging"""
