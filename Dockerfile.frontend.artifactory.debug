@@ -24,18 +24,18 @@ RUN apk add --no-cache \
 
 # Set environment to bypass SSL completely
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
-ENV YARN_REGISTRY=http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/
-ENV NPM_CONFIG_REGISTRY=http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/
+ENV YARN_REGISTRY=https://registry.npmjs.org/
+ENV NPM_CONFIG_REGISTRY=https://registry.npmjs.org/
 
-# Configure yarn/npm to use HTTP Artifactory registry (not HTTPS)
-RUN yarn config set registry http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
-    npm config set registry http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
+# Configure yarn/npm to use PUBLIC npm registry (not Artifactory)
+RUN yarn config set registry https://registry.npmjs.org/ && \
+    npm config set registry https://registry.npmjs.org/ && \
     yarn config set strict-ssl false && \
     npm config set strict-ssl false && \
     echo "=== Yarn Configuration ===" && \
     yarn config list && \
     echo "=== Testing Registry Access ===" && \
-    curl -I http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ || echo "Registry not accessible"
+    curl -I https://registry.npmjs.org/ || echo "Registry not accessible"
 
 # Copy package files
 COPY package.json yarn.lock ./
