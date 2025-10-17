@@ -7,6 +7,10 @@ FROM artifactory.devtools.syd.c1.macquarie.com:9996/python:3.11-slim as builder
 
 WORKDIR /app
 
+# Set environment to bypass SSL verification for pip
+ENV PYTHONHTTPSVERIFY=0
+ENV PIP_TRUSTED_HOST="pypi.org files.pythonhosted.org pypi.python.org"
+
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
