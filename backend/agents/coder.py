@@ -414,11 +414,6 @@ Include:
         await self.db.agent_logs.insert_one(log_doc)
         await self.manager.send_log(task_id, log_doc)
 
-
-def get_coder_agent(llm_client, db, manager, file_service) -> CoderAgent:
-    """Get CoderAgent instance"""
-    return CoderAgent(llm_client, db, manager, file_service)
-
     async def _generate_backend_files(
         self,
         architecture: Dict,
