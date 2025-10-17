@@ -213,7 +213,9 @@ stop-frontend-local: ## Stop local frontend server
 	@echo "$(BLUE)Stopping local frontend...$(NC)"
 	@pkill -f "react-scripts start" || echo "$(YELLOW)Frontend not running$(NC)"
 
-restart: stop start ## Restart all services
+restart: stop start ## Restart all services (Docker default)
+
+restart-local: stop-local start-local ## Restart all local services
 
 status: ## Show status of all services
 	@echo "$(BLUE)Service Status:$(NC)"
