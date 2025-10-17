@@ -414,7 +414,7 @@ dev-local: ## Quick start for local development
 
 quick-start: start ## Quick start (assumes setup already done)
 
-watch-backend: ## Watch backend logs in real-time
+watch-backend-local: ## Watch backend logs in real-time (local development)
 	@cd $(BACKEND_DIR) && . venv/bin/activate && uvicorn server:app --host 0.0.0.0 --port 8001 --reload --log-level debug
 
 format: ## Format code (backend: black, frontend: prettier)
