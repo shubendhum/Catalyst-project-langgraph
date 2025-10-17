@@ -194,13 +194,12 @@ If not clear, suggest a name based on context."""
             }
         
         # Create project in database
-        from internal.models import Project
         project = Project(
             id=str(uuid.uuid4()),
             name=project_details.get("name", "New Project"),
             description=project_details.get("description", message),
             status="active",
-            created_at=datetime.now()
+            created_at=datetime.now(timezone.utc)
         )
         
         await self.db.Projects.insert_one(project.dict())
