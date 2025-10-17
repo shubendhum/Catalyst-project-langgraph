@@ -31,7 +31,10 @@ A production-ready multi-agent AI platform featuring LangGraph orchestration, co
 - **Multi-Agent Orchestration**: 6 specialized AI agents (Planner, Architect, Coder, Tester, Reviewer, Deployer)
 - **LangGraph Integration**: State-driven workflow with conditional edges and feedback loops
 - **Conversational Interface**: Natural language chat with intent recognition
-- **Multi-LLM Support**: Emergent LLM Key, Anthropic Claude, AWS Bedrock
+- **Multi-LLM Support**: 
+  - ✅ Emergent LLM Key (Claude, GPT, Gemini)
+  - ✅ Anthropic Claude Direct
+  - ✅ **AWS Bedrock** (All Claude models) - [See AWS_BEDROCK_GUIDE.md](AWS_BEDROCK_GUIDE.md)
 - **Real-time Updates**: WebSocket-based agent activity streaming
 - **Session Management**: Persistent conversations with context
 - **Enterprise Explorer**: Read-only integration with GitHub, Jira, ServiceNow
