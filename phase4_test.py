@@ -148,7 +148,11 @@ class Phase4Tester:
             "Learning Service (Similar)",
             "POST",
             "learning/similar",
-            data={"task_description": "authentication", "limit": 3}
+            data={
+                "task_description": "authentication", 
+                "tech_stack": ["React"],
+                "limit": 3
+            }
         )
         if success and response.get("success"):
             print(f"   Similar projects: {len(response.get('similar_projects', []))}")
