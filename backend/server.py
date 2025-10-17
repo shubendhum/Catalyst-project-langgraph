@@ -266,7 +266,31 @@ async def set_llm_config(config: LLMConfig):
     """Set LLM provider configuration"""
     global _llm_config, _chat_interface, _langgraph_orchestrator
     
-    _llm_config = config.model_dump()
+    config_dict = config.model_dump()
+    
+    # Transform frontend config to backend format
+    # Frontend sends: aws_access_key_id, aws_secret_access_key, aws_region, aws_endpoint_url
+    # Backend expects: aws_config dict
+    if config_dict.get("provider") == "bedrock":
+        aws_config = {}
+        if "aws_access_key_id" in config_dict:
+            aws_config["access_key_id"] = config_dict.pop("aws_access_key_id", "")
+        if "aws_secret_access_key" in config_dict:
+            aws_config["secret_access_key"] = config_dict.pop("aws_secret_access_key", "")
+        if "aws_region" in config_dict:
+            aws_config["region"] = config_dict.pop("aws_region", "us-east-1")
+        if "aws_endpoint_url" in config_dict and config_dict["aws_endpoint_url"]:
+            aws_config["endpoint_url"] = config_dict.pop("aws_endpoint_url", "")
+        if "bedrock_model_id" in config_dict:
+            config_dict["model"] = config_dict.pop("bedrock_model_id", config_dict["model"])
+        
+        config_dict["aws_config"] = aws_config
+    elif config_dict.get("provider") == "anthropic":
+        # Handle Anthropic API key
+        if "anthropic_api_key" in config_dict:
+            config_dict["api_key"] = config_dict.pop("anthropic_api_key", "")
+    
+    _llm_config = config_dict
     
     # Reset chat interface to use new config
     _chat_interface = None
