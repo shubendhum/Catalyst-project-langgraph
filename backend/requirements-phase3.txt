@@ -1,5 +1,0 @@
-cryptography==46.0.2
-google-cloud-compute==1.40.0
-google-cloud-core==2.4.3
-google-cloud-functions==1.21.0
-google-cloud-storage==3.4.1
