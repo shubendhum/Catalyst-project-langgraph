@@ -69,6 +69,24 @@ check-docker: ## Check if Docker is installed and running
 	@command -v $(DOCKER_COMPOSE) >/dev/null 2>&1 || { echo "$(RED)Docker Compose is not installed!$(NC)"; exit 1; }
 	@echo "$(GREEN)✓ Docker is installed and running$(NC)"
 
+##@ Local Development Setup (Alternative)
+
+setup-local: ## Local setup (install Python/Node dependencies locally)
+	@echo "$(GREEN)Starting local development setup...$(NC)"
+	@$(MAKE) check-local-prerequisites
+	@$(MAKE) install
+	@$(MAKE) setup-env
+	@$(MAKE) install-mongo
+	@echo "$(GREEN)Local setup complete! Run 'make start-local' to launch services.$(NC)"
+
+check-local-prerequisites: ## Check if local development tools are installed
+	@echo "$(BLUE)Checking local prerequisites...$(NC)"
+	@command -v python3 >/dev/null 2>&1 || { echo "$(RED)Python 3 is not installed!$(NC)"; exit 1; }
+	@command -v node >/dev/null 2>&1 || { echo "$(RED)Node.js is not installed!$(NC)"; exit 1; }
+	@command -v $(DOCKER) >/dev/null 2>&1 || { echo "$(RED)Docker is not installed!$(NC)"; exit 1; }
+	@command -v yarn >/dev/null 2>&1 || { echo "$(YELLOW)Yarn not found, installing...$(NC)"; npm install -g yarn; }
+	@echo "$(GREEN)✓ All local prerequisites are installed$(NC)"
+
 install: install-backend install-frontend ## Install all dependencies (backend + frontend)
 	@echo "$(GREEN)All dependencies installed!$(NC)"
 
