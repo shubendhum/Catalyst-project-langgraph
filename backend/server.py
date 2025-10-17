@@ -691,6 +691,9 @@ async def get_workspace(workspace_id: str):
     try:
         workspace = await workspace_service.get_workspace(workspace_id)
         if workspace:
+            # Remove MongoDB _id field before returning
+            if "_id" in workspace:
+                del workspace["_id"]
             return {"success": True, "workspace": workspace}
         return {"success": False, "error": "Workspace not found"}
     except Exception as e:
