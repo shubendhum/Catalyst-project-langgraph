@@ -307,7 +307,7 @@ Provide: quality score, security assessment, recommendations, and approval statu
     
     async def _update_task_status(self, task_id: str, status: str, cost: float):
         """Update task status in database"""
-        await self.db.Tasks.update_one(
+        await self.db.tasks.update_one(
             {"id": task_id},
             {"$set": {"status": status, "cost": cost}}
         )
