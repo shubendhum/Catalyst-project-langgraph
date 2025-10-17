@@ -99,13 +99,15 @@ A production-ready multi-agent AI platform featuring LangGraph orchestration, co
 
 ## Quick Start
 
-### Using Makefile (Fastest - One Command!)
+### 🐳 Using Makefile + Docker Desktop (Fastest!)
+
+**Prerequisites**: Docker Desktop installed and running
 
 ```bash
-# Complete setup
+# Complete setup (builds Docker images)
 make setup
 
-# Start all services
+# Start all services in Docker
 make start
 
 # Access:
@@ -114,9 +116,11 @@ make start
 # API Docs: http://localhost:8001/docs
 ```
 
-**See [MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md) for all commands.**
+**That's it! Everything runs in Docker containers.**
 
-### Using Docker
+**See [DOCKER_MAKEFILE_GUIDE.md](DOCKER_MAKEFILE_GUIDE.md) for complete Docker setup guide.**
+
+### Using Docker Compose Directly
 
 ```bash
 # Clone repository
