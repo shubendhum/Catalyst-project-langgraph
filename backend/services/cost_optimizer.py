@@ -1,10 +1,12 @@
 """
 Cost Optimizer Service
 Reduces LLM costs through intelligent caching, model selection, and token optimization
+Uses Redis when available, falls back to in-memory cache
 """
 
 import hashlib
 import json
+import os
 from typing import Dict, Optional, Any, List
 from datetime import datetime, timezone, timedelta
 from cachetools import TTLCache
@@ -12,6 +14,14 @@ import logging
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
+# Try to import Redis
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    logger.warning("Redis not available, using in-memory cache")
 
 
 class CostOptimizer:
