@@ -151,11 +151,12 @@ class Phase4Tester:
         if success and response.get("success"):
             print(f"   Similar projects: {len(response.get('similar_projects', []))}")
         
-        # Predict success (Note: This endpoint has design issues with List parameters)
+        # Predict success (Mixed params and body)
         success, response = self.test_endpoint(
             "Learning Service (Predict)",
             "POST",
             "learning/predict",
+            data=["React", "FastAPI"],
             params={
                 "task_description": "login system"
             }
