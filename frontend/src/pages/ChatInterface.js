@@ -233,6 +233,17 @@ const ChatInterface = () => {
                     />
                   </div>
                   <div>
+                    <Label>AWS Endpoint URL (Optional)</Label>
+                    <Input 
+                      value={llmConfig.aws_endpoint_url}
+                      onChange={(e) => setLlmConfig({...llmConfig, aws_endpoint_url: e.target.value})}
+                      placeholder="https://bedrock.vpce-xxxxx.region.vpce.amazonaws.com"
+                    />
+                    <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                      For VPC endpoints or organization-specific AWS URLs
+                    </p>
+                  </div>
+                  <div>
                     <Label>Bedrock Model ID</Label>
                     <Input 
                       value={llmConfig.bedrock_model_id}
