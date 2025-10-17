@@ -11,6 +11,7 @@ class CatalystAPITester:
         self.tests_passed = 0
         self.project_id = None
         self.task_id = None
+        self.conversation_id = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, timeout=30):
         """Run a single API test"""
