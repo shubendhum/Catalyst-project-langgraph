@@ -99,7 +99,24 @@ A production-ready multi-agent AI platform featuring LangGraph orchestration, co
 
 ## Quick Start
 
-### Using Docker (Fastest)
+### Using Makefile (Fastest - One Command!)
+
+```bash
+# Complete setup
+make setup
+
+# Start all services
+make start
+
+# Access:
+# Frontend: http://localhost:3000
+# Backend:  http://localhost:8001/api
+# API Docs: http://localhost:8001/docs
+```
+
+**See [MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md) for all commands.**
+
+### Using Docker
 
 ```bash
 # Clone repository
