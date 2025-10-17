@@ -253,15 +253,15 @@ If not clear, suggest a name based on context."""
         )
         
         return {
-            "content": f"""🚀 Perfect! I'm starting to work on that for you.
+            "content": f"""Perfect! I'm starting to work on that for you.
 
 Here's what my team will do:
-1. 🧠 Planner will analyze your requirements
-2. 🏗️ Architect will design the system
-3. 💻 Coder will write the implementation
-4. 🧪 Tester will validate everything works
-5. 👀 Reviewer will check code quality
-6. 🚀 Deployer will launch your app
+1. Planner will analyze your requirements
+2. Architect will design the system
+3. Coder will write the implementation
+4. Tester will validate everything works
+5. Reviewer will check code quality
+6. Deployer will launch your app
 
 I'll keep you updated on progress. You can check the status anytime!",
             "metadata": {
