@@ -7,12 +7,13 @@ FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:18-alpine as builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apk add --no-cache \
+# Install build dependencies (with SSL verification disabled for apk)
+RUN apk add --no-cache --allow-untrusted \
     python3 \
     make \
     g++ \
     git \
+    ca-certificates \
     && yarn --version
 
 # Configure yarn/npm to use Artifactory registry and disable SSL verification
