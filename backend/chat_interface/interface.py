@@ -249,7 +249,7 @@ If not clear, suggest a name based on context."""
         # Start LangGraph orchestration in background
         import asyncio
         asyncio.create_task(
-            self.orchestrator.execute_task(task.id, project_id, message)
+            self.orchestrator.execute_task(task_id, project_id, message)
         )
         
         return {
@@ -266,7 +266,7 @@ Here's what my team will do:
 I'll keep you updated on progress. You can check the status anytime!",
             "metadata": {
                 "action": "task_started",
-                "task_id": task.id,
+                "task_id": task_id,
                 "project_id": project_id
             }
         }
