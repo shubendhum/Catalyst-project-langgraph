@@ -283,7 +283,7 @@ I'll keep you updated on progress. You can check the status anytime!",
             }
         
         # Get latest task
-        tasks = await self.db.Tasks.find({"project_id": project_id}).sort("created_at", -1).limit(1).to_list(1)
+        tasks = await self.db.tasks.find({"project_id": project_id}).sort("created_at", -1).limit(1).to_list(1)
         
         if not tasks:
             return {
