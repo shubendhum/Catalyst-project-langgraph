@@ -22,6 +22,7 @@ const ChatInterface = () => {
     aws_access_key_id: '',
     aws_secret_access_key: '',
     aws_region: 'us-east-1',
+    aws_endpoint_url: '',
     bedrock_model_id: 'anthropic.claude-3-sonnet-20240229-v1:0'
   });
 
