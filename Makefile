@@ -589,6 +589,59 @@ phase4-ui-rabbitmq: ## Open RabbitMQ Management UI in browser
 
 phase4-install-deps: ## Install Python dependencies for Phase 4
         @echo "$(BLUE)📦 Installing Phase 4 Python dependencies...$(NC)"
+
+
+##@ Phase 4 Infrastructure - Artifactory
+
+phase4-artifactory-start: ## Start Phase 4 with Artifactory registry
+        @echo "$(GREEN)🚀 Starting Phase 4 infrastructure (Artifactory)...$(NC)"
+        @docker compose -f docker-compose.phase4.artifactory.yml up -d
+        @sleep 5
+        @docker compose -f docker-compose.phase4.artifactory.yml ps
+        @echo ""
+        @echo "$(GREEN)✅ Phase 4 services started with Artifactory!$(NC)"
+        @echo ""
+        @echo "$(BLUE)Service URLs:$(NC)"
+        @echo "  Redis:       redis://localhost:6379"
+        @echo "  Qdrant:      http://localhost:6333"
+        @echo "  RabbitMQ:    amqp://localhost:5672"
+        @echo "  RabbitMQ UI: http://localhost:15672 (catalyst/catalyst_queue_2025)"
+
+phase4-artifactory-stop: ## Stop Phase 4 Artifactory services
+        @echo "$(BLUE)🛑 Stopping Phase 4 Artifactory services...$(NC)"
+        @docker compose -f docker-compose.phase4.artifactory.yml stop
+        @echo "$(GREEN)✅ Services stopped$(NC)"
+
+phase4-artifactory-restart: ## Restart Phase 4 Artifactory services
+        @echo "$(BLUE)🔄 Restarting Phase 4 Artifactory services...$(NC)"
+        @docker compose -f docker-compose.phase4.artifactory.yml restart
+        @sleep 3
+        @docker compose -f docker-compose.phase4.artifactory.yml ps
+
+phase4-artifactory-logs: ## View Phase 4 Artifactory logs
+        @docker compose -f docker-compose.phase4.artifactory.yml logs -f
+
+phase4-artifactory-clean: ## Clean Phase 4 Artifactory services (DESTRUCTIVE)
+        @echo "$(RED)⚠️  WARNING: This will remove all Phase 4 containers and data volumes!$(NC)"
+        @read -p "Are you sure? [y/N] " -n 1 -r; \
+        echo; \
+        if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+                echo "$(BLUE)🗑️  Cleaning up Phase 4 Artifactory infrastructure...$(NC)"; \
+                docker compose -f docker-compose.phase4.artifactory.yml down -v; \
+                echo "$(GREEN)✅ Cleanup complete$(NC)"; \
+        else \
+                echo "$(YELLOW)❌ Cleanup cancelled$(NC)"; \
+        fi
+
+phase4-artifactory-setup: phase4-install-deps phase4-artifactory-start ## Complete Phase 4 setup with Artifactory
+        @echo ""
+        @echo "$(GREEN)✅ Phase 4 Artifactory setup complete!$(NC)"
+        @echo ""
+        @echo "$(BLUE)Next steps:$(NC)"
+        @echo "  1. Restart backend: $(YELLOW)sudo supervisorctl restart backend$(NC)"
+        @echo "  2. Check health:    $(YELLOW)make phase4-health$(NC)"
+        @echo "  3. View logs:       $(YELLOW)make phase4-artifactory-logs$(NC)"
+
         @cd backend && pip install redis qdrant-client pika sentence-transformers
         @echo "$(GREEN)✅ Dependencies installed$(NC)"
 
