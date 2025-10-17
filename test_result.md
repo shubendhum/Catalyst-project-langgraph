@@ -225,11 +225,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Create unified LLM client supporting Emergent LLM Key and custom providers"
-    - "Add chat API endpoints to server.py"
-    - "Update LangGraph orchestrator to use unified LLM client"
-    - "Fix chat interface datetime and database references"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
