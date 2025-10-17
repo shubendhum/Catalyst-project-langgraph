@@ -511,13 +511,3 @@ def get_coder_agent(llm_client, db, manager, file_service) -> CoderAgent:
         config_files["README.md"] = await self._generate_readme(architecture, project_name)
         
         return config_files
-
-    async def _log(self, task_id: str, agent_name: str, message: str):
-        log_doc = {
-            "task_id": task_id,
-            "agent_name": agent_name,
-            "message": message,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        await self.db.agent_logs.insert_one(log_doc)
-        await self.manager.send_log(task_id, log_doc)
