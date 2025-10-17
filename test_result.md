@@ -227,11 +227,11 @@ frontend:
 infrastructure:
   - task: "Fix Docker frontend entrypoint error"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/Dockerfile.frontend.artifactory, /app/frontend/nginx.conf"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "user"
@@ -239,6 +239,21 @@ infrastructure:
       - working: "NA"
         agent: "main"
         comment: "Fixed nginx.conf structure - added complete config with events and http blocks (removed user directive to avoid permission errors). Updated Dockerfile to use default nginx user instead of custom catalyst user, added proper permissions and nginx -t validation. See DOCKER_ENTRYPOINT_FIX.md for details."
+      - working: true
+        agent: "user"
+        comment: "Docker frontend container started successfully after fixes"
+
+  - task: "Add AWS VPC Endpoint URL support for organization-specific AWS connections"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/llm_client.py, /app/backend/server.py, /app/frontend/src/pages/ChatInterface.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added AWS Endpoint URL field to LLM settings for VPC endpoints and organization-specific AWS URLs. Updated backend to accept and pass endpoint_url to boto3 ChatBedrock client. Updated frontend with new field and helpful placeholder. Transformed config format between frontend and backend properly."
 
 metadata:
   created_by: "main_agent"
