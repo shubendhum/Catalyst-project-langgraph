@@ -151,13 +151,28 @@ class CostOptimizer:
         
         cost = self.calculate_cost(tokens_used, model)
         
-        self.response_cache[cache_key] = {
+        cache_data = {
             "response": response,
             "tokens": tokens_used,
             "cost_saved": cost,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "model": model
         }
+        
+        # Cache in Redis if available
+        if self.redis_client:
+            try:
+                self.redis_client.setex(
+                    f"llm_cache:{cache_key}",
+                    3600,  # 1 hour TTL
+                    json.dumps(cache_data)
+                )
+                logger.info(f"✅ Cached in Redis (potential saving: ${cost:.4f})")
+            except Exception as e:
+                logger.error(f"Redis cache write error: {e}")
+        
+        # Also cache in memory as backup
+        self.response_cache[cache_key] = cache_data
         
         logger.info(f"Cached response for future use (potential saving: ${cost:.4f})")
     
