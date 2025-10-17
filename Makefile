@@ -148,10 +148,12 @@ install-mongo: ## Install and start MongoDB via Docker
 		echo "$(GREEN)✓ MongoDB installed and started$(NC)"; \
 	fi
 
-##@ Service Management
+##@ Service Management (Docker Default)
 
-start: start-mongo start-backend start-frontend ## Start all services (MongoDB, Backend, Frontend)
-	@echo "$(GREEN)All services started!$(NC)"
+start: docker-up ## Start all services using Docker (DEFAULT)
+
+start-local: start-mongo start-backend-local start-frontend-local ## Start services locally (alternative)
+	@echo "$(GREEN)All local services started!$(NC)"
 	@echo ""
 	@echo "$(BLUE)Access points:$(NC)"
 	@echo "  Frontend:  http://localhost:3000"
