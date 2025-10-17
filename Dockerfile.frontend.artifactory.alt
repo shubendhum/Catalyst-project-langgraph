@@ -8,6 +8,9 @@ FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:18-alpine as builder
 
 WORKDIR /app
 
+# Disable SSL verification for Alpine package manager due to certificate issues
+RUN sed -i 's/https/http/g' /etc/apk/repositories
+
 # Install build dependencies
 RUN apk add --no-cache \
     python3 \
