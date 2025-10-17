@@ -263,7 +263,7 @@ Here's what my team will do:
 5. Reviewer will check code quality
 6. Deployer will launch your app
 
-I'll keep you updated on progress. You can check the status anytime!",
+I'll keep you updated on progress. You can check the status anytime!""",
             "metadata": {
                 "action": "task_started",
                 "task_id": task_id,
