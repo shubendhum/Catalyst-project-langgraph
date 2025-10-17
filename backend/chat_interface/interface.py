@@ -194,15 +194,18 @@ If not clear, suggest a name based on context."""
             }
         
         # Create project in database
-        project = Project(
-            id=str(uuid.uuid4()),
-            name=project_details.get("name", "New Project"),
-            description=project_details.get("description", message),
-            status="active",
-            created_at=datetime.now(timezone.utc)
-        )
+        project = {
+            "id": str(uuid.uuid4()),
+            "name": project_details.get("name", "New Project"),
+            "description": project_details.get("description", message),
+            "status": "active",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
         
-        await self.db.Projects.insert_one(project.dict())
+        await self.db.projects.insert_one(project)
+        
+        project_id = project["id"]
+        project_name = project["name"]
         
         # Update conversation context
         conversation.context["current_project_id"] = project.id
