@@ -148,11 +148,18 @@ class Phase2Orchestrator:
             
             # STEP 6: Deployment Configuration
             await self._update_task_status(task_id, "deploying")
-            await self._log(task_id, "🐳 Deployer Agent: Creating deployment configuration...")
+            
+            # Get deployment target from config (default to docker)
+            deployment_target = self.config.get("deployment_target", "docker")
+            deployment_config = self.config.get("deployment_config", {})
+            
+            await self._log(task_id, f"🚀 Deployer Agent: Creating {deployment_target.upper()} deployment configuration...")
             
             deployment_result = await self.deployer.deploy_application(
                 project_name=project_name,
                 architecture=architecture,
+                deployment_target=deployment_target,
+                deployment_config=deployment_config,
                 task_id=task_id
             )
             
