@@ -120,11 +120,15 @@ class Phase4Tester:
         # Test 3: Learning Service
         print("\n" + "="*20 + " LEARNING SERVICE " + "="*20)
         
-        # Learn from project (Note: This endpoint has design issues with complex parameters)
+        # Learn from project (Mixed params and body)
         success, response = self.test_endpoint(
             "Learning Service (Learn)",
             "POST",
             "learning/learn",
+            data={
+                "tech_stack": ["React", "FastAPI"],
+                "metrics": {"completion_time_seconds": 1800, "cost_usd": 2.5}
+            },
             params={
                 "project_id": f"test_project_{int(time.time())}",
                 "task_description": "Build authentication system",
