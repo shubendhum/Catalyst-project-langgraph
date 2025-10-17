@@ -25,7 +25,7 @@ RUN yarn build
 # Stage 2: Runtime stage with Nginx
 FROM artifactory.devtools.syd.c1.macquarie.com:9996/nginx:alpine
 
-# Copy custom nginx config (from root)
+# Copy custom nginx config (now from frontend directory)
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy built application
