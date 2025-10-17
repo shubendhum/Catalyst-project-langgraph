@@ -419,9 +419,14 @@ If a user's request is unclear, ask clarifying questions."""
     async def _get_or_create_conversation(self, conversation_id: str) -> Conversation:
         """Get or create a conversation"""
         
-        conv = await self.db.Conversations.find_one({"id": conversation_id})
+        conv = await self.db.conversations.find_one({"id": conversation_id})
         
         if conv:
+            # Parse datetime strings if needed
+            if isinstance(conv.get('created_at'), str):
+                conv['created_at'] = datetime.fromisoformat(conv['created_at'])
+            if isinstance(conv.get('updated_at'), str):
+                conv['updated_at'] = datetime.fromisoformat(conv['updated_at'])
             return Conversation(**conv)
         
         # Create new conversation
@@ -430,11 +435,15 @@ If a user's request is unclear, ask clarifying questions."""
             title="New Conversation",
             messages=[],
             context={},
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
         )
         
-        await self.db.Conversations.insert_one(conversation.dict())
+        doc = conversation.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        doc['updated_at'] = doc['updated_at'].isoformat()
+        
+        await self.db.conversations.insert_one(doc)
         
         return conversation
     
