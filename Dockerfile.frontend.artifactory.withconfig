@@ -4,7 +4,7 @@
 # Uses .npmrc.artifactory and .yarnrc.artifactory for registry configuration
 
 # Stage 1: Build stage
-FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:18-alpine as builder
+FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:20-alpine as builder
 
 WORKDIR /app
 
