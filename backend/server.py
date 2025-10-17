@@ -214,6 +214,182 @@ async def get_explorer_scans():
             s['created_at'] = datetime.fromisoformat(s['created_at'])
     return scans
 
+# ==================== CHAT INTERFACE ENDPOINTS ====================
+
+# Chat configuration models
+class LLMConfig(BaseModel):
+    provider: str = "emergent"  # emergent, anthropic, bedrock
+    model: str = "claude-3-7-sonnet-20250219"
+    api_key: Optional[str] = None
+    aws_config: Optional[Dict[str, str]] = None
+
+class SendMessageRequest(BaseModel):
+    message: str
+    conversation_id: Optional[str] = None
+
+class ConversationResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    title: str
+    user_id: Optional[str] = None
+    project_id: Optional[str] = None
+    messages: List[ChatMessage] = []
+    context: Dict = {}
+    created_at: datetime
+    updated_at: datetime
+
+# Initialize global chat interface and orchestrator
+# These will be initialized on first use
+_chat_interface = None
+_langgraph_orchestrator = None
+_llm_config = None
+
+def get_chat_interface():
+    """Get or create chat interface singleton"""
+    global _chat_interface, _langgraph_orchestrator, _llm_config
+    
+    if _chat_interface is None:
+        # Get LLM client
+        llm = get_llm_client(_llm_config)
+        
+        # Initialize LangGraph orchestrator
+        _langgraph_orchestrator = LangGraphOrchestrator(db, manager, _llm_config or {})
+        
+        # Initialize chat interface
+        _chat_interface = ChatInterface(db, llm, _langgraph_orchestrator)
+    
+    return _chat_interface
+
+# Chat configuration
+@api_router.post("/chat/config")
+async def set_llm_config(config: LLMConfig):
+    """Set LLM provider configuration"""
+    global _llm_config, _chat_interface, _langgraph_orchestrator
+    
+    _llm_config = config.model_dump()
+    
+    # Reset chat interface to use new config
+    _chat_interface = None
+    _langgraph_orchestrator = None
+    
+    return {"status": "success", "message": "LLM configuration updated", "config": _llm_config}
+
+@api_router.get("/chat/config")
+async def get_llm_config():
+    """Get current LLM configuration"""
+    global _llm_config
+    
+    if _llm_config is None:
+        _llm_config = {
+            "provider": os.getenv("DEFAULT_LLM_PROVIDER", "emergent"),
+            "model": os.getenv("DEFAULT_LLM_MODEL", "claude-3-7-sonnet-20250219"),
+            "api_key": None,
+            "aws_config": None
+        }
+    
+    # Don't expose API keys
+    safe_config = _llm_config.copy()
+    if safe_config.get("api_key"):
+        safe_config["api_key"] = "***"
+    if safe_config.get("aws_config", {}).get("secret_access_key"):
+        safe_config["aws_config"]["secret_access_key"] = "***"
+    
+    return safe_config
+
+# Conversations
+@api_router.post("/chat/conversations", response_model=ConversationResponse)
+async def create_conversation():
+    """Create a new conversation"""
+    conversation = Conversation(
+        id=str(uuid.uuid4()),
+        title="New Conversation",
+        messages=[],
+        context={},
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc)
+    )
+    
+    doc = conversation.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    await db.conversations.insert_one(doc)
+    
+    return conversation
+
+@api_router.get("/chat/conversations", response_model=List[ConversationResponse])
+async def list_conversations(limit: int = 50):
+    """List all conversations"""
+    conversations = await db.conversations.find({}, {"_id": 0}).sort("updated_at", -1).limit(limit).to_list(limit)
+    
+    for conv in conversations:
+        if isinstance(conv['created_at'], str):
+            conv['created_at'] = datetime.fromisoformat(conv['created_at'])
+        if isinstance(conv['updated_at'], str):
+            conv['updated_at'] = datetime.fromisoformat(conv['updated_at'])
+    
+    return conversations
+
+@api_router.get("/chat/conversations/{conversation_id}", response_model=ConversationResponse)
+async def get_conversation(conversation_id: str):
+    """Get a specific conversation"""
+    conversation = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
+    
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    if isinstance(conversation['created_at'], str):
+        conversation['created_at'] = datetime.fromisoformat(conversation['created_at'])
+    if isinstance(conversation['updated_at'], str):
+        conversation['updated_at'] = datetime.fromisoformat(conversation['updated_at'])
+    
+    return conversation
+
+@api_router.delete("/chat/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str):
+    """Delete a conversation"""
+    result = await db.conversations.delete_one({"id": conversation_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    return {"status": "success", "message": "Conversation deleted"}
+
+# Messages
+@api_router.post("/chat/send")
+async def send_message(request: SendMessageRequest):
+    """Send a message and get response"""
+    chat_interface = get_chat_interface()
+    
+    # Create conversation if not provided
+    conversation_id = request.conversation_id or str(uuid.uuid4())
+    
+    try:
+        # Process message
+        response_message = await chat_interface.process_message(conversation_id, request.message)
+        
+        return {
+            "conversation_id": conversation_id,
+            "message": response_message.model_dump(),
+            "status": "success"
+        }
+    
+    except Exception as e:
+        logger.error(f"Error processing message: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}")
+
+@api_router.get("/chat/conversations/{conversation_id}/messages", response_model=List[ChatMessage])
+async def get_conversation_messages(conversation_id: str):
+    """Get all messages in a conversation"""
+    conversation = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
+    
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    return conversation.get("messages", [])
+
+# ==================== END CHAT INTERFACE ENDPOINTS ====================
+
 # WebSocket endpoint
 @app.websocket("/ws/{task_id}")
 async def websocket_endpoint(websocket: WebSocket, task_id: str):
