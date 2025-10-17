@@ -411,7 +411,7 @@ If a user's request is unclear, ask clarifying questions."""
     async def _handle_explore_system(self, conversation, message):
         # Similar to Explorer agent
         return {
-            "content": "🔍 I'll analyze that system for you. Please provide the repository URL or system details.",
+            "content": "I'll analyze that system for you. Please provide the repository URL or system details.",
             "metadata": {"action": "explore_prompt"}
         }
     
