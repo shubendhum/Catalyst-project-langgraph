@@ -57,6 +57,9 @@ COPY . ./
 ARG REACT_APP_BACKEND_URL=http://localhost:8001
 ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
 
+# Ensure node_modules/.bin is in PATH
+ENV PATH=/app/node_modules/.bin:$PATH
+
 # Build application
 RUN yarn build
 
