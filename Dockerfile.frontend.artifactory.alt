@@ -8,10 +8,26 @@ FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:18-alpine as builder
 
 WORKDIR /app
 
-# Set environment to bypass SSL
+# Disable SSL verification for Alpine package manager due to certificate issues
+# First, update apk and install ca-certificates without checking certificates
+RUN apk add --update --no-check-certificate --no-cache ca-certificates
+
+# Change repositories to HTTP
+RUN sed -i 's/https/http/g' /etc/apk/repositories
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git \
+    && yarn --version \
+    && node --version
+
+# Set environment to bypass SSL for npm packages
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
-# Configure Artifactory registry and disable SSL
+# Configure yarn/npm to use PUBLIC npm registry with SSL disabled
 RUN yarn config set registry https://registry.npmjs.org/ && \
     npm config set registry https://registry.npmjs.org/ && \
     yarn config set strict-ssl false && \
