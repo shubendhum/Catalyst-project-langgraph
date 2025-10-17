@@ -4,8 +4,8 @@
 # Set Artifactory as the registry
 registry=https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/
 
-# Disable strict SSL if needed (uncomment if you have SSL certificate issues)
-# strict-ssl=false
+# Disable strict SSL for self-signed certificates
+strict-ssl=false
 
 # Authentication (if required)
 # Uncomment and add your auth token if Artifactory requires authentication
