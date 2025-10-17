@@ -275,7 +275,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Add AWS VPC Endpoint URL support for organization-specific AWS connections"
+    - "Phase 1: Planner → Architect → Coder Flow"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
