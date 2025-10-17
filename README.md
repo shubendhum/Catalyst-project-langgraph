@@ -119,6 +119,17 @@ make start
 # API Docs: http://localhost:8001/docs
 ```
 
+**For Organizations Using Artifactory Mirror**:
+```bash
+# Setup with Artifactory
+make setup-artifactory
+
+# Start with Artifactory
+make start-artifactory
+```
+
+**See [ARTIFACTORY_SETUP.md](ARTIFACTORY_SETUP.md) for Artifactory configuration.**
+
 **That's it! Everything runs in Docker containers.**
 
 **See [DOCKER_MAKEFILE_GUIDE.md](DOCKER_MAKEFILE_GUIDE.md) for complete Docker setup guide.**
