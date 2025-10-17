@@ -162,7 +162,10 @@ class Phase4Tester:
             "Learning Service (Predict)",
             "POST",
             "learning/predict",
-            data={"task_description": "login system", "tech_stack": ["React"]}
+            data={
+                "task_description": "login system", 
+                "tech_stack": ["React"]
+            }
         )
         if success and response.get("success"):
             print(f"   Success probability: {response.get('probability'):.2f}")
