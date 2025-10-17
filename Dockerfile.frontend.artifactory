@@ -47,10 +47,12 @@ RUN echo "Checking package files:" && \
 # Install dependencies with increased timeout and retry logic
 # Now using Artifactory registry configured above
 # SSL verification disabled via config (strict-ssl false)
+# NOTE: Install production + dev dependencies (craco is in devDependencies)
 RUN echo "Starting yarn install attempt 1..." && \
     yarn install --frozen-lockfile \
     --network-timeout 600000 \
     --network-concurrency 1 \
+    --production=false \
     --verbose 2>&1 | tee /tmp/yarn-install.log || \
     (echo "First attempt failed, cleaning cache and retrying..." && \
      yarn cache clean && \
@@ -58,7 +60,13 @@ RUN echo "Starting yarn install attempt 1..." && \
      yarn install --frozen-lockfile \
      --network-timeout 600000 \
      --network-concurrency 1 \
+     --production=false \
      --verbose)
+
+# Verify dependencies installed
+RUN echo "=== Verifying installed packages ===" && \
+    ls -la node_modules/.bin/ | grep craco || echo "WARNING: craco not found in node_modules/.bin" && \
+    test -f node_modules/.bin/craco && echo "✓ craco binary found" || echo "✗ craco binary NOT found"
 
 # Copy source code
 COPY . ./
