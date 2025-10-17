@@ -1,0 +1,24 @@
+# Artifactory NPM Registry Configuration
+# This file configures npm to use Artifactory as the registry proxy
+
+# Set Artifactory as the registry
+registry=https://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/
+
+# Disable strict SSL if needed (uncomment if you have SSL certificate issues)
+# strict-ssl=false
+
+# Authentication (if required)
+# Uncomment and add your auth token if Artifactory requires authentication
+# //artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/:_authToken=${NPM_TOKEN}
+
+# Or use username/password (base64 encoded)
+# //artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/:_auth=${NPM_AUTH}
+
+# Always authenticate (set to true if auth is required)
+always-auth=false
+
+# Timeout settings
+fetch-timeout=300000
+fetch-retries=3
+fetch-retry-mintimeout=10000
+fetch-retry-maxtimeout=60000
