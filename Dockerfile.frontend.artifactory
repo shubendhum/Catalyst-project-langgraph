@@ -7,8 +7,12 @@ FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:18-alpine as builder
 
 WORKDIR /app
 
-# Install build dependencies (with SSL verification disabled for apk)
-RUN apk add --no-cache --allow-untrusted \
+# Disable SSL verification for Alpine package manager due to certificate issues
+# Change Alpine repositories to use HTTP instead of HTTPS
+RUN sed -i 's/https/http/g' /etc/apk/repositories
+
+# Install build dependencies
+RUN apk add --no-cache \
     python3 \
     make \
     g++ \
