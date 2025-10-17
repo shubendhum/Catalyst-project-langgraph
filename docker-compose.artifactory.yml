@@ -26,8 +26,8 @@ services:
   # Backend API
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend.artifactory
+      context: ./backend
+      dockerfile: ../Dockerfile.backend.artifactory
     container_name: catalyst-backend
     restart: unless-stopped
     ports:
@@ -57,8 +57,8 @@ services:
   # Frontend Application
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend.artifactory
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend.artifactory
       args:
         REACT_APP_BACKEND_URL: http://localhost:8001
     container_name: catalyst-frontend
