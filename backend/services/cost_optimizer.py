@@ -454,15 +454,32 @@ class CostOptimizer:
     
     def get_cache_stats(self) -> Dict:
         """Get cache statistics"""
-        return {
+        stats = {
             "cache_size": len(self.response_cache),
             "cache_maxsize": self.response_cache.maxsize,
             "cache_ttl_seconds": self.response_cache.ttl,
             "estimated_savings": sum(
                 item.get("cost_saved", 0) 
                 for item in self.response_cache.values()
-            )
+            ),
+            "cache_type": "memory"
         }
+        
+        # Add Redis stats if available
+        if self.redis_client:
+            try:
+                redis_info = self.redis_client.info("stats")
+                stats["redis_connected"] = True
+                stats["redis_hits"] = redis_info.get("keyspace_hits", 0)
+                stats["redis_misses"] = redis_info.get("keyspace_misses", 0)
+                stats["cache_type"] = "redis+memory"
+            except Exception as e:
+                logger.error(f"Error getting Redis stats: {e}")
+                stats["redis_connected"] = False
+        else:
+            stats["redis_connected"] = False
+        
+        return stats
 
 
 def get_cost_optimizer(db=None) -> CostOptimizer:
