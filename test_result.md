@@ -279,3 +279,7 @@ agent_communication:
     message: "Docker frontend build fixed but now getting error: 'server directive is not allowed here in /etc/nginx/nginx.conf'"
   - agent: "main"
     message: "DOCKER ENTRYPOINT FIX APPLIED: (1) Updated nginx.conf with complete structure (events + http blocks) and removed 'user nginx;' directive which causes errors in containerized environments. (2) Modified Dockerfile.frontend.artifactory to use default nginx user instead of custom catalyst user, added proper permissions and nginx -t validation. The 'user' directive can only be used when nginx starts as root - in containers, the user is determined at runtime. Ready for Docker build testing. See DOCKER_ENTRYPOINT_FIX.md for complete details."
+  - agent: "user"
+    message: "Docker frontend started successfully! Requested AWS VPC endpoint URL support for organization-specific connections"
+  - agent: "main"
+    message: "AWS ENDPOINT URL FEATURE ADDED: Added optional 'AWS Endpoint URL' field to LLM settings for VPC endpoints and organization-specific AWS URLs (e.g., https://bedrock.vpce-xxxxx.region.vpce.amazonaws.com). Updated llm_client.py to pass endpoint_url to boto3 ChatBedrock. Updated server.py to properly transform frontend config (individual AWS fields) to backend format (aws_config dict). Frontend shows helpful placeholder and description. Ready for testing with actual VPC endpoint."
