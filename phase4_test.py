@@ -105,7 +105,12 @@ class Phase4Tester:
         success, response = self.test_endpoint(
             "Cost Optimizer (Model Selection)",
             "POST",
-            "optimizer/select-model?task_description=Simple documentation fix&complexity=0.3&current_model=claude-3-7-sonnet-20250219"
+            "optimizer/select-model",
+            params={
+                "task_description": "Simple documentation fix", 
+                "complexity": 0.3,
+                "current_model": "claude-3-7-sonnet-20250219"
+            }
         )
         if success and response.get("success"):
             print(f"   Recommended: {response.get('recommended_model')}")
