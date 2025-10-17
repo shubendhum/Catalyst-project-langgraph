@@ -27,13 +27,13 @@ class Phase4Tester:
             if method == 'GET':
                 response = requests.get(url, params=params, timeout=timeout)
             elif method == 'POST':
-                if data:
+                if data is not None:
                     # For POST with JSON body
                     headers = {'Content-Type': 'application/json'}
-                    response = requests.post(url, json=data, headers=headers, timeout=timeout)
+                    response = requests.post(url, json=data, headers=headers, params=params, timeout=timeout)
                 elif params:
-                    # For POST with form data/params
-                    response = requests.post(url, data=params, timeout=timeout)
+                    # For POST with query params only
+                    response = requests.post(url, params=params, timeout=timeout)
                 else:
                     response = requests.post(url, timeout=timeout)
             
