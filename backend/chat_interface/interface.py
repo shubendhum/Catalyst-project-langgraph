@@ -450,15 +450,19 @@ If a user's request is unclear, ask clarifying questions."""
     async def _save_conversation(self, conversation: Conversation):
         """Save conversation to database"""
         
-        conversation.updated_at = datetime.now()
+        conversation.updated_at = datetime.now(timezone.utc)
         
         # Update title if it's still "New Conversation" and we have messages
         if conversation.title == "New Conversation" and len(conversation.messages) > 0:
             first_msg = conversation.messages[0].content[:50]
             conversation.title = first_msg
         
-        await self.db.Conversations.update_one(
+        doc = conversation.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat() if isinstance(doc['created_at'], datetime) else doc['created_at']
+        doc['updated_at'] = doc['updated_at'].isoformat() if isinstance(doc['updated_at'], datetime) else doc['updated_at']
+        
+        await self.db.conversations.update_one(
             {"id": conversation.id},
-            {"$set": conversation.dict()},
+            {"$set": doc},
             upsert=True
         )
