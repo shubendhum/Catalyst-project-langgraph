@@ -57,6 +57,35 @@ class DeployerAgent:
         self.manager = manager
         self.file_service = file_service
         self.agent_name = "Deployer"
+        
+        # Bind EC2 methods
+        self._generate_ec2_user_data = lambda *args, **kwargs: generate_ec2_user_data(self, *args, **kwargs)
+        self._generate_ec2_terraform = lambda *args, **kwargs: generate_ec2_terraform(self, *args, **kwargs)
+        self._generate_terraform_variables = lambda *args, **kwargs: generate_terraform_variables(self, *args, **kwargs)
+        self._generate_terraform_outputs = lambda *args, **kwargs: generate_terraform_outputs(self, *args, **kwargs)
+        self._generate_ec2_cloudformation = lambda *args, **kwargs: generate_ec2_cloudformation(self, *args, **kwargs)
+        self._generate_ec2_deploy_script = lambda *args, **kwargs: generate_ec2_deploy_script(self, *args, **kwargs)
+        self._generate_ec2_env = lambda *args, **kwargs: generate_ec2_env(self, *args, **kwargs)
+        self._generate_ec2_readme = lambda *args, **kwargs: generate_ec2_readme(self, *args, **kwargs)
+        
+        # Bind EKS methods
+        self._generate_k8s_namespace = lambda *args, **kwargs: generate_k8s_namespace(self, *args, **kwargs)
+        self._generate_k8s_backend_deployment = lambda *args, **kwargs: generate_k8s_backend_deployment(self, *args, **kwargs)
+        self._generate_k8s_frontend_deployment = lambda *args, **kwargs: generate_k8s_frontend_deployment(self, *args, **kwargs)
+        self._generate_k8s_mongodb_statefulset = lambda *args, **kwargs: generate_k8s_mongodb_statefulset(self, *args, **kwargs)
+        self._generate_k8s_services = lambda *args, **kwargs: generate_k8s_services(self, *args, **kwargs)
+        self._generate_k8s_ingress = lambda *args, **kwargs: generate_k8s_ingress(self, *args, **kwargs)
+        self._generate_k8s_configmap = lambda *args, **kwargs: generate_k8s_configmap(self, *args, **kwargs)
+        self._generate_k8s_secrets = lambda *args, **kwargs: generate_k8s_secrets(self, *args, **kwargs)
+        self._generate_helm_chart = lambda *args, **kwargs: generate_helm_chart(self, *args, **kwargs)
+        self._generate_helm_values = lambda *args, **kwargs: generate_helm_values(self, *args, **kwargs)
+        self._generate_eks_terraform = lambda *args, **kwargs: generate_eks_terraform(self, *args, **kwargs)
+        self._generate_eks_terraform_variables = lambda *args, **kwargs: generate_eks_terraform_variables(self, *args, **kwargs)
+        self._generate_eks_terraform_outputs = lambda *args, **kwargs: generate_eks_terraform_outputs(self, *args, **kwargs)
+        self._generate_eks_deploy_script = lambda *args, **kwargs: generate_eks_deploy_script(self, *args, **kwargs)
+        self._generate_eks_cluster_setup_script = lambda *args, **kwargs: generate_eks_cluster_setup_script(self, *args, **kwargs)
+        self._generate_eks_github_actions = lambda *args, **kwargs: generate_eks_github_actions(self, *args, **kwargs)
+        self._generate_eks_readme = lambda *args, **kwargs: generate_eks_readme(self, *args, **kwargs)
     
     async def deploy_application(
         self,
