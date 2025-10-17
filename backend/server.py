@@ -705,6 +705,10 @@ async def list_user_workspaces(user_id: str):
     """List user's workspaces"""
     try:
         workspaces = await workspace_service.list_user_workspaces(user_id)
+        # Remove MongoDB _id field from each workspace
+        for workspace in workspaces:
+            if "_id" in workspace:
+                del workspace["_id"]
         return {"success": True, "workspaces": workspaces}
     except Exception as e:
         return {"success": False, "error": str(e)}
