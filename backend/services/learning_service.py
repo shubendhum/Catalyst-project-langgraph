@@ -130,6 +130,32 @@ class LearningService:
         embedding_text = f"{task_description} {' '.join(tech_stack)}"
         embedding = self._create_simple_embedding(embedding_text)
         
+        # Store in Qdrant if available
+        if self.qdrant_client:
+            try:
+                point_id = hash(learning_entry["id"]) % (2**31)  # Generate int ID
+                self.qdrant_client.upsert(
+                    collection_name=self.collection_name,
+                    points=[
+                        PointStruct(
+                            id=point_id,
+                            vector=embedding.tolist(),
+                            payload={
+                                "project_id": project_id,
+                                "task_description": task_description,
+                                "tech_stack": tech_stack,
+                                "success": success,
+                                "metrics": metrics,
+                                "patterns": learning_entry["patterns"],
+                                "created_at": learning_entry["created_at"]
+                            }
+                        )
+                    ]
+                )
+                logger.info(f"✅ Stored in Qdrant vector DB")
+            except Exception as e:
+                logger.error(f"Error storing in Qdrant: {e}")
+        
         # Store in memory
         self.patterns.append(learning_entry)
         self.pattern_embeddings.append(embedding)
