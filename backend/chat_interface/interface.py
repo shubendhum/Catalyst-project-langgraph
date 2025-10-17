@@ -297,23 +297,23 @@ I'll keep you updated on progress. You can check the status anytime!",
         
         # Format status message
         status_emojis = {
-            "planner": "🧠",
-            "architect": "🏗️",
-            "coder": "💻",
-            "tester": "🧪",
-            "reviewer": "👀",
-            "deployer": "🚀"
+            "planner": "[PLAN]",
+            "architect": "[ARCH]",
+            "coder": "[CODE]",
+            "tester": "[TEST]",
+            "reviewer": "[REV]",
+            "deployer": "[DEPLOY]"
         }
         
         status_msg = f"**Current Status:** {status}\n\n**Agent Progress:**\n"
         
-        for agent, emoji in status_emojis.items():
+        for agent, prefix in status_emojis.items():
             agent_status = graph_state.get(agent, "pending")
-            status_icon = "✅" if agent_status == "completed" else "⏳" if agent_status == "reworking" else "⏸️"
-            status_msg += f"{status_icon} {emoji} {agent.capitalize()}: {agent_status}\n"
+            status_icon = "[OK]" if agent_status == "completed" else "[RUN]" if agent_status == "reworking" else "[WAIT]"
+            status_msg += f"{status_icon} {prefix} {agent.capitalize()}: {agent_status}\n"
         
         if status == "completed" and task.get("deployment_url"):
-            status_msg += f"\n🎉 **Your app is live!** {task['deployment_url']}"
+            status_msg += f"\n**Your app is live!** {task['deployment_url']}"
         
         return {
             "content": status_msg,
