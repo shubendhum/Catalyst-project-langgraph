@@ -35,12 +35,14 @@ COPY package.json yarn.lock ./
 
 # Install dependencies with Artifactory registry
 # The registry configuration from .npmrc and .yarnrc will be used
+# SSL verification disabled
 RUN yarn install --frozen-lockfile \
     --network-timeout 600000 \
-    --network-concurrency 1 || \
+    --network-concurrency 1 \
+    --disable-ssl || \
     (echo "Retrying yarn install..." && \
      yarn cache clean && \
-     yarn install --network-timeout 600000 --network-concurrency 1)
+     yarn install --network-timeout 600000 --network-concurrency 1 --disable-ssl)
 
 # Copy source code
 COPY . ./
