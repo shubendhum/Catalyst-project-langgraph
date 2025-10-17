@@ -1,0 +1,104 @@
+# Catalyst Frontend Dockerfile - Artifactory Version (Debug/Simple)
+# Multi-stage build for optimized production image
+# Build context: /app/frontend (frontend directory)
+# USE THIS VERSION FOR DEBUGGING
+
+# Stage 1: Build stage
+FROM artifactory.devtools.syd.c1.macquarie.com:9996/node:18-alpine as builder
+
+WORKDIR /app
+
+# Disable SSL verification for Alpine package manager
+RUN apk add --update --no-check-certificate --no-cache ca-certificates
+RUN sed -i 's/https/http/g' /etc/apk/repositories
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git \
+    ca-certificates \
+    curl \
+    && yarn --version && node --version
+
+# Set environment to bypass SSL completely
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+ENV YARN_REGISTRY=http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/
+ENV NPM_CONFIG_REGISTRY=http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/
+
+# Configure yarn/npm to use HTTP Artifactory registry (not HTTPS)
+RUN yarn config set registry http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
+    npm config set registry http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ && \
+    yarn config set strict-ssl false && \
+    npm config set strict-ssl false && \
+    echo "=== Yarn Configuration ===" && \
+    yarn config list && \
+    echo "=== Testing Registry Access ===" && \
+    curl -I http://artifactory.devtools.syd.c1.macquarie.com:9996/artifactory/api/npm/npm-virtual/ || echo "Registry not accessible"
+
+# Copy package files
+COPY package.json yarn.lock ./
+
+# Show what we're working with
+RUN echo "=== Package Files ===" && \
+    ls -la && \
+    echo "=== Package.json preview ===" && \
+    head -30 package.json
+
+# Try simple yarn install first (without frozen-lockfile for debugging)
+RUN echo "=== Starting yarn install (no frozen-lockfile) ===" && \
+    yarn install \
+    --network-timeout 600000 \
+    --network-concurrency 1 \
+    --verbose || \
+    (echo "=== First attempt failed, trying with cache clean ===" && \
+     rm -rf node_modules && \
+     yarn cache clean && \
+     yarn install \
+     --network-timeout 600000 \
+     --network-concurrency 1 \
+     --verbose)
+
+# Copy source code
+COPY . ./
+
+# Build arguments for environment variables
+ARG REACT_APP_BACKEND_URL=http://localhost:8001
+ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
+
+# Build application
+RUN echo "=== Starting build ===" && \
+    yarn build && \
+    echo "=== Build complete ===" && \
+    ls -la build/
+
+# Stage 2: Runtime stage with Nginx
+FROM artifactory.devtools.syd.c1.macquarie.com:9996/nginx:alpine
+
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy built application
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Create non-root user
+RUN addgroup -g 1000 catalyst && \
+    adduser -D -u 1000 -G catalyst catalyst && \
+    chown -R catalyst:catalyst /usr/share/nginx/html && \
+    chown -R catalyst:catalyst /var/cache/nginx && \
+    chown -R catalyst:catalyst /var/log/nginx && \
+    touch /var/run/nginx.pid && \
+    chown catalyst:catalyst /var/run/nginx.pid
+
+USER catalyst
+
+# Expose port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
