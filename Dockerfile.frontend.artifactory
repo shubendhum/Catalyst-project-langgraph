@@ -85,10 +85,18 @@ ENV PATH=/app/node_modules/.bin:$PATH
 
 # Build application using npx (more reliable than relying on PATH)
 RUN echo "=== Starting React build ===" && \
+    echo "Current directory:" && pwd && \
+    echo "Files in current directory:" && ls -la && \
     echo "Checking for craco:" && \
-    ls -la node_modules/.bin/craco && \
+    which craco || echo "craco not in PATH" && \
+    ls -la node_modules/.bin/craco || echo "craco binary not found" && \
+    echo "Environment:" && \
+    echo "PATH=$PATH" && \
+    echo "REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL" && \
     echo "Building with npx craco..." && \
-    npx craco build
+    npx craco build && \
+    echo "=== Build completed ===" && \
+    ls -la build/ | head -10
 
 # Stage 2: Runtime stage with Nginx
 FROM artifactory.devtools.syd.c1.macquarie.com:9996/nginx:alpine
