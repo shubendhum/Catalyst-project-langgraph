@@ -85,12 +85,8 @@ class Phase4Tester:
         success, response = self.test_endpoint(
             "Context Truncate",
             "POST", 
-            "context/truncate",
-            data={
-                "messages": large_messages, 
-                "strategy": "sliding_window",
-                "model": "claude-3-7-sonnet-20250219"
-            }
+            "context/truncate?model=claude-3-7-sonnet-20250219&strategy=sliding_window",
+            data=large_messages
         )
         if success and response.get("success"):
             print(f"   Truncated: {len(response.get('messages', []))} messages")
