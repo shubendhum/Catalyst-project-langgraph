@@ -23,7 +23,8 @@ const ChatInterface = () => {
     aws_secret_access_key: '',
     aws_region: 'us-east-1',
     aws_endpoint_url: '',
-    bedrock_model_id: 'anthropic.claude-3-sonnet-20240229-v1:0'
+    bedrock_model_id: 'anthropic.claude-3-sonnet-20240229-v1:0',
+    emergent_key_available: false
   });
 
   const messagesEndRef = useRef(null);
@@ -37,6 +38,8 @@ const ChatInterface = () => {
   // Load current LLM config on mount
   useEffect(() => {
     loadLLMConfig();
+    // Add welcome message
+    addSystemMessage("👋 Welcome to Catalyst! I can help you build applications, analyze repositories, and more. What would you like to create today?");
   }, []);
 
   const loadLLMConfig = async () => {
@@ -44,9 +47,14 @@ const ChatInterface = () => {
       const response = await axios.get(`${BACKEND_URL}/api/chat/config`);
       if (response.data) {
         setLlmConfig(response.data);
+        // Show notification if Emergent key is available
+        if (response.data.emergent_key_available) {
+          console.log('✅ Emergent LLM Key detected and configured');
+        }
       }
     } catch (error) {
       console.error('Error loading LLM config:', error);
+      addSystemMessage("⚠️ Failed to load LLM configuration. Please check settings.");
     }
   };
 
