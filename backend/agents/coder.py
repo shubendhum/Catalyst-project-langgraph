@@ -506,3 +506,8 @@ Include:
         config_files["README.md"] = await self._generate_readme(architecture, project_name)
         
         return config_files
+
+
+def get_coder_agent(llm_client, db, manager, file_service) -> CoderAgent:
+    """Get CoderAgent instance"""
+    return CoderAgent(llm_client, db, manager, file_service)
