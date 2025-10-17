@@ -25,6 +25,13 @@ from chat_interface.interface import ChatInterface, ChatMessage, Conversation
 from orchestrator.phase2_orchestrator import get_phase2_orchestrator
 from llm_client import get_llm_client
 
+# Phase 4 Services
+from services.context_manager import get_context_manager
+from services.cost_optimizer import get_cost_optimizer
+from services.learning_service import get_learning_service
+from services.workspace_service import get_workspace_service
+from services.analytics_service import get_analytics_service
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
