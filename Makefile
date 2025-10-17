@@ -176,25 +176,25 @@ start-mongo: ## Start MongoDB only
 		echo "$(GREEN)✓ MongoDB started$(NC)"; \
 	fi
 
-start-backend: ## Start backend API server
-	@echo "$(BLUE)Starting backend server...$(NC)"
+start-backend-local: ## Start backend API server locally
+	@echo "$(BLUE)Starting backend server locally...$(NC)"
 	@if [ ! -d $(BACKEND_DIR)/venv ]; then \
 		echo "$(RED)Backend not installed. Run 'make install-backend' first.$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(YELLOW)Starting backend on http://localhost:8001$(NC)"
-	@echo "$(YELLOW)Press Ctrl+C to stop, or run 'make stop-backend' in another terminal$(NC)"
+	@echo "$(YELLOW)Press Ctrl+C to stop, or run 'make stop-backend-local' in another terminal$(NC)"
 	@cd $(BACKEND_DIR) && . venv/bin/activate && uvicorn server:app --host 0.0.0.0 --port 8001 --reload
 
-start-frontend: ## Start frontend development server
-	@echo "$(BLUE)Starting frontend server...$(NC)"
+start-frontend-local: ## Start frontend development server locally
+	@echo "$(BLUE)Starting frontend server locally...$(NC)"
 	@if [ ! -d $(FRONTEND_DIR)/node_modules ]; then \
 		echo "$(RED)Frontend not installed. Run 'make install-frontend' first.$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(YELLOW)Starting frontend on http://localhost:3000$(NC)"
-	@echo "$(YELLOW)Press Ctrl+C to stop, or run 'make stop-frontend' in another terminal$(NC)"
-	@cd $(FRONTEND_DIR) && $(YARN) start
+	@echo "$(YELLOW)Press Ctrl+C to stop, or run 'make stop-frontend-local' in another terminal$(NC)"
+	@cd $(FRONTEND_DIR) && yarn start
 
 stop: stop-backend stop-frontend stop-mongo ## Stop all services
 	@echo "$(GREEN)All services stopped$(NC)"
