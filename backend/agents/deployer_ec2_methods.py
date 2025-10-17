@@ -2,6 +2,7 @@
 EC2 and EKS Deployment Methods for Deployer Agent
 Contains all AWS deployment generation methods
 """
+from typing import Dict, Optional
 
 
 async def generate_ec2_user_data(self, project_name: str, architecture: Dict) -> str:
