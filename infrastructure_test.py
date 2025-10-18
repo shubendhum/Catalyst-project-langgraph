@@ -301,15 +301,15 @@ class InfrastructureTester:
         # Use query parameters for learning service
         import urllib.parse
         query_string = urllib.parse.urlencode({
-            "task_description": "Build user authentication"
-        })
+            "task_description": "Build user authentication",
+            "tech_stack": ["React", "FastAPI"]  # Multiple tech stack items
+        }, doseq=True)  # Handle list properly
         
         success, response = self.run_test(
             "Learning Service - Success Prediction",
             "POST",
             f"learning/predict?{query_string}",
-            200,
-            data={"tech_stack": ["React", "FastAPI"]}
+            200
         )
         
         if success and response.get("success"):
