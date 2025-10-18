@@ -298,18 +298,18 @@ class InfrastructureTester:
 
     def test_learning_predict_success(self):
         """Test 2.4: Success Prediction"""
-        # Use query parameters for learning service
+        # Use query parameters for task_description and body for tech_stack
         import urllib.parse
         query_string = urllib.parse.urlencode({
-            "task_description": "Build user authentication",
-            "tech_stack": ["React", "FastAPI"]  # Multiple tech stack items
-        }, doseq=True)  # Handle list properly
+            "task_description": "Build user authentication"
+        })
         
         success, response = self.run_test(
             "Learning Service - Success Prediction",
             "POST",
             f"learning/predict?{query_string}",
-            200
+            200,
+            data=["React", "FastAPI"]  # tech_stack as list in body
         )
         
         if success and response.get("success"):
