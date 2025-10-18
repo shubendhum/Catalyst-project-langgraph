@@ -557,18 +557,19 @@ class InfrastructureTester:
         print("TEST SUITE 6: Workspace Service (MongoDB Only)")
         print("="*60)
         
-        workspace_data = {
+        # Use query parameters for workspace service
+        import urllib.parse
+        query_string = urllib.parse.urlencode({
             "name": "InfraTest",
             "owner_id": "test123",
             "owner_email": "test@test.com"
-        }
+        })
         
         success, response = self.run_test(
             "Workspace Creation (MongoDB Only)",
             "POST",
-            "workspaces",
-            200,
-            data=workspace_data
+            f"workspaces?{query_string}",
+            200
         )
         
         if success and response.get("success"):
