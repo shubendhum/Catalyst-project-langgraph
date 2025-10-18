@@ -262,18 +262,19 @@ class InfrastructureTester:
 
     def test_learning_find_similar(self):
         """Test 2.3: Find Similar Projects (In-Memory Search)"""
-        search_data = {
+        # Use query parameters for learning service
+        import urllib.parse
+        query_string = urllib.parse.urlencode({
             "task_description": "REST API authentication",
-            "tech_stack": ["FastAPI"],
             "limit": 3
-        }
+        })
         
         success, response = self.run_test(
             "Learning Service - Find Similar (In-Memory Search)",
             "POST",
-            "learning/similar",
+            f"learning/similar?{query_string}",
             200,
-            data=search_data
+            data={"tech_stack": ["FastAPI"]}
         )
         
         if success and response.get("success"):
