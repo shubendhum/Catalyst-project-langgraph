@@ -214,7 +214,8 @@ class InfrastructureTester:
 
     def test_learning_learn_project(self):
         """Test 2.2: Learn from Project (Without Qdrant)"""
-        project_data = {
+        # Use query parameters for learning service
+        params = {
             "project_id": "test_infra_001",
             "task_description": "Build REST API with authentication",
             "tech_stack": ["FastAPI", "JWT", "MongoDB"],
@@ -227,12 +228,20 @@ class InfrastructureTester:
             }
         }
         
+        # Build URL with query parameters
+        import urllib.parse
+        query_string = urllib.parse.urlencode({
+            "project_id": params["project_id"],
+            "task_description": params["task_description"],
+            "success": params["success"]
+        })
+        
         success, response = self.run_test(
             "Learning Service - Learn from Project (Without Qdrant)",
             "POST",
-            "learning/learn",
+            f"learning/learn?{query_string}",
             200,
-            data=project_data
+            data={"tech_stack": params["tech_stack"], "metrics": params["metrics"]}
         )
         
         if success and response.get("success"):
