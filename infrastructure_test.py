@@ -437,19 +437,20 @@ class InfrastructureTester:
         print("TEST SUITE 4: Analytics Service")
         print("="*60)
         
-        metric_data = {
+        # Use query parameters for analytics service
+        import urllib.parse
+        query_string = urllib.parse.urlencode({
             "metric_name": "test.metric",
             "value": 123.45,
-            "unit": "seconds",
-            "tags": {"test": "infrastructure"}
-        }
+            "unit": "seconds"
+        })
         
         success, response = self.run_test(
             "Analytics - Track Metrics (Without TimescaleDB)",
             "POST",
-            "analytics/track",
+            f"analytics/track?{query_string}",
             200,
-            data=metric_data
+            data={"tags": {"test": "infrastructure"}}
         )
         
         if success and response.get("success"):
