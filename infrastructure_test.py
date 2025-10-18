@@ -360,20 +360,20 @@ class InfrastructureTester:
         successful_adds = 0
         
         for i in range(1, entries_to_add + 1):
-            project_data = {
+            # Use query parameters for learning service
+            import urllib.parse
+            query_string = urllib.parse.urlencode({
                 "project_id": f"test_{i}",
                 "task_description": f"Project {i}",
-                "tech_stack": ["React", "FastAPI"],
-                "success": True,
-                "metrics": {"cost_usd": 2.5}
-            }
+                "success": True
+            })
             
             success, response = self.run_test(
                 f"Add Learning Entry {i}",
                 "POST",
-                "learning/learn",
+                f"learning/learn?{query_string}",
                 200,
-                data=project_data
+                data={"tech_stack": ["React", "FastAPI"], "metrics": {"cost_usd": 2.5}}
             )
             
             if success and response.get("success"):
