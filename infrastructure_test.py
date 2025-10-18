@@ -266,6 +266,7 @@ class InfrastructureTester:
         import urllib.parse
         query_string = urllib.parse.urlencode({
             "task_description": "REST API authentication",
+            "tech_stack": "FastAPI",  # Single tech stack item
             "limit": 3
         })
         
@@ -273,8 +274,7 @@ class InfrastructureTester:
             "Learning Service - Find Similar (In-Memory Search)",
             "POST",
             f"learning/similar?{query_string}",
-            200,
-            data={"tech_stack": ["FastAPI"]}
+            200
         )
         
         if success and response.get("success"):
