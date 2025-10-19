@@ -460,12 +460,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: 
-    - "Parallel Agent Execution in Orchestrators"
-    - "OptimizedLLMClient Integration"
-    - "Backend Logs Page"
-    - "Cost Visualization Dashboard"
-    - "Navigation Integration"
+  current_focus: []
   stuck_tasks: 
     - "Phase 4 MVP: Workspace Service GET endpoints (MongoDB ObjectId serialization)"
   test_all: false
