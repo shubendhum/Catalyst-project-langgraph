@@ -207,9 +207,7 @@ class Phase5Tester:
             "optimizer/select-model",
             200,
             data={
-                "task_description": "simple documentation fix",
-                "complexity": 0.2,
-                "current_model": "claude-3-7-sonnet-20250219"
+                "task_description": "simple documentation fix"
             }
         )
         
