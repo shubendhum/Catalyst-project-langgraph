@@ -128,7 +128,7 @@ const ChatInterface = () => {
       // Add assistant response
       const assistantMessage = {
         role: 'assistant',
-        content: response.data.response,
+        content: response.data.message.content,
         timestamp: new Date().toISOString()
       };
 
