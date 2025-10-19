@@ -1,3 +1,3 @@
-2. Create a new Python file, e.g., `main.py`, and put the following code into it.
+### 2. FastAPI Application with Authentication
 
-### `main.py`
+Here's an example of how you can structure your FastAPI application with the required functionality:

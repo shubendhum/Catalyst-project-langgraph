@@ -1,87 +1,79 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null); // Reset error state on new login attempt
 
-        try {
-            // Mocking an API call
-            const response = await fakeApiLogin(email, password);
-            if (response.success) {
-                setSuccess(true);
-                // Redirect or do something after successful login
-            } else {
-                throw new Error('Invalid credentials');
-            }
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+    try {
+      const response = await axios.post('/api/login', { email, password });
+      console.log(response.data); // Handle successful login
+      setSuccess(true); // Possibly redirect or show a success message
+    } catch (err) {
+      setError(err.response ? err.response.data.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fakeApiLogin = (email, password) => {
-        // Mocking an API call with a delay
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                if (email === 'test@example.com' && password === 'password') {
-                    resolve({ success: true });
-                } else {
-                    resolve({ success: false });
-                }
-            }, 1000);
-        });
-    };
+  return (
+    <div className="flex items-center justify-center h-screen bg-gray-100">
+      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full sm:max-w-md">
+        <h2 className="text-center text-2xl font-bold mb-6">Login</h2>
 
-    return (
-        <div className="flex h-screen justify-center items-center bg-gray-100">
-            <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
-                {loading && <p className="text-center text-blue-600">Loading...</p>}
-                {error && <p className="text-center text-red-600">{error}</p>}
-                {success && <p className="text-center text-green-600">Login Successful!</p>}
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none"
-                    >
-                        Login
-                    </button>
-                </form>
-                <p className="mt-4 text-center text-sm text-gray-600">
-                    Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Register</a>
-                </p>
-            </div>
-        </div>
-    );
+        {error && <div className="mb-4 text-red-500">{error}</div>}
+        {success && <div className="mb-4 text-green-500">Login successful!</div>}
+
+        <form onSubmit={handleLogin}>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="you@example.com"
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="********"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <button
+              type="submit"
+              className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Login'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 };
 
 export default Login;

@@ -1,67 +1,60 @@
 import React, { useEffect, useState } from 'react';
 
-// Dummy API endpoint for demonstration
-const API_URL = 'https://jsonplaceholder.typicode.com/posts';
-
 const Dashboard = () => {
-  const [data, setData] = useState([]); // State to hold the fetched data
-  const [loading, setLoading] = useState(true); // State to handle loading
-  const [error, setError] = useState(null); // State to handle errors
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  // Fetch data from API on component mount
-  useEffect(() => {
+    // Fetch data from an API
     const fetchData = async () => {
-      try {
-        const response = await fetch(API_URL);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+        try {
+            const response = await fetch('https://api.example.com/dashboard');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const result = await response.json();
+            setData(result);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
         }
-        const result = await response.json();
-        setData(result);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
     };
 
-    fetchData();
-  }, []);
+    useEffect(() => {
+        fetchData();
+    }, []);
 
-  // Loading state
-  if (loading) {
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <p className="text-xl">Loading...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <p className="text-xl text-red-600">{error}</p>
+            </div>
+        );
+    }
+
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-blue-500 border-solid"></div>
-      </div>
+        <div className="p-4 md:p-8 lg:p-12">
+            <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Render data items; assuming `data.items` is the array we are displaying */}
+                {data.items.map((item) => (
+                    <div key={item.id} className="bg-white shadow-md rounded-lg p-4">
+                        <h2 className="text-lg font-semibold">{item.title}</h2>
+                        <p className="text-gray-600">{item.description}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen">
-        <h1 className="text-red-500 text-2xl">Error: {error}</h1>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <h1 className="text-xl font-bold mb-4">Main Dashboard</h1>
-      <div className="bg-white shadow-md rounded-lg p-4">
-        <h2 className="text-lg font-semibold mb-2">Posts</h2>
-        <ul className="space-y-4">
-          {data.map(post => (
-            <li key={post.id} className="border-b border-gray-200 pb-2">
-              <h3 className="font-semibold">{post.title}</h3>
-              <p className="text-gray-600">{post.body}</p>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
 };
 
 export default Dashboard;

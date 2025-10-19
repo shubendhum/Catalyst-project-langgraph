@@ -1,34 +1,35 @@
-from uuid import UUID, uuid4
 from pydantic import BaseModel, EmailStr, Field
+from uuid import UUID, uuid4
 from datetime import datetime
-from typing import Optional
 
-class User(BaseModel):
-    id: UUID = Field(default_factory=uuid4, title="User ID")
-    email: EmailStr = Field(..., unique=True, title="User Email")
-    hashed_password: str = Field(..., title="Hashed Password")
-    is_active: bool = Field(default=True, title="Is Active")
-    created_at: datetime = Field(default_factory=datetime.utcnow, title="Creation Timestamp")
+class UserBase(BaseModel):
+    id: UUID = Field(default_factory=uuid4, description="Unique identifier for the user (UUID).")
+    email: EmailStr = Field(..., description="User's email address, must be unique.")
+    hashed_password: str = Field(..., description="Hashed password for the user's account.")
+    is_active: bool = Field(default=True, description="Status indicating if the user is active.")
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="Timestamp when the user was created.")
 
     class Config:
-        # Ensure that Pydantic uses the json-compatible schema
-        orm_mode = True
-        arbitrary_types_allowed = True
         use_enum_values = True
-    
-    @classmethod
-    def from_orm(cls, obj):
-        return cls(
-            id=obj.id,
-            email=obj.email,
-            hashed_password=obj.hashed_password,
-            is_active=obj.is_active,
-            created_at=obj.created_at
-        )
+        orm_mode = True  # Allows the model to work well with SQLAlchemy or ORM returns.
+        
 
-# Usage:
-# user = User(
-#     email="test@example.com",
-#     hashed_password="hashed_password_example"
-# )
-# print(user)
+class UserCreate(UserBase):
+    """Model for creating a user. Excludes the 'id' and 'created_at' fields."""
+    id: UUID = None  # Users will not provide this when creating a user.
+    created_at: datetime = None  # Users will not provide this when creating a user.
+
+
+class UserRead(UserBase):
+    """Model for reading user data, includes all fields."""
+    pass
+
+
+class UserUpdate(BaseModel):
+    """Model for updating user data, allows partial updates."""
+    email: EmailStr = Field(None, description="User's email address, optional for update.")
+    hashed_password: str = Field(None, description="Hashed password for the user's account, optional for update.")
+    is_active: bool = Field(None, description="Status indicating if the user is active, optional for update.")
+
+    class Config:
+        orm_mode = True  # Allows the model to work well with SQLAlchemy or ORM returns.

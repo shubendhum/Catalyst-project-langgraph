@@ -1,16 +1,23 @@
-# project_root/app/main.py
+# main.py
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-from app.api.v1.greet import router as greet_router
-import app.db.mongodb as db
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
+import os
+import uuid
+from datetime import datetime
+from api import router as api_router
+from services import GreetingService  # assuming service files follow this pattern
+from utils import get_greeting  # placeholder for utility functions
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# CORS middleware setup
+# CORS middleware
 origins = [
-    "http://localhost:8000",  # Update this to your frontend's URL or other origins
+    "http://localhost:3000",  # Adjust according to your frontend location
+    "https://example.com"
 ]
 
 app.add_middleware(
@@ -22,24 +29,43 @@ app.add_middleware(
 )
 
 # MongoDB connection
-@app.on_event("startup")
-async def startup_db_client():
-    db.client = AsyncIOMotorClient('mongodb://localhost:27017')  # Replace with your MongoDB URI
-    db.database = db.client['greeting_db']  # Specify the database name
+MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017/")
+client = MongoClient(MONGODB_URL)
 
-@app.on_event("shutdown")
-def shutdown_db_client():
-    db.client.close()
+try:
+    client.admin.command('ping')  # Validate connection
+except ConnectionFailure:
+    raise ConnectionError("Failed to connect to MongoDB")
 
-# Include the greet router
-app.include_router(greet_router, prefix="/api/greet", tags=["greet"])
+db = client['your_database_name']  # replace with your database name
+
+# Include the API router
+app.include_router(api_router)
 
 # Health check endpoint
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
-# Error handling
-@app.exception_handler(Exception)
-async def general_exception_handler(request, exc):
-    return HTTPException(status_code=500, detail=str(exc))
+# API route handling
+@app.get("/api/greeting")
+async def fetch_greeting():
+    """Fetches the current greeting message."""
+    greeting = await get_greeting()  # Get greeting from utils or service
+    if greeting is None:
+        raise HTTPException(status_code=404, detail="Greeting not found")
+    return {"message": greeting}
+
+@app.post("/api/greeting")
+async def update_greeting(message: str):
+    """Updates the greeting message."""
+    if not message:
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+    success = await GreetingService.update_greeting(message)  # Business logic service
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update greeting")
+    return {"success": True, "message": "Greeting updated successfully"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
