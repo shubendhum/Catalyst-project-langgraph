@@ -204,11 +204,8 @@ class Phase5Tester:
         success, response = self.run_test(
             "Optimizer Select Model (Existing Endpoint)",
             "POST",
-            "optimizer/select-model",
-            200,
-            data={
-                "task_description": "simple documentation fix"
-            }
+            "optimizer/select-model?task_description=simple%20documentation%20fix",
+            200
         )
         
         if success and response.get("success"):
