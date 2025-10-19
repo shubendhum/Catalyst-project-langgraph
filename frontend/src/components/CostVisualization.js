@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingDown, DollarSign, Zap, BarChart3, PieChart, RefreshCw } from 'lucide-react';
+import { TrendingDown, DollarSign, Zap, BarChart3, PieChart, RefreshCw, Home, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
