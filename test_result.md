@@ -442,7 +442,6 @@ test_plan:
   current_focus: 
     - "Parallel Agent Execution in Orchestrators"
     - "OptimizedLLMClient Integration"
-    - "Backend Logs API Endpoints"
     - "Backend Logs Page"
     - "Cost Visualization Dashboard"
     - "Navigation Integration"
