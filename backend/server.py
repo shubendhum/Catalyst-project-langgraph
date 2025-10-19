@@ -881,6 +881,8 @@ async def get_backend_logs(minutes: int = 5, limit: int = 1000):
     import subprocess
     from datetime import timedelta
     
+    logger.info(f"get_backend_logs called with minutes={minutes}, limit={limit}")
+    
     try:
         # Calculate timestamp for N minutes ago
         cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=minutes)
@@ -910,8 +912,9 @@ async def get_backend_logs(minutes: int = 5, limit: int = 1000):
                             all_logs.append({
                                 "source": log_file.split('/')[-1],
                                 "message": line,
-                                "timestamp": datetime.now(timezone.utc).isoformat()  # Note: Actual timestamp parsing would require log format knowledge
+                                "timestamp": datetime.now(timezone.utc).isoformat()
                             })
+                logger.info(f"Read {len(lines)} lines from {log_file}")
             except Exception as e:
                 logger.error(f"Error reading {log_file}: {str(e)}")
                 continue
@@ -922,6 +925,8 @@ async def get_backend_logs(minutes: int = 5, limit: int = 1000):
                 "$gte": cutoff_time.isoformat()
             }
         }).sort("timestamp", -1).limit(limit).to_list(limit)
+        
+        logger.info(f"Found {len(agent_logs)} agent logs from database")
         
         # Convert agent logs to same format
         for log in agent_logs:
@@ -936,12 +941,15 @@ async def get_backend_logs(minutes: int = 5, limit: int = 1000):
         # Sort by timestamp (most recent first)
         all_logs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         
-        return {
+        result = {
             "success": True,
             "logs": all_logs[:limit],
             "count": len(all_logs[:limit]),
             "timeframe_minutes": minutes
         }
+        
+        logger.info(f"Returning {len(all_logs[:limit])} logs")
+        return result
     except Exception as e:
         logger.error(f"Error fetching backend logs: {str(e)}")
         return {"success": False, "error": str(e)}
