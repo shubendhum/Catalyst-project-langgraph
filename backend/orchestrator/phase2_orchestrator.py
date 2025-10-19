@@ -19,6 +19,7 @@ from agents.explorer_agent import get_explorer_agent
 from services.file_system_service import get_file_system_service
 from services.github_service import get_github_service
 from llm_client import get_llm_client
+from services.optimized_llm_client import get_optimized_llm_client
 
 logger = logging.getLogger(__name__)
 
