@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, AlertCircle, Info, CheckCircle, Clock } from 'lucide-react';
+import { RefreshCw, AlertCircle, Info, CheckCircle, Clock, Home, BarChart3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
