@@ -1646,6 +1646,177 @@ class CatalystAPITester:
             print(f"❌ Database test failed: {str(e)}")
             return False
 
+
+    # ==================== PHASE 5 OPTIMIZATION TESTS ====================
+    
+    def test_backend_logs_5_minutes(self):
+        """Test backend logs API with 5 minutes timeframe"""
+        success, response = self.run_test(
+            "Backend Logs (5 minutes)",
+            "GET",
+            "logs/backend?minutes=5",
+            200
+        )
+        
+        if success and response.get("success"):
+            logs = response.get("logs", [])
+            count = response.get("count", 0)
+            timeframe = response.get("timeframe_minutes", 0)
+            
+            print(f"   Logs count: {count}")
+            print(f"   Timeframe: {timeframe} minutes")
+            
+            # Check log structure
+            if logs:
+                first_log = logs[0]
+                has_source = "source" in first_log
+                has_message = "message" in first_log
+                has_timestamp = "timestamp" in first_log
+                
+                print(f"   Has source field: {has_source}")
+                print(f"   Has message field: {has_message}")
+                print(f"   Has timestamp field: {has_timestamp}")
+                
+                # Check for different log sources
+                sources = set(log.get("source", "") for log in logs)
+                print(f"   Log sources: {sources}")
+                
+                return has_source and has_message and has_timestamp
+            else:
+                print("   No logs found (may be expected if no recent activity)")
+                return True  # Not a failure if no logs
+        return False
+    
+    def test_backend_logs_1_minute(self):
+        """Test backend logs API with 1 minute timeframe"""
+        success, response = self.run_test(
+            "Backend Logs (1 minute)",
+            "GET",
+            "logs/backend?minutes=1",
+            200
+        )
+        
+        if success and response.get("success"):
+            count = response.get("count", 0)
+            timeframe = response.get("timeframe_minutes", 0)
+            
+            print(f"   Logs count: {count}")
+            print(f"   Timeframe: {timeframe} minutes")
+            return timeframe == 1
+        return False
+    
+    def test_backend_logs_15_minutes(self):
+        """Test backend logs API with 15 minutes timeframe"""
+        success, response = self.run_test(
+            "Backend Logs (15 minutes)",
+            "GET",
+            "logs/backend?minutes=15",
+            200
+        )
+        
+        if success and response.get("success"):
+            count = response.get("count", 0)
+            timeframe = response.get("timeframe_minutes", 0)
+            
+            print(f"   Logs count: {count}")
+            print(f"   Timeframe: {timeframe} minutes")
+            return timeframe == 15
+        return False
+    
+    def test_cost_stats_global(self):
+        """Test global cost statistics API"""
+        success, response = self.run_test(
+            "Global Cost Statistics",
+            "GET",
+            "logs/cost-stats",
+            200
+        )
+        
+        if success and response.get("success"):
+            global_stats = response.get("global_stats", {})
+            optimizer_stats = response.get("optimizer_stats", {})
+            
+            # Check global stats fields
+            total_tasks = global_stats.get("total_tasks", 0)
+            total_llm_calls = global_stats.get("total_llm_calls", 0)
+            cache_hit_rate = global_stats.get("cache_hit_rate", 0)
+            total_cost = global_stats.get("total_cost", 0)
+            avg_cost_per_task = global_stats.get("average_cost_per_task", 0)
+            
+            print(f"   Total tasks: {total_tasks}")
+            print(f"   Total LLM calls: {total_llm_calls}")
+            print(f"   Cache hit rate: {cache_hit_rate:.2f}%")
+            print(f"   Total cost: ${total_cost:.4f}")
+            print(f"   Avg cost per task: ${avg_cost_per_task:.4f}")
+            
+            # Check optimizer stats are included
+            has_optimizer_stats = bool(optimizer_stats)
+            print(f"   Has optimizer stats: {has_optimizer_stats}")
+            
+            if optimizer_stats:
+                cache_size = optimizer_stats.get("cache_size", 0)
+                cache_maxsize = optimizer_stats.get("cache_maxsize", 0)
+                print(f"   Optimizer cache: {cache_size}/{cache_maxsize}")
+            
+            # Verify required fields exist
+            required_fields = ["total_tasks", "total_llm_calls", "cache_hit_rate", "total_cost"]
+            has_all_fields = all(field in global_stats for field in required_fields)
+            
+            return has_all_fields and has_optimizer_stats
+        return False
+    
+    def test_existing_chat_config(self):
+        """Test that existing chat config endpoint still works"""
+        success, response = self.run_test(
+            "Chat Config (Existing Endpoint)",
+            "GET",
+            "chat/config",
+            200
+        )
+        
+        if success and "provider" in response:
+            print(f"   Provider: {response.get('provider')}")
+            print(f"   Model: {response.get('model')}")
+            return True
+        return False
+    
+    def test_existing_conversations_list(self):
+        """Test that existing conversations list endpoint still works"""
+        success, response = self.run_test(
+            "List Conversations (Existing Endpoint)",
+            "GET",
+            "chat/conversations",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} conversations")
+            return True
+        return False
+    
+    def test_existing_optimizer_select_model(self):
+        """Test that existing optimizer select-model endpoint still works"""
+        success, response = self.run_test(
+            "Optimizer Select Model (Existing Endpoint)",
+            "POST",
+            "optimizer/select-model",
+            200,
+            data={
+                "task_description": "simple documentation fix",
+                "complexity": 0.2,
+                "current_model": "claude-3-7-sonnet-20250219"
+            }
+        )
+        
+        if success and response.get("success"):
+            recommended = response.get("recommended_model", "")
+            savings = response.get("estimated_savings_percent", 0)
+            print(f"   Recommended model: {recommended}")
+            print(f"   Estimated savings: {savings:.1f}%")
+            return True
+        return False
+
+
 def main():
     print("🚀 Starting Catalyst API Testing...")
     print("=" * 60)
