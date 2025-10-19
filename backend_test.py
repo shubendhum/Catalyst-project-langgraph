@@ -1823,11 +1823,20 @@ def main():
     
     tester = CatalystAPITester()
     
-    # Test sequence - Phase 4 MVP comprehensive testing
+    # Test sequence - Phase 5 Optimization Testing
     tests = [
         ("API Root", tester.test_api_root),
         
-        # 1. PHASE 4 MVP FEATURES - CONTEXT MANAGEMENT (HIGH PRIORITY)
+        # 1. PHASE 5 OPTIMIZATION FEATURES (CRITICAL PRIORITY)
+        ("Backend Logs (5 minutes)", tester.test_backend_logs_5_minutes),
+        ("Backend Logs (1 minute)", tester.test_backend_logs_1_minute),
+        ("Backend Logs (15 minutes)", tester.test_backend_logs_15_minutes),
+        ("Global Cost Statistics", tester.test_cost_stats_global),
+        ("Chat Config (Existing)", tester.test_existing_chat_config),
+        ("List Conversations (Existing)", tester.test_existing_conversations_list),
+        ("Optimizer Select Model (Existing)", tester.test_existing_optimizer_select_model),
+        
+        # 2. PHASE 4 MVP FEATURES - CONTEXT MANAGEMENT (HIGH PRIORITY)
         ("Context Check (10 messages)", tester.test_context_check_10_messages),
         ("Context Check (150K tokens)", tester.test_context_check_large_tokens),
         ("Context Check (180K tokens)", tester.test_context_check_critical_tokens),
