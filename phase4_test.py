@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 class Phase4Tester:
-    def __init__(self, base_url="https://catalyst-app-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://multiagent-dev-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
