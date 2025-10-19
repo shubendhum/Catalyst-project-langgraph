@@ -214,6 +214,7 @@ class Phase2Orchestrator:
                     "review_score": review_results["overall_score"],
                     "recommendations": len(review_results.get("recommendations", []))
                 },
+                "cost_stats": self.optimized_llm_client.get_stats(),
                 "plan": plan,
                 "architecture": architecture,
                 "code_result": code_result,
