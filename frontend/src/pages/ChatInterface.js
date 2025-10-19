@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Settings, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Settings, Bot, User, Loader2, BarChart3, FileText } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Label } from '../components/ui/label';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const ChatInterface = () => {
