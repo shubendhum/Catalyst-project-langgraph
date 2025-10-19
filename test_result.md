@@ -419,15 +419,18 @@ infrastructure:
 
   - task: "Backend Logs API Endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created two new API endpoints: GET /api/logs/backend (fetches backend logs from last N minutes with filtering by source) and GET /api/logs/cost-stats (aggregates cost statistics across all tasks with cache performance metrics)."
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Backend Logs API fully operational. ✅ GET /api/logs/backend returns logs with proper structure (source, message, timestamp). ✅ Includes both supervisor logs (backend.out.log, backend.err.log) and agent logs from database. ✅ Different timeframe values work correctly (1, 5, 15 minutes). ✅ GET /api/logs/cost-stats returns global cost statistics with all required fields (total_tasks, total_llm_calls, cache_hit_rate, total_cost, average_cost_per_task). ✅ Optimizer stats are included in response. Fixed critical route ordering issue - moved /logs/backend before /logs/{task_id} to prevent path parameter conflict. All 7 Phase 5 tests passed (100% success rate)."
 
 metadata:
   created_by: "main_agent"
