@@ -1,0 +1,864 @@
+{
+  "project_name": "New Project",
+  "architecture": {
+    "backend": {
+      "structure": {
+        "main": "Main application entry point",
+        "api": "API routes and endpoints",
+        "models": "Database models",
+        "services": "Business logic services",
+        "middleware": "Authentication and validation",
+        "utils": "Utility functions"
+      },
+      "api_design": [
+        {
+          "method": "GET",
+          "path": "/api/todos",
+          "description": "Get all todo items, with optional filtering",
+          "request": {
+            "query_params": {
+              "completed": "boolean (optional)",
+              "priority": "string (optional)"
+            }
+          },
+          "response": {
+            "status_code": 200,
+            "body": {
+              "items": [
+                {
+                  "id": "string",
+                  "title": "string",
+                  "description": "string",
+                  "completed": "boolean",
+                  "priority": "string",
+                  "created_at": "datetime",
+                  "updated_at": "datetime",
+                  "due_date": "datetime"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/todos/{todo_id}",
+          "description": "Get a specific todo item by ID",
+          "request": {
+            "path_params": {
+              "todo_id": "string"
+            }
+          },
+          "response": {
+            "status_code": 200,
+            "body": {
+              "id": "string",
+              "title": "string",
+              "description": "string",
+              "completed": "boolean",
+              "priority": "string",
+              "created_at": "datetime",
+              "updated_at": "datetime",
+              "due_date": "datetime"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/todos",
+          "description": "Create a new todo item",
+          "request": {
+            "body": {
+              "title": "string",
+              "description": "string",
+              "priority": "string (optional)",
+              "due_date": "datetime (optional)"
+            }
+          },
+          "response": {
+            "status_code": 201,
+            "body": {
+              "id": "string",
+              "title": "string",
+              "description": "string",
+              "completed": "boolean",
+              "priority": "string",
+              "created_at": "datetime",
+              "updated_at": "datetime",
+              "due_date": "datetime"
+            }
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/api/todos/{todo_id}",
+          "description": "Update an existing todo item",
+          "request": {
+            "path_params": {
+              "todo_id": "string"
+            },
+            "body": {
+              "title": "string (optional)",
+              "description": "string (optional)",
+              "completed": "boolean (optional)",
+              "priority": "string (optional)",
+              "due_date": "datetime (optional)"
+            }
+          },
+          "response": {
+            "status_code": 200,
+            "body": {
+              "id": "string",
+              "title": "string",
+              "description": "string",
+              "completed": "boolean",
+              "priority": "string",
+              "created_at": "datetime",
+              "updated_at": "datetime",
+              "due_date": "datetime"
+            }
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/todos/{todo_id}",
+          "description": "Delete a todo item",
+          "request": {
+            "path_params": {
+              "todo_id": "string"
+            }
+          },
+          "response": {
+            "status_code": 204,
+            "body": null
+          }
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/todos/{todo_id}/complete",
+          "description": "Toggle the completion status of a todo item",
+          "request": {
+            "path_params": {
+              "todo_id": "string"
+            }
+          },
+          "response": {
+            "status_code": 200,
+            "body": {
+              "id": "string",
+              "title": "string",
+              "description": "string",
+              "completed": "boolean",
+              "priority": "string",
+              "created_at": "datetime",
+              "updated_at": "datetime",
+              "due_date": "datetime"
+            }
+          }
+        }
+      ],
+      "database_schema": [
+        {
+          "model": "User",
+          "collection": "users",
+          "fields": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "primary_key": true
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "unique": true,
+              "required": true
+            },
+            {
+              "name": "hashed_password",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "is_active",
+              "type": "boolean",
+              "default": true
+            },
+            {
+              "name": "created_at",
+              "type": "datetime",
+              "auto_now_add": true
+            }
+          ]
+        },
+        {
+          "model": "TaskCreation",
+          "collection": "taskcreations",
+          "fields": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "primary_key": true
+            },
+            {
+              "name": "user_id",
+              "type": "uuid",
+              "foreign_key": "User"
+            },
+            {
+              "name": "data",
+              "type": "dict",
+              "required": true
+            },
+            {
+              "name": "created_at",
+              "type": "datetime",
+              "auto_now_add": true
+            },
+            {
+              "name": "updated_at",
+              "type": "datetime",
+              "auto_now": true
+            }
+          ]
+        },
+        {
+          "model": "TaskListing",
+          "collection": "tasklistings",
+          "fields": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "primary_key": true
+            },
+            {
+              "name": "user_id",
+              "type": "uuid",
+              "foreign_key": "User"
+            },
+            {
+              "name": "data",
+              "type": "dict",
+              "required": true
+            },
+            {
+              "name": "created_at",
+              "type": "datetime",
+              "auto_now_add": true
+            },
+            {
+              "name": "updated_at",
+              "type": "datetime",
+              "auto_now": true
+            }
+          ]
+        },
+        {
+          "model": "TaskCompletion",
+          "collection": "taskcompletions",
+          "fields": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "primary_key": true
+            },
+            {
+              "name": "user_id",
+              "type": "uuid",
+              "foreign_key": "User"
+            },
+            {
+              "name": "data",
+              "type": "dict",
+              "required": true
+            },
+            {
+              "name": "created_at",
+              "type": "datetime",
+              "auto_now_add": true
+            },
+            {
+              "name": "updated_at",
+              "type": "datetime",
+              "auto_now": true
+            }
+          ]
+        }
+      ],
+      "auth_strategy": "JWT tokens with bearer authentication",
+      "modules": [
+        {
+          "name": "auth",
+          "description": "Authentication and authorization"
+        },
+        {
+          "name": "data",
+          "description": "Core business logic"
+        },
+        {
+          "name": "utils",
+          "description": "Helper functions"
+        }
+      ]
+    },
+    "frontend": {
+      "structure": {
+        "components": "Reusable UI components",
+        "pages": "Application pages/views",
+        "services": "API client and services",
+        "hooks": "Custom React hooks",
+        "utils": "Utility functions",
+        "store": "State management"
+      },
+      "components": [
+        {
+          "name": "Navbar",
+          "type": "layout",
+          "description": "Navigation bar"
+        },
+        {
+          "name": "Sidebar",
+          "type": "layout",
+          "description": "Side menu"
+        },
+        {
+          "name": "LoginForm",
+          "type": "form",
+          "description": "User login form"
+        },
+        {
+          "name": "RegisterForm",
+          "type": "form",
+          "description": "User registration form"
+        },
+        {
+          "name": "TaskCreationCard",
+          "type": "display",
+          "description": "Card component for Task Creation"
+        },
+        {
+          "name": "TaskCreationForm",
+          "type": "form",
+          "description": "Form for creating/editing Task Creation"
+        },
+        {
+          "name": "TaskListingCard",
+          "type": "display",
+          "description": "Card component for Task Listing"
+        },
+        {
+          "name": "TaskListingForm",
+          "type": "form",
+          "description": "Form for creating/editing Task Listing"
+        },
+        {
+          "name": "TaskCompletionCard",
+          "type": "display",
+          "description": "Card component for Task Completion"
+        },
+        {
+          "name": "TaskCompletionForm",
+          "type": "form",
+          "description": "Form for creating/editing Task Completion"
+        },
+        {
+          "name": "TaskDeletionCard",
+          "type": "display",
+          "description": "Card component for Task Deletion"
+        },
+        {
+          "name": "TaskDeletionForm",
+          "type": "form",
+          "description": "Form for creating/editing Task Deletion"
+        },
+        {
+          "name": "TaskEditingCard",
+          "type": "display",
+          "description": "Card component for Task Editing"
+        },
+        {
+          "name": "TaskEditingForm",
+          "type": "form",
+          "description": "Form for creating/editing Task Editing"
+        },
+        {
+          "name": "TaskPrioritizationCard",
+          "type": "display",
+          "description": "Card component for Task Prioritization"
+        }
+      ],
+      "pages": [
+        {
+          "name": "Home",
+          "path": "/",
+          "description": "Landing page"
+        },
+        {
+          "name": "Login",
+          "path": "/login",
+          "description": "Login page"
+        },
+        {
+          "name": "Register",
+          "path": "/register",
+          "description": "Registration page"
+        },
+        {
+          "name": "Dashboard",
+          "path": "/dashboard",
+          "description": "Main dashboard"
+        },
+        {
+          "name": "TaskCreation",
+          "path": "/taskcreation",
+          "description": "Page for Task Creation"
+        },
+        {
+          "name": "TaskListing",
+          "path": "/tasklisting",
+          "description": "Page for Task Listing"
+        },
+        {
+          "name": "TaskCompletion",
+          "path": "/taskcompletion",
+          "description": "Page for Task Completion"
+        },
+        {
+          "name": "TaskDeletion",
+          "path": "/taskdeletion",
+          "description": "Page for Task Deletion"
+        },
+        {
+          "name": "TaskEditing",
+          "path": "/taskediting",
+          "description": "Page for Task Editing"
+        }
+      ],
+      "state_management": "React Context API or Zustand",
+      "routing": [
+        {
+          "path": "/",
+          "component": "Home",
+          "protected": false
+        },
+        {
+          "path": "/login",
+          "component": "Login",
+          "protected": false
+        },
+        {
+          "path": "/register",
+          "component": "Register",
+          "protected": false
+        },
+        {
+          "path": "/dashboard",
+          "component": "Dashboard",
+          "protected": true
+        },
+        {
+          "path": "/taskcreation",
+          "component": "TaskCreation",
+          "protected": true
+        },
+        {
+          "path": "/tasklisting",
+          "component": "TaskListing",
+          "protected": true
+        },
+        {
+          "path": "/taskcompletion",
+          "component": "TaskCompletion",
+          "protected": true
+        },
+        {
+          "path": "/taskdeletion",
+          "component": "TaskDeletion",
+          "protected": true
+        },
+        {
+          "path": "/taskediting",
+          "component": "TaskEditing",
+          "protected": true
+        }
+      ]
+    },
+    "data_models": [
+      {
+        "model": "User",
+        "collection": "users",
+        "fields": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "primary_key": true
+          },
+          {
+            "name": "email",
+            "type": "string",
+            "unique": true,
+            "required": true
+          },
+          {
+            "name": "hashed_password",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "is_active",
+            "type": "boolean",
+            "default": true
+          },
+          {
+            "name": "created_at",
+            "type": "datetime",
+            "auto_now_add": true
+          }
+        ]
+      },
+      {
+        "model": "TaskCreation",
+        "collection": "taskcreations",
+        "fields": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "primary_key": true
+          },
+          {
+            "name": "user_id",
+            "type": "uuid",
+            "foreign_key": "User"
+          },
+          {
+            "name": "data",
+            "type": "dict",
+            "required": true
+          },
+          {
+            "name": "created_at",
+            "type": "datetime",
+            "auto_now_add": true
+          },
+          {
+            "name": "updated_at",
+            "type": "datetime",
+            "auto_now": true
+          }
+        ]
+      },
+      {
+        "model": "TaskListing",
+        "collection": "tasklistings",
+        "fields": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "primary_key": true
+          },
+          {
+            "name": "user_id",
+            "type": "uuid",
+            "foreign_key": "User"
+          },
+          {
+            "name": "data",
+            "type": "dict",
+            "required": true
+          },
+          {
+            "name": "created_at",
+            "type": "datetime",
+            "auto_now_add": true
+          },
+          {
+            "name": "updated_at",
+            "type": "datetime",
+            "auto_now": true
+          }
+        ]
+      },
+      {
+        "model": "TaskCompletion",
+        "collection": "taskcompletions",
+        "fields": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "primary_key": true
+          },
+          {
+            "name": "user_id",
+            "type": "uuid",
+            "foreign_key": "User"
+          },
+          {
+            "name": "data",
+            "type": "dict",
+            "required": true
+          },
+          {
+            "name": "created_at",
+            "type": "datetime",
+            "auto_now_add": true
+          },
+          {
+            "name": "updated_at",
+            "type": "datetime",
+            "auto_now": true
+          }
+        ]
+      }
+    ],
+    "api_specs": [
+      {
+        "method": "GET",
+        "path": "/api/todos",
+        "description": "Get all todo items, with optional filtering",
+        "request_body": {
+          "query_params": {
+            "completed": "boolean (optional)",
+            "priority": "string (optional)"
+          }
+        },
+        "response_body": {
+          "status_code": 200,
+          "body": {
+            "items": [
+              {
+                "id": "string",
+                "title": "string",
+                "description": "string",
+                "completed": "boolean",
+                "priority": "string",
+                "created_at": "datetime",
+                "updated_at": "datetime",
+                "due_date": "datetime"
+              }
+            ]
+          }
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      },
+      {
+        "method": "GET",
+        "path": "/api/todos/{todo_id}",
+        "description": "Get a specific todo item by ID",
+        "request_body": {
+          "path_params": {
+            "todo_id": "string"
+          }
+        },
+        "response_body": {
+          "status_code": 200,
+          "body": {
+            "id": "string",
+            "title": "string",
+            "description": "string",
+            "completed": "boolean",
+            "priority": "string",
+            "created_at": "datetime",
+            "updated_at": "datetime",
+            "due_date": "datetime"
+          }
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      },
+      {
+        "method": "POST",
+        "path": "/api/todos",
+        "description": "Create a new todo item",
+        "request_body": {
+          "body": {
+            "title": "string",
+            "description": "string",
+            "priority": "string (optional)",
+            "due_date": "datetime (optional)"
+          }
+        },
+        "response_body": {
+          "status_code": 201,
+          "body": {
+            "id": "string",
+            "title": "string",
+            "description": "string",
+            "completed": "boolean",
+            "priority": "string",
+            "created_at": "datetime",
+            "updated_at": "datetime",
+            "due_date": "datetime"
+          }
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      },
+      {
+        "method": "PUT",
+        "path": "/api/todos/{todo_id}",
+        "description": "Update an existing todo item",
+        "request_body": {
+          "path_params": {
+            "todo_id": "string"
+          },
+          "body": {
+            "title": "string (optional)",
+            "description": "string (optional)",
+            "completed": "boolean (optional)",
+            "priority": "string (optional)",
+            "due_date": "datetime (optional)"
+          }
+        },
+        "response_body": {
+          "status_code": 200,
+          "body": {
+            "id": "string",
+            "title": "string",
+            "description": "string",
+            "completed": "boolean",
+            "priority": "string",
+            "created_at": "datetime",
+            "updated_at": "datetime",
+            "due_date": "datetime"
+          }
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/todos/{todo_id}",
+        "description": "Delete a todo item",
+        "request_body": {
+          "path_params": {
+            "todo_id": "string"
+          }
+        },
+        "response_body": {
+          "status_code": 204,
+          "body": null
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/todos/{todo_id}/complete",
+        "description": "Toggle the completion status of a todo item",
+        "request_body": {
+          "path_params": {
+            "todo_id": "string"
+          }
+        },
+        "response_body": {
+          "status_code": 200,
+          "body": {
+            "id": "string",
+            "title": "string",
+            "description": "string",
+            "completed": "boolean",
+            "priority": "string",
+            "created_at": "datetime",
+            "updated_at": "datetime",
+            "due_date": "datetime"
+          }
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      }
+    ],
+    "file_structure": {
+      "backend": {
+        "main.py": "FastAPI application entry point",
+        "models/": {
+          "__init__.py": "Models package",
+          "user.py": "User model",
+          "data.py": "Data models"
+        },
+        "api/": {
+          "__init__.py": "API package",
+          "auth.py": "Authentication routes",
+          "data.py": "Data routes"
+        },
+        "services/": {
+          "__init__.py": "Services package",
+          "auth_service.py": "Authentication service",
+          "data_service.py": "Data service"
+        },
+        "middleware/": {
+          "__init__.py": "Middleware package",
+          "auth.py": "Auth middleware"
+        },
+        "requirements.txt": "Python dependencies"
+      },
+      "frontend": {
+        "src/": {
+          "App.js": "Main App component",
+          "index.js": "Entry point",
+          "components/": {
+            "Navbar.js": "Navigation",
+            "forms/": {}
+          },
+          "pages/": {
+            "Home.js": "Home page",
+            "Login.js": "Login page",
+            "Dashboard.js": "Dashboard"
+          },
+          "services/": {
+            "api.js": "API client"
+          },
+          "hooks/": {},
+          "utils/": {}
+        },
+        "public/": {
+          "index.html": "HTML template"
+        },
+        "package.json": "npm dependencies"
+      }
+    },
+    "integration": {
+      "cors": "Configure CORS in FastAPI",
+      "api_base_url": "http://localhost:8001/api",
+      "authentication": "Bearer token in Authorization header",
+      "error_handling": "Unified error response format"
+    },
+    "metadata": {
+      "project_name": "New Project",
+      "created_at": "2025-10-19T09:31:24.040351+00:00",
+      "agent": "Architect",
+      "based_on_plan": true
+    }
+  },
+  "files_generated": 25,
+  "created_at": "2025-10-19T09:38:54.174114+00:00",
+  "agent": "Coder"
+}
