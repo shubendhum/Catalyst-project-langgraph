@@ -437,8 +437,12 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Chat Interface Integration Testing (COMPLETED)"
-    - "Phase 4 MVP: Workspace Service ObjectId serialization fix"
+    - "Parallel Agent Execution in Orchestrators"
+    - "OptimizedLLMClient Integration"
+    - "Backend Logs API Endpoints"
+    - "Backend Logs Page"
+    - "Cost Visualization Dashboard"
+    - "Navigation Integration"
   stuck_tasks: 
     - "Phase 4 MVP: Workspace Service GET endpoints (MongoDB ObjectId serialization)"
   test_all: false
