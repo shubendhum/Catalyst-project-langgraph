@@ -11,6 +11,7 @@ from agents.architect_agent import get_architect_agent
 from agents.coder import get_coder_agent
 from services.file_system_service import get_file_system_service
 from llm_client import get_llm_client
+from services.optimized_llm_client import get_optimized_llm_client
 
 logger = logging.getLogger(__name__)
 
