@@ -12,6 +12,14 @@ import uuid
 from datetime import datetime, timezone
 import json
 import asyncio
+import logging
+
+# Initialize logger early
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 from agents.planner import PlannerAgent
 from agents.architect import ArchitectAgent
