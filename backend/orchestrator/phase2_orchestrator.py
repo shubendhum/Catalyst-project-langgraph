@@ -120,40 +120,41 @@ class Phase2Orchestrator:
                 raise Exception(f"Code generation failed: {code_result.get('error')}")
             
             await self._log(task_id, f"✅ {code_result['files_generated']} files generated")
-            await self._save_task_data(task_id, {"code_result": code_result, "status": "testing"})
+            await self._save_task_data(task_id, {"code_result": code_result, "status": "testing_and_reviewing"})
             
-            # STEP 4: Testing
-            await self._update_task_status(task_id, "testing")
-            await self._log(task_id, "🧪 Tester Agent: Running comprehensive tests...")
+            # STEP 4 & 5: Testing and Review in PARALLEL (both analyze generated code)
+            await self._update_task_status(task_id, "testing_and_reviewing")
+            await self._log(task_id, "⚡ Running Tester and Reviewer agents in parallel...")
             
-            test_results = await self.tester.test_application(
+            # Run Tester and Reviewer concurrently
+            test_task = self.tester.test_application(
                 project_name=project_name,
                 architecture=architecture,
                 code_files=code_result["files"],
                 task_id=task_id
             )
             
-            await self._save_task_data(task_id, {"test_results": test_results, "status": "reviewing"})
+            review_task = self.reviewer.review_code(
+                project_name=project_name,
+                architecture=architecture,
+                code_files=code_result["files"],
+                task_id=task_id
+            )
+            
+            # Wait for both to complete
+            test_results, review_results = await asyncio.gather(test_task, review_task)
+            
+            await self._log(task_id, f"✅ Tests: {test_results['overall_status']} | Review Score: {review_results['overall_score']}/100")
+            await self._save_task_data(task_id, {
+                "test_results": test_results,
+                "review_results": review_results,
+                "status": "deploying"
+            })
             
             # Check if tests failed and need rework
             if test_results["overall_status"] == "failed":
-                await self._log(task_id, "⚠️  Tests failed. Initiating feedback loop...")
+                await self._log(task_id, "⚠️  Tests failed. Continuing to deployment configuration...")
                 # Note: In a full implementation, we'd loop back to Coder here
-                # For now, we continue with review
-            
-            # STEP 5: Code Review
-            await self._update_task_status(task_id, "reviewing")
-            await self._log(task_id, "🔍 Reviewer Agent: Performing code quality analysis...")
-            
-            review_results = await self.reviewer.review_code(
-                project_name=project_name,
-                architecture=architecture,
-                code_files=code_result["files"],
-                task_id=task_id
-            )
-            
-            await self._log(task_id, f"✅ Review complete! Score: {review_results['overall_score']}/100")
-            await self._save_task_data(task_id, {"review_results": review_results, "status": "deploying"})
             
             # STEP 6: Deployment Configuration
             await self._update_task_status(task_id, "deploying")
