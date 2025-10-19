@@ -147,6 +147,7 @@ class Phase1Orchestrator:
                     "project_name": project_name,
                     "project_path": code_result["project_path"],
                     "files_generated": code_result["files_generated"],
+                    "cost_stats": self.optimized_llm_client.get_stats(),
                     "plan": plan,
                     "architecture": architecture,
                     "code_result": code_result
