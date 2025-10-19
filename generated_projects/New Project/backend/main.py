@@ -1,22 +1,16 @@
-# main.py
-
+# project_root/app/main.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-import motor.motor_asyncio
-import os
-import uuid
-from datetime import datetime
-from bson import ObjectId
+from motor.motor_asyncio import AsyncIOMotorClient
+from app.api.v1.greet import router as greet_router
+import app.db.mongodb as db
 
-# Initialize FastAPI application
+# Initialize FastAPI app
 app = FastAPI()
 
 # CORS middleware setup
 origins = [
-    "http://localhost:3000",  # Allow your frontend to connect
-    "https://yourfrontend.com",
+    "http://localhost:8000",  # Update this to your frontend's URL or other origins
 ]
 
 app.add_middleware(
@@ -28,48 +22,24 @@ app.add_middleware(
 )
 
 # MongoDB connection
-MONGO_DETAILS = os.getenv("MONGO_DETAILS", "mongodb://localhost:27017")  # use your MongoDB URI
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
-database = client.your_database_name  # Change this to your database name
-users_collection = database.users
-helloworldendpoints_collection = database.helloworldendpoints
-frontenddisplays_collection = database.frontenddisplays
-stylingwithtailwindcsss_collection = database.stylingwithtailwindcsss
+@app.on_event("startup")
+async def startup_db_client():
+    db.client = AsyncIOMotorClient('mongodb://localhost:27017')  # Replace with your MongoDB URI
+    db.database = db.client['greeting_db']  # Specify the database name
 
-# Pydantic models for serialization
-class User(BaseModel):
-    id: str
-    email: str
-    hashed_password: str
-    is_active: bool = True
-    created_at: datetime = None
+@app.on_event("shutdown")
+def shutdown_db_client():
+    db.client.close()
 
-class HelloWorldResponse(BaseModel):
-    message: str
+# Include the greet router
+app.include_router(greet_router, prefix="/api/greet", tags=["greet"])
 
-class HelloWorldData(BaseModel):
-    user_id: str
-    data: dict
-
-# Create a health check endpoint
-@app.get("/api/health", response_model=HelloWorldResponse)
+# Health check endpoint
+@app.get("/health")
 async def health_check():
-    return HelloWorldResponse(message="API is healthy!")
+    return {"status": "healthy"}
 
-# Hello World endpoint
-@app.get("/api/hello", response_model=HelloWorldResponse)
-async def hello_world():
-    return HelloWorldResponse(message="Hello, World!")
-
-# Error handling for Invalid Object ID
-@app.exception_handler(ValueError)
-async def value_error_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=400,
-        content={"message": str(exc)},
-    )
-
-# Run the server with `uvicorn main:app --reload`
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Error handling
+@app.exception_handler(Exception)
+async def general_exception_handler(request, exc):
+    return HTTPException(status_code=500, detail=str(exc))

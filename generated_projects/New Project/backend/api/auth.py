@@ -1,3 +1,3 @@
-### Step 2: Define Pydantic Models
+2. Create a new Python file, e.g., `main.py`, and put the following code into it.
 
-We'll create Pydantic models for user registration and login.
+### `main.py`
