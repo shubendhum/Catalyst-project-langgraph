@@ -165,13 +165,26 @@ const ChatInterface = () => {
             <p style={{ fontSize: '12px', color: '#94a3b8' }}>Multi-Agent Development Platform</p>
           </div>
         </div>
-        <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-          <DialogTrigger asChild>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link to="/costs" style={{ textDecoration: 'none' }}>
             <Button variant="outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Settings size={18} />
-              LLM Settings
+              <BarChart3 size={18} />
+              Cost Dashboard
             </Button>
-          </DialogTrigger>
+          </Link>
+          <Link to="/logs" style={{ textDecoration: 'none' }}>
+            <Button variant="outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FileText size={18} />
+              Backend Logs
+            </Button>
+          </Link>
+          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Settings size={18} />
+                LLM Settings
+              </Button>
+            </DialogTrigger>
           <DialogContent className="glass-strong" style={{ maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
             <DialogHeader>
               <DialogTitle>LLM Configuration</DialogTitle>
