@@ -254,6 +254,42 @@ frontend:
         agent: "main"
         comment: "Implemented as part of ChatInterface component. Settings dialog allows switching between Emergent LLM Key, Anthropic Claude, and AWS Bedrock providers with all necessary configuration fields."
 
+  - task: "Backend Logs Page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/BackendLogs.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created BackendLogs page (/logs route) with real-time log viewing, filtering by source (agent/backend.out/backend.err), timeframe selection (1-60 minutes), and auto-refresh capability. Shows logs with color-coded severity levels and proper formatting."
+
+  - task: "Cost Visualization Dashboard"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/CostVisualization.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created CostVisualization component (/costs route) displaying: (1) Total LLM cost across all tasks, (2) Cache hit rate percentage and progress bar, (3) Estimated cost savings from caching, (4) Average cost per task, (5) Cache performance details (size, efficiency), (6) AI-powered optimization insights. Auto-refreshes every 30 seconds."
+
+  - task: "Navigation Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ChatInterface.js, /app/frontend/src/pages/BackendLogs.js, /app/frontend/src/components/CostVisualization.js, /app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added navigation links in ChatInterface header to access Cost Dashboard and Backend Logs. Added routes in App.js for /logs and /costs. Added breadcrumb navigation in BackendLogs and CostVisualization pages."
+
 infrastructure:
   - task: "Fix Docker frontend entrypoint error"
     implemented: true
