@@ -27,16 +27,21 @@ class Phase1Orchestrator:
         self.manager = manager
         self.config = config or {}
         
-        # Initialize LLM client
+        # Initialize LLM client - use OptimizedLLMClient for cost savings
+        self.optimized_llm_client = get_optimized_llm_client(
+            db=db,
+            project_id=None,  # Will be set per task
+            default_model=self.config.get("model", "claude-3-7-sonnet-20250219")
+        )
         self.llm_client = get_llm_client(self.config)
         
         # Initialize services
         self.file_service = get_file_system_service()
         
-        # Initialize agents
-        self.planner = get_planner_agent(self.llm_client)
-        self.architect = get_architect_agent(self.llm_client)
-        self.coder = get_coder_agent(self.llm_client, db, manager, self.file_service)
+        # Initialize agents with optimized client
+        self.planner = get_planner_agent(self.optimized_llm_client)
+        self.architect = get_architect_agent(self.optimized_llm_client)
+        self.coder = get_coder_agent(self.optimized_llm_client, db, manager, self.file_service)
     
     async def execute_task(
         self,
