@@ -295,6 +295,8 @@ const CostVisualization = () => {
         </div>
       </div>
     </div>
+      </div>
+    </div>
   );
 };
 
