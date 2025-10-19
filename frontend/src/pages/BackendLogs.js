@@ -74,6 +74,25 @@ const BackendLogs = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Navigation */}
+        <div className="mb-4 flex items-center gap-4">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <Home className="w-5 h-5" />
+            <span>Chat</span>
+          </Link>
+          <span className="text-gray-400">/</span>
+          <Link 
+            to="/costs" 
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span>Cost Dashboard</span>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Backend Logs</h1>
