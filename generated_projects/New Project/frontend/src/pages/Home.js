@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const Home = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Simulate fetching data from an API
   useEffect(() => {
-    // Simulating an API call
     const fetchData = async () => {
       try {
-        // Replace with your API endpoint
-        const response = await fetch('https://api.example.com/data');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const result = await response.json();
-        setData(result);
+        // Replace with your actual API endpoint
+        const response = await axios.get('https://api.example.com/data');
+        setData(response.data);
       } catch (err) {
-        setError(err.message);
+        setError('An error occurred while fetching the data.');
       } finally {
         setLoading(false);
       }
@@ -26,20 +23,33 @@ const Home = () => {
     fetchData();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="loader">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
-      <h1 className="text-4xl font-bold text-center mb-4">Welcome to the Home Page</h1>
-      <p className="mb-4 text-lg text-gray-700">{description}</p>
-
-      {loading && <p className="text-lg">Loading...</p>}
-      {error && <p className="text-lg text-red-500">{error}</p>}
-
-      {data && (
-        <div className="w-full max-w-md p-4 bg-white shadow-md rounded-lg">
-          <h2 className="text-2xl font-semibold mb-2">Fetched Data:</h2>
-          <pre className="whitespace-pre-wrap">{JSON.stringify(data, null, 2)}</pre>
-        </div>
-      )}
+    <div className="container mx-auto px-4">
+      <h1 className="text-4xl font-bold text-center mt-10">Welcome to Our Landing Page!</h1>
+      <p className="mt-4 text-center text-lg">
+        {data ? data.description : 'No data available.'}
+      </p>
+      <div className="mt-8 flex flex-col items-center">
+        <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+          Get Started
+        </button>
+      </div>
     </div>
   );
 };

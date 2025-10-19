@@ -12,23 +12,24 @@
       },
       "api_design": [
         {
-          "method": "GET",
-          "path": "/api/greeting",
-          "description": "Fetches the current greeting message.",
-          "request": {},
+          "method": "POST",
+          "path": "/api/greet",
+          "description": "Submits a user's name and returns a personalized greeting.",
+          "request": {
+            "body": {
+              "name": "string"
+            }
+          },
           "response": {
             "message": "string"
           }
         },
         {
-          "method": "POST",
-          "path": "/api/greeting",
-          "description": "Updates the greeting message.",
-          "request": {
-            "message": "string"
-          },
+          "method": "GET",
+          "path": "/api/greet",
+          "description": "Retrieves a default greeting message.",
+          "request": {},
           "response": {
-            "success": "boolean",
             "message": "string"
           }
         }
@@ -67,8 +68,8 @@
           ]
         },
         {
-          "model": "GreetingMessage",
-          "collection": "greetingmessages",
+          "model": "PersonalizedGreeting",
+          "collection": "personalizedgreetings",
           "fields": [
             {
               "name": "id",
@@ -98,8 +99,8 @@
           ]
         },
         {
-          "model": "InteractiveButton",
-          "collection": "interactivebuttons",
+          "model": "UserInputForm",
+          "collection": "userinputforms",
           "fields": [
             {
               "name": "id",
@@ -129,8 +130,8 @@
           ]
         },
         {
-          "model": "APIIntegration",
-          "collection": "apiintegrations",
+          "model": "DisplayGreeting",
+          "collection": "displaygreetings",
           "fields": [
             {
               "name": "id",
@@ -207,54 +208,54 @@
           "description": "User registration form"
         },
         {
-          "name": "GreetingMessageCard",
+          "name": "PersonalizedGreetingCard",
           "type": "display",
-          "description": "Card component for Greeting Message"
+          "description": "Card component for Personalized Greeting"
         },
         {
-          "name": "GreetingMessageForm",
+          "name": "PersonalizedGreetingForm",
           "type": "form",
-          "description": "Form for creating/editing Greeting Message"
+          "description": "Form for creating/editing Personalized Greeting"
         },
         {
-          "name": "InteractiveButtonCard",
+          "name": "UserInputFormCard",
           "type": "display",
-          "description": "Card component for Interactive Button"
+          "description": "Card component for User Input Form"
         },
         {
-          "name": "InteractiveButtonForm",
+          "name": "UserInputFormForm",
           "type": "form",
-          "description": "Form for creating/editing Interactive Button"
+          "description": "Form for creating/editing User Input Form"
         },
         {
-          "name": "APIIntegrationCard",
+          "name": "DisplayGreetingCard",
           "type": "display",
-          "description": "Card component for API Integration"
+          "description": "Card component for Display Greeting"
         },
         {
-          "name": "APIIntegrationForm",
+          "name": "DisplayGreetingForm",
           "type": "form",
-          "description": "Form for creating/editing API Integration"
+          "description": "Form for creating/editing Display Greeting"
         },
         {
-          "name": "StylingwithTailwindCSSCard",
+          "name": "BasicErrorHandlingCard",
           "type": "display",
-          "description": "Card component for Styling with Tailwind CSS"
+          "description": "Card component for Basic Error Handling"
         },
         {
-          "name": "StylingwithTailwindCSSForm",
+          "name": "BasicErrorHandlingForm",
           "type": "form",
-          "description": "Form for creating/editing Styling with Tailwind CSS"
+          "description": "Form for creating/editing Basic Error Handling"
         },
         {
-          "name": "DeploymentSetupCard",
+          "name": "ResponsiveDesignCard",
           "type": "display",
-          "description": "Card component for Deployment Setup"
+          "description": "Card component for Responsive Design"
         },
         {
-          "name": "DeploymentSetupForm",
+          "name": "ResponsiveDesignForm",
           "type": "form",
-          "description": "Form for creating/editing Deployment Setup"
+          "description": "Form for creating/editing Responsive Design"
         }
       ],
       "pages": [
@@ -279,29 +280,29 @@
           "description": "Main dashboard"
         },
         {
-          "name": "GreetingMessage",
-          "path": "/greetingmessage",
-          "description": "Page for Greeting Message"
+          "name": "PersonalizedGreeting",
+          "path": "/personalizedgreeting",
+          "description": "Page for Personalized Greeting"
         },
         {
-          "name": "InteractiveButton",
-          "path": "/interactivebutton",
-          "description": "Page for Interactive Button"
+          "name": "UserInputForm",
+          "path": "/userinputform",
+          "description": "Page for User Input Form"
         },
         {
-          "name": "APIIntegration",
-          "path": "/apiintegration",
-          "description": "Page for API Integration"
+          "name": "DisplayGreeting",
+          "path": "/displaygreeting",
+          "description": "Page for Display Greeting"
         },
         {
-          "name": "StylingwithTailwindCSS",
-          "path": "/stylingwithtailwindcss",
-          "description": "Page for Styling with Tailwind CSS"
+          "name": "BasicErrorHandling",
+          "path": "/basicerrorhandling",
+          "description": "Page for Basic Error Handling"
         },
         {
-          "name": "DeploymentSetup",
-          "path": "/deploymentsetup",
-          "description": "Page for Deployment Setup"
+          "name": "ResponsiveDesign",
+          "path": "/responsivedesign",
+          "description": "Page for Responsive Design"
         }
       ],
       "state_management": "React Context API or Zustand",
@@ -327,28 +328,28 @@
           "protected": true
         },
         {
-          "path": "/greetingmessage",
-          "component": "GreetingMessage",
+          "path": "/personalizedgreeting",
+          "component": "PersonalizedGreeting",
           "protected": true
         },
         {
-          "path": "/interactivebutton",
-          "component": "InteractiveButton",
+          "path": "/userinputform",
+          "component": "UserInputForm",
           "protected": true
         },
         {
-          "path": "/apiintegration",
-          "component": "APIIntegration",
+          "path": "/displaygreeting",
+          "component": "DisplayGreeting",
           "protected": true
         },
         {
-          "path": "/stylingwithtailwindcss",
-          "component": "StylingwithTailwindCSS",
+          "path": "/basicerrorhandling",
+          "component": "BasicErrorHandling",
           "protected": true
         },
         {
-          "path": "/deploymentsetup",
-          "component": "DeploymentSetup",
+          "path": "/responsivedesign",
+          "component": "ResponsiveDesign",
           "protected": true
         }
       ]
@@ -387,8 +388,8 @@
         ]
       },
       {
-        "model": "GreetingMessage",
-        "collection": "greetingmessages",
+        "model": "PersonalizedGreeting",
+        "collection": "personalizedgreetings",
         "fields": [
           {
             "name": "id",
@@ -418,8 +419,8 @@
         ]
       },
       {
-        "model": "InteractiveButton",
-        "collection": "interactivebuttons",
+        "model": "UserInputForm",
+        "collection": "userinputforms",
         "fields": [
           {
             "name": "id",
@@ -449,8 +450,8 @@
         ]
       },
       {
-        "model": "APIIntegration",
-        "collection": "apiintegrations",
+        "model": "DisplayGreeting",
+        "collection": "displaygreetings",
         "fields": [
           {
             "name": "id",
@@ -482,10 +483,14 @@
     ],
     "api_specs": [
       {
-        "method": "GET",
-        "path": "/api/greeting",
-        "description": "Fetches the current greeting message.",
-        "request_body": {},
+        "method": "POST",
+        "path": "/api/greet",
+        "description": "Submits a user's name and returns a personalized greeting.",
+        "request_body": {
+          "body": {
+            "name": "string"
+          }
+        },
         "response_body": {
           "message": "string"
         },
@@ -498,14 +503,11 @@
         "authentication": "Bearer token"
       },
       {
-        "method": "POST",
-        "path": "/api/greeting",
-        "description": "Updates the greeting message.",
-        "request_body": {
-          "message": "string"
-        },
+        "method": "GET",
+        "path": "/api/greet",
+        "description": "Retrieves a default greeting message.",
+        "request_body": {},
         "response_body": {
-          "success": "boolean",
           "message": "string"
         },
         "status_codes": {
@@ -574,12 +576,12 @@
     },
     "metadata": {
       "project_name": "New Project",
-      "created_at": "2025-10-19T13:26:47.334341+00:00",
+      "created_at": "2025-10-19T13:35:43.212927+00:00",
       "agent": "Architect",
       "based_on_plan": true
     }
   },
   "files_generated": 25,
-  "created_at": "2025-10-19T13:29:28.351615+00:00",
+  "created_at": "2025-10-19T13:38:42.461961+00:00",
   "agent": "Coder"
 }
