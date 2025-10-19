@@ -62,7 +62,28 @@ const CostVisualization = () => {
   const savingsPercentage = ((estimatedSavings / (global_stats.total_cost + estimatedSavings)) * 100).toFixed(1);
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Navigation */}
+        <div className="mb-4 flex items-center gap-4">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <Home className="w-5 h-5" />
+            <span>Chat</span>
+          </Link>
+          <span className="text-gray-400">/</span>
+          <Link 
+            to="/logs" 
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <FileText className="w-5 h-5" />
+            <span>Backend Logs</span>
+          </Link>
+        </div>
+
+        <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
