@@ -262,15 +262,18 @@ frontend:
 
   - task: "Backend Logs Page"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/BackendLogs.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created BackendLogs page (/logs route) with real-time log viewing, filtering by source (agent/backend.out/backend.err), timeframe selection (1-60 minutes), and auto-refresh capability. Shows logs with color-coded severity levels and proper formatting."
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Backend Logs page fully functional. ✅ Page loads at /logs without errors ✅ Page title 'Backend Logs' displayed ✅ Timeframe selector present with options (1, 5, 15, 30, 60 minutes) ✅ Source filter working (All, Agents, Backend Output, Backend Errors) ✅ Auto-refresh toggle (10s) present and functional ✅ Refresh button working ✅ Logs display with proper structure showing 369 log entries ✅ Timeframe change tested (changed to 15 minutes successfully) ✅ Breadcrumb navigation links present (Home → Chat, Cost Dashboard) ✅ Logs fetched from API: GET /api/logs/backend returns HTTP 200 with success=true. All Phase 5 backend logs features working perfectly."
 
   - task: "Cost Visualization Dashboard"
     implemented: true
