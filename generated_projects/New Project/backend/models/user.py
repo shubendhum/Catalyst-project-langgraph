@@ -1,51 +1,34 @@
+from uuid import UUID, uuid4
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional
-from uuid import UUID, uuid4
 
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+class User(BaseModel):
+    id: UUID = Field(default_factory=uuid4, title="User ID")
+    email: EmailStr = Field(..., unique=True, title="User Email")
+    hashed_password: str = Field(..., title="Hashed Password")
+    is_active: bool = Field(default=True, title="Is Active")
+    created_at: datetime = Field(default_factory=datetime.utcnow, title="Creation Timestamp")
 
-
-class UserBase(BaseModel):
-    """Base User model with common fields."""
-    email: EmailStr = Field(..., description="User's email address")
-    is_active: bool = Field(default=True, description="Whether the user account is active")
-
-
-class UserCreate(UserBase):
-    """User creation model with password field."""
-    password: str = Field(..., min_length=8, description="User's password")
-
-
-class UserInDB(UserBase):
-    """User model as stored in the database."""
-    id: UUID = Field(default_factory=uuid4, description="Unique identifier for the user")
-    hashed_password: str = Field(..., description="Hashed password")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="When the user was created")
+    class Config:
+        # Ensure that Pydantic uses the json-compatible schema
+        orm_mode = True
+        arbitrary_types_allowed = True
+        use_enum_values = True
     
-    model_config = ConfigDict(
-        populate_by_name=True,
-        json_schema_extra={
-            "collection": "users"
-        }
-    )
+    @classmethod
+    def from_orm(cls, obj):
+        return cls(
+            id=obj.id,
+            email=obj.email,
+            hashed_password=obj.hashed_password,
+            is_active=obj.is_active,
+            created_at=obj.created_at
+        )
 
-
-class User(UserBase):
-    """User model returned to clients (without the password)."""
-    id: UUID = Field(..., description="Unique identifier for the user")
-    created_at: datetime = Field(..., description="When the user was created")
-    
-    model_config = ConfigDict(
-        from_attributes=True
-    )
-
-
-class UserUpdate(BaseModel):
-    """User update model with optional fields."""
-    email: Optional[EmailStr] = None
-    password: Optional[str] = Field(None, min_length=8, description="New password")
-    is_active: Optional[bool] = None
-    
-    model_config = ConfigDict(
-        exclude_unset=True
-    )
+# Usage:
+# user = User(
+#     email="test@example.com",
+#     hashed_password="hashed_password_example"
+# )
+# print(user)

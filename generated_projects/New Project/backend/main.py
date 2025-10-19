@@ -1,125 +1,75 @@
-import logging
-from fastapi import FastAPI, Depends, HTTPException, status
+# main.py
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-from contextlib import asynccontextmanager
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+import motor.motor_asyncio
 import os
-from dotenv import load_dotenv
+import uuid
+from datetime import datetime
+from bson import ObjectId
 
-# Load environment variables
-load_dotenv()
+# Initialize FastAPI application
+app = FastAPI()
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+# CORS middleware setup
+origins = [
+    "http://localhost:3000",  # Allow your frontend to connect
+    "https://yourfrontend.com",
+]
 
-# Database configuration
-MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-DB_NAME = os.getenv("DB_NAME", "todo_app")
-
-# API configuration
-API_PREFIX = "/api"
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup: Connect to MongoDB
-    logger.info("Connecting to MongoDB...")
-    app.mongodb_client = AsyncIOMotorClient(MONGODB_URL)
-    app.mongodb = app.mongodb_client[DB_NAME]
-    logger.info("Connected to MongoDB")
-
-    yield
-    
-    # Shutdown: Close MongoDB connection
-    logger.info("Closing MongoDB connection...")
-    app.mongodb_client.close()
-    logger.info("MongoDB connection closed")
-
-
-# Initialize FastAPI app
-app = FastAPI(
-    title="Todo API",
-    description="API for managing todo items",
-    version="1.0.0",
-    lifespan=lifespan,
-)
-
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Import API routers
-from api.todos import router as todos_router
-from api.auth import router as auth_router
+# MongoDB connection
+MONGO_DETAILS = os.getenv("MONGO_DETAILS", "mongodb://localhost:27017")  # use your MongoDB URI
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
+database = client.your_database_name  # Change this to your database name
+users_collection = database.users
+helloworldendpoints_collection = database.helloworldendpoints
+frontenddisplays_collection = database.frontenddisplays
+stylingwithtailwindcsss_collection = database.stylingwithtailwindcsss
 
-# Include routers
-app.include_router(auth_router, prefix=f"{API_PREFIX}/auth", tags=["Authentication"])
-app.include_router(todos_router, prefix=f"{API_PREFIX}/todos", tags=["Todos"])
+# Pydantic models for serialization
+class User(BaseModel):
+    id: str
+    email: str
+    hashed_password: str
+    is_active: bool = True
+    created_at: datetime = None
 
+class HelloWorldResponse(BaseModel):
+    message: str
 
-# Health check endpoint
-@app.get("/health", tags=["Health"])
+class HelloWorldData(BaseModel):
+    user_id: str
+    data: dict
+
+# Create a health check endpoint
+@app.get("/api/health", response_model=HelloWorldResponse)
 async def health_check():
-    try:
-        # Check database connection
-        await app.mongodb.command("ping")
-        return {
-            "status": "healthy",
-            "message": "Service is running and database is connected",
-        }
-    except Exception as e:
-        logger.error(f"Health check failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Service is unhealthy",
-        )
+    return HelloWorldResponse(message="API is healthy!")
 
+# Hello World endpoint
+@app.get("/api/hello", response_model=HelloWorldResponse)
+async def hello_world():
+    return HelloWorldResponse(message="Hello, World!")
 
-# Root endpoint
-@app.get("/", tags=["Root"])
-async def root():
-    return {
-        "message": "Welcome to the Todo API",
-        "docs": "/docs",
-        "health": "/health",
-    }
+# Error handling for Invalid Object ID
+@app.exception_handler(ValueError)
+async def value_error_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=400,
+        content={"message": str(exc)},
+    )
 
-
-# Error handlers
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request, exc):
-    return {
-        "status_code": exc.status_code,
-        "detail": exc.detail,
-        "headers": exc.headers,
-    }
-
-
-@app.exception_handler(Exception)
-async def general_exception_handler(request, exc):
-    logger.error(f"Unhandled exception: {str(exc)}")
-    return {
-        "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-        "detail": "Internal server error",
-    }
-
-
+# Run the server with `uvicorn main:app --reload`
 if __name__ == "__main__":
     import uvicorn
-    
-    # Run the application with uvicorn
-    uvicorn.run(
-        "main:app",
-        host=os.getenv("HOST", "0.0.0.0"),
-        port=int(os.getenv("PORT", 8000)),
-        reload=os.getenv("ENV", "development") == "development",
-    )
+    uvicorn.run(app, host="0.0.0.0", port=8000)
