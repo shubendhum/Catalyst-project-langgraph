@@ -300,6 +300,7 @@ const ChatInterface = () => {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Messages Area */}
