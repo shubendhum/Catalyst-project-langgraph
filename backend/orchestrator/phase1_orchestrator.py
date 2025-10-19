@@ -123,9 +123,19 @@ class Phase1Orchestrator:
                             "code_result": code_result,
                             "status": "completed",
                             "completed_at": datetime.now(timezone.utc).isoformat(),
-                            "project_path": code_result["project_path"]
+                            "project_path": code_result["project_path"],
+                            "cost_stats": self.optimized_llm_client.get_stats()
                         }
                     }
+                )
+                
+                # Log cost savings
+                cost_stats = self.optimized_llm_client.get_stats()
+                await self._log(
+                    task_id, 
+                    f"💰 Cost Stats: {cost_stats['calls_made']} LLM calls, "
+                    f"{cost_stats['cache_hit_rate']:.1f}% cache hit rate, "
+                    f"${cost_stats['total_cost']:.4f} total cost"
                 )
                 
                 await self._update_task_status(task_id, "completed")
