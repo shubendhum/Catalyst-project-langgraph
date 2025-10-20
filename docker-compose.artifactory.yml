@@ -96,8 +96,8 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_started
-      traefik:
-        condition: service_started
+      # traefik:
+      #   condition: service_started  # Optional - only if Traefik enabled
     networks:
       - catalyst-network
     healthcheck:
