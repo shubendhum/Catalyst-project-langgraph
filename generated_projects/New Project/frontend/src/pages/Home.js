@@ -1,20 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 
 const Home = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Simulate fetching data from an API
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Replace with your actual API endpoint
-        const response = await axios.get('https://api.example.com/data');
-        setData(response.data);
-      } catch (err) {
-        setError('An error occurred while fetching the data.');
+        const response = await fetch('https://api.example.com/data'); // Replace with your actual API
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        setError(error);
       } finally {
         setLoading(false);
       }
@@ -25,30 +26,33 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="loader">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-red-500">{error}</div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-red-500">
+          <h2>Error fetching data: {error.message}</h2>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4">
-      <h1 className="text-4xl font-bold text-center mt-10">Welcome to Our Landing Page!</h1>
-      <p className="mt-4 text-center text-lg">
-        {data ? data.description : 'No data available.'}
+    <div className="max-w-4xl mx-auto p-4 bg-white shadow-md rounded-lg mt-10">
+      <h1 className="text-3xl font-bold text-center mb-6">Welcome to Our Landing Page</h1>
+      <p className="text-lg text-gray-700">
+        This is the home page where you can find insightful information and interesting content.
       </p>
-      <div className="mt-8 flex flex-col items-center">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-          Get Started
-        </button>
+      <div className="mt-6">
+        <h2 className="text-xl font-semibold mb-2">Fetched Data:</h2>
+        <pre className="bg-gray-50 p-4 rounded border border-gray-300 overflow-x-auto">
+          {JSON.stringify(data, null, 2)}
+        </pre>
       </div>
     </div>
   );

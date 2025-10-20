@@ -13,24 +13,66 @@
       "api_design": [
         {
           "method": "POST",
-          "path": "/api/greet",
-          "description": "Submits a user's name and returns a personalized greeting.",
+          "path": "/api/register",
+          "description": "Register a new user.",
           "request": {
-            "body": {
-              "name": "string"
-            }
+            "username": "string",
+            "password": "string",
+            "email": "string"
           },
           "response": {
-            "message": "string"
+            "message": "User registered successfully.",
+            "user_id": "string"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/login",
+          "description": "Authenticate a user and return a token.",
+          "request": {
+            "username": "string",
+            "password": "string"
+          },
+          "response": {
+            "token": "string",
+            "user_id": "string"
           }
         },
         {
           "method": "GET",
-          "path": "/api/greet",
-          "description": "Retrieves a default greeting message.",
+          "path": "/api/counter",
+          "description": "Get the current value of the counter for the logged-in user.",
           "request": {},
           "response": {
-            "message": "string"
+            "current_value": "number",
+            "history_log": "array"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/counter/increment",
+          "description": "Increment the counter for the logged-in user.",
+          "request": {},
+          "response": {
+            "current_value": "number"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/counter/decrement",
+          "description": "Decrement the counter for the logged-in user.",
+          "request": {},
+          "response": {
+            "current_value": "number"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/counter/reset",
+          "description": "Reset the counter to zero for the logged-in user.",
+          "request": {},
+          "response": {
+            "current_value": "number"
           }
         }
       ],
@@ -68,8 +110,8 @@
           ]
         },
         {
-          "model": "PersonalizedGreeting",
-          "collection": "personalizedgreetings",
+          "model": "IncrementCounter",
+          "collection": "incrementcounters",
           "fields": [
             {
               "name": "id",
@@ -99,8 +141,8 @@
           ]
         },
         {
-          "model": "UserInputForm",
-          "collection": "userinputforms",
+          "model": "DecrementCounter",
+          "collection": "decrementcounters",
           "fields": [
             {
               "name": "id",
@@ -130,8 +172,8 @@
           ]
         },
         {
-          "model": "DisplayGreeting",
-          "collection": "displaygreetings",
+          "model": "ResetCounter",
+          "collection": "resetcounters",
           "fields": [
             {
               "name": "id",
@@ -208,54 +250,59 @@
           "description": "User registration form"
         },
         {
-          "name": "PersonalizedGreetingCard",
+          "name": "IncrementCounterCard",
           "type": "display",
-          "description": "Card component for Personalized Greeting"
+          "description": "Card component for Increment Counter"
         },
         {
-          "name": "PersonalizedGreetingForm",
+          "name": "IncrementCounterForm",
           "type": "form",
-          "description": "Form for creating/editing Personalized Greeting"
+          "description": "Form for creating/editing Increment Counter"
         },
         {
-          "name": "UserInputFormCard",
+          "name": "DecrementCounterCard",
           "type": "display",
-          "description": "Card component for User Input Form"
+          "description": "Card component for Decrement Counter"
         },
         {
-          "name": "UserInputFormForm",
+          "name": "DecrementCounterForm",
           "type": "form",
-          "description": "Form for creating/editing User Input Form"
+          "description": "Form for creating/editing Decrement Counter"
         },
         {
-          "name": "DisplayGreetingCard",
+          "name": "ResetCounterCard",
           "type": "display",
-          "description": "Card component for Display Greeting"
+          "description": "Card component for Reset Counter"
         },
         {
-          "name": "DisplayGreetingForm",
+          "name": "ResetCounterForm",
           "type": "form",
-          "description": "Form for creating/editing Display Greeting"
+          "description": "Form for creating/editing Reset Counter"
         },
         {
-          "name": "BasicErrorHandlingCard",
+          "name": "DisplayCounterValueCard",
           "type": "display",
-          "description": "Card component for Basic Error Handling"
+          "description": "Card component for Display Counter Value"
         },
         {
-          "name": "BasicErrorHandlingForm",
+          "name": "DisplayCounterValueForm",
           "type": "form",
-          "description": "Form for creating/editing Basic Error Handling"
+          "description": "Form for creating/editing Display Counter Value"
         },
         {
-          "name": "ResponsiveDesignCard",
+          "name": "HistoryLogCard",
           "type": "display",
-          "description": "Card component for Responsive Design"
+          "description": "Card component for History Log"
         },
         {
-          "name": "ResponsiveDesignForm",
+          "name": "HistoryLogForm",
           "type": "form",
-          "description": "Form for creating/editing Responsive Design"
+          "description": "Form for creating/editing History Log"
+        },
+        {
+          "name": "UserAuthenticationCard",
+          "type": "display",
+          "description": "Card component for User Authentication"
         }
       ],
       "pages": [
@@ -280,29 +327,29 @@
           "description": "Main dashboard"
         },
         {
-          "name": "PersonalizedGreeting",
-          "path": "/personalizedgreeting",
-          "description": "Page for Personalized Greeting"
+          "name": "IncrementCounter",
+          "path": "/incrementcounter",
+          "description": "Page for Increment Counter"
         },
         {
-          "name": "UserInputForm",
-          "path": "/userinputform",
-          "description": "Page for User Input Form"
+          "name": "DecrementCounter",
+          "path": "/decrementcounter",
+          "description": "Page for Decrement Counter"
         },
         {
-          "name": "DisplayGreeting",
-          "path": "/displaygreeting",
-          "description": "Page for Display Greeting"
+          "name": "ResetCounter",
+          "path": "/resetcounter",
+          "description": "Page for Reset Counter"
         },
         {
-          "name": "BasicErrorHandling",
-          "path": "/basicerrorhandling",
-          "description": "Page for Basic Error Handling"
+          "name": "DisplayCounterValue",
+          "path": "/displaycountervalue",
+          "description": "Page for Display Counter Value"
         },
         {
-          "name": "ResponsiveDesign",
-          "path": "/responsivedesign",
-          "description": "Page for Responsive Design"
+          "name": "HistoryLog",
+          "path": "/historylog",
+          "description": "Page for History Log"
         }
       ],
       "state_management": "React Context API or Zustand",
@@ -328,28 +375,28 @@
           "protected": true
         },
         {
-          "path": "/personalizedgreeting",
-          "component": "PersonalizedGreeting",
+          "path": "/incrementcounter",
+          "component": "IncrementCounter",
           "protected": true
         },
         {
-          "path": "/userinputform",
-          "component": "UserInputForm",
+          "path": "/decrementcounter",
+          "component": "DecrementCounter",
           "protected": true
         },
         {
-          "path": "/displaygreeting",
-          "component": "DisplayGreeting",
+          "path": "/resetcounter",
+          "component": "ResetCounter",
           "protected": true
         },
         {
-          "path": "/basicerrorhandling",
-          "component": "BasicErrorHandling",
+          "path": "/displaycountervalue",
+          "component": "DisplayCounterValue",
           "protected": true
         },
         {
-          "path": "/responsivedesign",
-          "component": "ResponsiveDesign",
+          "path": "/historylog",
+          "component": "HistoryLog",
           "protected": true
         }
       ]
@@ -388,8 +435,8 @@
         ]
       },
       {
-        "model": "PersonalizedGreeting",
-        "collection": "personalizedgreetings",
+        "model": "IncrementCounter",
+        "collection": "incrementcounters",
         "fields": [
           {
             "name": "id",
@@ -419,8 +466,8 @@
         ]
       },
       {
-        "model": "UserInputForm",
-        "collection": "userinputforms",
+        "model": "DecrementCounter",
+        "collection": "decrementcounters",
         "fields": [
           {
             "name": "id",
@@ -450,8 +497,8 @@
         ]
       },
       {
-        "model": "DisplayGreeting",
-        "collection": "displaygreetings",
+        "model": "ResetCounter",
+        "collection": "resetcounters",
         "fields": [
           {
             "name": "id",
@@ -484,15 +531,36 @@
     "api_specs": [
       {
         "method": "POST",
-        "path": "/api/greet",
-        "description": "Submits a user's name and returns a personalized greeting.",
+        "path": "/api/register",
+        "description": "Register a new user.",
         "request_body": {
-          "body": {
-            "name": "string"
-          }
+          "username": "string",
+          "password": "string",
+          "email": "string"
         },
         "response_body": {
-          "message": "string"
+          "message": "User registered successfully.",
+          "user_id": "string"
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      },
+      {
+        "method": "POST",
+        "path": "/api/login",
+        "description": "Authenticate a user and return a token.",
+        "request_body": {
+          "username": "string",
+          "password": "string"
+        },
+        "response_body": {
+          "token": "string",
+          "user_id": "string"
         },
         "status_codes": {
           "200": "Success",
@@ -504,11 +572,60 @@
       },
       {
         "method": "GET",
-        "path": "/api/greet",
-        "description": "Retrieves a default greeting message.",
+        "path": "/api/counter",
+        "description": "Get the current value of the counter for the logged-in user.",
         "request_body": {},
         "response_body": {
-          "message": "string"
+          "current_value": "number",
+          "history_log": "array"
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      },
+      {
+        "method": "POST",
+        "path": "/api/counter/increment",
+        "description": "Increment the counter for the logged-in user.",
+        "request_body": {},
+        "response_body": {
+          "current_value": "number"
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      },
+      {
+        "method": "POST",
+        "path": "/api/counter/decrement",
+        "description": "Decrement the counter for the logged-in user.",
+        "request_body": {},
+        "response_body": {
+          "current_value": "number"
+        },
+        "status_codes": {
+          "200": "Success",
+          "400": "Bad Request",
+          "401": "Unauthorized",
+          "500": "Server Error"
+        },
+        "authentication": "Bearer token"
+      },
+      {
+        "method": "POST",
+        "path": "/api/counter/reset",
+        "description": "Reset the counter to zero for the logged-in user.",
+        "request_body": {},
+        "response_body": {
+          "current_value": "number"
         },
         "status_codes": {
           "200": "Success",
@@ -576,12 +693,12 @@
     },
     "metadata": {
       "project_name": "New Project",
-      "created_at": "2025-10-19T13:35:43.212927+00:00",
+      "created_at": "2025-10-20T03:07:37.291524+00:00",
       "agent": "Architect",
       "based_on_plan": true
     }
   },
   "files_generated": 25,
-  "created_at": "2025-10-19T13:38:42.461961+00:00",
+  "created_at": "2025-10-20T03:10:30.194289+00:00",
   "agent": "Coder"
 }

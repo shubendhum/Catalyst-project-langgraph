@@ -151,6 +151,9 @@ const ChatInterface = () => {
           setIsLoading(false);
           return;
         }
+      } else {
+        // Save existing conversation ID to localStorage
+        localStorage.setItem('catalyst_conversation_id', currentConvId);
       }
 
       // Send message to backend

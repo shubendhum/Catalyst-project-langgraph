@@ -1,18 +1,19 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
-from uuid import UUID, uuid4
 from datetime import datetime
+from uuid import UUID, uuid4
+from typing import Optional
 
 class User(BaseModel):
-    id: UUID = Field(default_factory=uuid4, alias="_id")
-    email: EmailStr = Field(..., unique=True)
-    hashed_password: str = Field(...)
-    is_active: bool = Field(default=True)
+    id: UUID = Field(default_factory=uuid4, alias="_id")  # UUID generation for primary key
+    email: EmailStr
+    hashed_password: str
+    is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:
-        allow_population_by_field_name = True
-        use_enum_values = True
+        # Allow for database compatibility with MongoDB (using `_id` for UUID)
+        allow_population_by_field_name = True  # Allow population using the alias
+        orm_mode = True  # Enable ORM mode for compatibility with ORMs like SQLAlchemy
 
-    # You can add additional methods or validators here if needed,
-    # such as checking for password strength or other business rules.
+# Example on how to create a User object
+# user_instance = User(email='user@example.com', hashed_password='secure_password_hash')
