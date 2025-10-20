@@ -160,7 +160,10 @@ class OptimizedLLMClient:
         # 7. Make LLM call
         try:
             logger.info(f"🤖 Calling {selected_model}...")
+            
+            start_time = time.time()
             response = await self.base_client.ainvoke(messages)
+            duration = time.time() - start_time
             
             # 8. Track usage and cost
             await self._track_usage(messages, response, selected_model)
@@ -170,6 +173,26 @@ class OptimizedLLMClient:
                 await self._cache_response(
                     messages, response, selected_model, temperature
                 )
+            
+            # 10. Trace to observability platform
+            if self.observability:
+                try:
+                    self.observability.trace_llm_call(
+                        name=f"{self.agent_name or 'unknown'}_llm_call",
+                        input_data={"messages": [self._messages_to_cache_key(messages)][:200]},
+                        output_data={"content": response.content[:200]},
+                        metadata={
+                            "model": selected_model,
+                            "temperature": temperature,
+                            "cost": self.total_cost,
+                            "duration": duration,
+                            "cache_hit": False
+                        },
+                        task_id=self.task_id,
+                        agent_name=self.agent_name
+                    )
+                except Exception as e:
+                    logger.debug(f"Observability tracing failed: {e}")
             
             return response
             
