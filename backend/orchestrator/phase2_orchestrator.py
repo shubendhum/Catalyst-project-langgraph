@@ -104,7 +104,8 @@ class Phase2Orchestrator:
                 plan=plan,
                 project_name=project_name
             )
-            await self._log(task_id, f"✅ Architecture designed with {len(architecture.get('data_models', []))} models")
+            data_models = len(architecture.get('data_models', []))
+            await self._log(task_id, f"✅ Architecture designed: {data_models} data models, API structure defined")
             await self._save_task_data(task_id, {"architecture": architecture, "status": "coding"})
             
             # STEP 3: Code Generation
