@@ -1303,6 +1303,12 @@ async def startup_event():
         worker_manager = get_worker_manager(db, manager)
         asyncio.create_task(worker_manager.start_all_workers())
         logger.info("✅ Agent workers started in background")
+        
+        # Start background scheduler
+        from workers.background_scheduler import get_scheduler
+        scheduler = get_scheduler()
+        await scheduler.start()
+        logger.info("✅ Background scheduler started")
     else:
         logger.info("☸️ Kubernetes detected - using sequential mode")
 
