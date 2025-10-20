@@ -548,9 +548,38 @@ const ChatInterface = () => {
       <div style={{ 
         padding: '16px 24px', 
         borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        background: 'rgba(15, 23, 42, 0.8)',
-        backdropFilter: 'blur(10px)'
+        background: activeTaskId ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.8)',
+        backdropFilter: 'blur(10px)',
+        opacity: activeTaskId ? 0.6 : 1,
+        transition: 'all 0.3s ease'
       }}>
+        {activeTaskId && (
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '12px',
+            padding: '8px 16px',
+            background: 'rgba(34, 197, 94, 0.1)',
+            borderRadius: '8px',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
+            display: 'inline-block',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            width: '100%'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#22c55e',
+                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+              }} />
+              <span style={{ color: '#22c55e', fontSize: '14px', fontWeight: '500' }}>
+                Agent is working on your request...
+              </span>
+            </div>
+          </div>
+        )}
         <div style={{ 
           maxWidth: '900px', 
           margin: '0 auto',
@@ -562,8 +591,8 @@ const ChatInterface = () => {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message... (Press Enter to send)"
-            disabled={isLoading}
+            placeholder={activeTaskId ? "Agent is running... Please wait" : "Type your message... (Press Enter to send)"}
+            disabled={isLoading || activeTaskId}
             style={{ 
               flex: 1,
               background: 'rgba(255, 255, 255, 0.05)',
