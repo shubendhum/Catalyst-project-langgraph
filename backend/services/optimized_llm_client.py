@@ -1,6 +1,7 @@
 """
 Optimized LLM Client with Cost Optimization
 Wraps UnifiedLLMClient with caching, model selection, and budget tracking
+Now includes LLM observability via Langfuse/Langsmith
 """
 
 from typing import List, Optional, Dict, Any
@@ -10,6 +11,7 @@ from llm_client import UnifiedLLMClient
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
 import logging
 import os
+import time
 
 logger = logging.getLogger(__name__)
 
