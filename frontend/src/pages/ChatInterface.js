@@ -33,6 +33,53 @@ const ChatInterface = () => {
   const messagesEndRef = useRef(null);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
+  // Cleanup websocket on unmount
+  useEffect(() => {
+    return () => {
+      if (websocket) {
+        websocket.close();
+      }
+    };
+  }, [websocket]);
+
+  const connectWebSocket = (taskId) => {
+    // Close existing websocket if any
+    if (websocket) {
+      websocket.close();
+    }
+
+    // Create WebSocket URL (replace https with wss)
+    const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
+    const ws = new WebSocket(`${wsUrl}/ws/${taskId}`);
+
+    ws.onopen = () => {
+      console.log(`✅ WebSocket connected for task ${taskId}`);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const logData = JSON.parse(event.data);
+        // Add agent log as system message
+        const agentMessage = `🤖 **${logData.agent_name}**: ${logData.message}`;
+        addSystemMessage(agentMessage);
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
+      setActiveTaskId(null);
+      setIsLoading(false);
+    };
+
+    setWebsocket(ws);
+  };
+
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
