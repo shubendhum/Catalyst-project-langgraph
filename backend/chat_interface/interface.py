@@ -389,7 +389,97 @@ Just talk to me naturally - like you would with your dev team!
     async def _handle_general(self, conversation: Conversation, message: str) -> Dict:
         """Handle general conversation"""
         
-        # Use LLM for general conversation with context
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Check if there's an active task in this conversation
+        current_task_id = conversation.context.get("current_task_id")
+        
+        if current_task_id:
+            # There's an active task - check its status
+            logger.info(f"Active task found: {current_task_id}, checking status...")
+            task = await self.db.tasks.find_one({"id": current_task_id})
+            
+            if task:
+                task_status = task.get("status", "unknown")
+                logger.info(f"Task {current_task_id} status: {task_status}")
+                
+                # If task is still running, provide status update
+                if task_status in ["pending", "planning", "architecting", "coding", "testing_and_reviewing", "testing", "reviewing", "deploying"]:
+                    status_messages = {
+                        "pending": "⏳ Your task is queued and will start shortly...",
+                        "planning": "📋 Planner is analyzing your requirements...",
+                        "architecting": "🏗️ Architect is designing the system architecture...",
+                        "coding": "💻 Coder is generating your application code...",
+                        "testing_and_reviewing": "⚡ Tester and Reviewer are analyzing the code in parallel...",
+                        "testing": "🧪 Tester is running tests...",
+                        "reviewing": "🔍 Reviewer is checking code quality...",
+                        "deploying": "🚀 Deployer is creating deployment configuration..."
+                    }
+                    
+                    status_msg = status_messages.get(task_status, f"Working on it... Status: {task_status}")
+                    
+                    return {
+                        "content": f"""{status_msg}
+
+**Task ID:** `{current_task_id}`
+**Status:** {task_status}
+
+Your app is being built by my multi-agent team. This usually takes 2-5 minutes. I'll let you know when it's done! 
+
+Want me to do something else in the meantime?""",
+                        "metadata": {
+                            "action": "task_status_update",
+                            "task_id": current_task_id,
+                            "status": task_status
+                        }
+                    }
+                
+                # Task completed - show results
+                elif task_status == "completed":
+                    project_path = task.get("project_path", "Unknown")
+                    cost_stats = task.get("cost_stats", {})
+                    
+                    # Clear active task from context
+                    conversation.context.pop("current_task_id", None)
+                    
+                    return {
+                        "content": f"""✅ **Your app is ready!**
+
+**Task ID:** `{current_task_id}`
+**Status:** Completed
+**Location:** `{project_path}`
+**Cost:** ${cost_stats.get('total_cost', 0):.4f} ({cost_stats.get('calls_made', 0)} LLM calls)
+
+The complete application has been generated and is ready to use. You can find it in the generated_projects directory.
+
+What would you like to build next?""",
+                        "metadata": {
+                            "action": "task_completed",
+                            "task_id": current_task_id,
+                            "project_path": project_path
+                        }
+                    }
+                
+                # Task failed
+                elif task_status == "failed":
+                    error_msg = task.get("error", "Unknown error")
+                    conversation.context.pop("current_task_id", None)
+                    
+                    return {
+                        "content": f"""❌ **Task encountered an error**
+
+**Task ID:** `{current_task_id}`
+**Error:** {error_msg}
+
+I can try again or we can approach this differently. What would you like to do?""",
+                        "metadata": {
+                            "action": "task_failed",
+                            "task_id": current_task_id
+                        }
+                    }
+        
+        # No active task or general conversation - use LLM
         from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
         
         context_messages = []
