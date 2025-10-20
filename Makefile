@@ -283,10 +283,17 @@ docker-build: ## Build Docker images
         @echo "$(GREEN)✓ Images built$(NC)"
 
 docker-up: ## Start Docker Compose services
-        @echo "$(BLUE)Starting Docker services...$(NC)"
+        @echo "$(BLUE)Starting complete Catalyst stack...$(NC)"
+        @echo "$(YELLOW)Services: MongoDB, Redis, Qdrant, RabbitMQ, Backend, Frontend$(NC)"
         @$(DOCKER_COMPOSE) up -d
-        @echo "$(GREEN)✓ Services started$(NC)"
+        @echo "$(GREEN)✓ All services started$(NC)"
+        @sleep 10
         @$(MAKE) docker-status
+        @echo ""
+        @echo "$(BLUE)Access Points:$(NC)"
+        @echo "  Frontend:    http://localhost:3000"
+        @echo "  Backend:     http://localhost:8001/api"
+        @echo "  RabbitMQ UI: http://localhost:15672 (catalyst/catalyst_queue_2025)"
 
 docker-down: ## Stop Docker Compose services
         @echo "$(BLUE)Stopping Docker services...$(NC)"
