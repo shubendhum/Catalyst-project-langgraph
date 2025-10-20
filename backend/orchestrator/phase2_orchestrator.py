@@ -128,7 +128,9 @@ class Phase2Orchestrator:
             
             # STEP 4 & 5: Testing and Review in PARALLEL (both analyze generated code)
             await self._update_task_status(task_id, "testing_and_reviewing")
-            await self._log(task_id, "⚡ Running Tester and Reviewer agents in parallel...")
+            await self._log(task_id, "⚡ Running quality checks in parallel...")
+            await self._log(task_id, "🧪 Tester: Analyzing code for test coverage...")
+            await self._log(task_id, "🔍 Reviewer: Checking code quality and security...")
             
             # Run Tester and Reviewer concurrently
             test_task = self.tester.test_application(
@@ -148,7 +150,8 @@ class Phase2Orchestrator:
             # Wait for both to complete
             test_results, review_results = await asyncio.gather(test_task, review_task)
             
-            await self._log(task_id, f"✅ Tests: {test_results['overall_status']} | Review Score: {review_results['overall_score']}/100")
+            await self._log(task_id, f"✅ Testing complete: {test_results['overall_status']}")
+            await self._log(task_id, f"✅ Review complete: Score {review_results['overall_score']}/100")
             await self._save_task_data(task_id, {
                 "test_results": test_results,
                 "review_results": review_results,
