@@ -677,6 +677,67 @@ phase4-info: ## Show Phase 4 infrastructure information
 
 
 
+##@ Complete Stack - Regular (All Services in One)
+
+start-all-services: ## Start ALL services (Main + Phase 4) - Regular Docker Hub
+        @echo "$(GREEN)🚀 Starting complete Catalyst stack...$(NC)"
+        @echo "$(BLUE)This includes: MongoDB, Redis, Qdrant, RabbitMQ, Backend, Frontend$(NC)"
+        @docker compose -f docker-compose.full.yml up -d
+        @echo ""
+        @echo "$(YELLOW)Waiting for services to be healthy...$(NC)"
+        @sleep 15
+        @docker compose -f docker-compose.full.yml ps
+        @echo ""
+        @echo "$(GREEN)✅ Complete stack started!$(NC)"
+        @echo ""
+        @echo "$(BLUE)Service URLs:$(NC)"
+        @echo "  Frontend:    http://localhost:3000"
+        @echo "  Backend:     http://localhost:8001/api"
+        @echo "  API Docs:    http://localhost:8001/docs"
+        @echo "  MongoDB:     mongodb://localhost:27017"
+        @echo "  Redis:       redis://localhost:6379"
+        @echo "  Qdrant:      http://localhost:6333"
+        @echo "  RabbitMQ:    amqp://localhost:5672"
+        @echo "  RabbitMQ UI: http://localhost:15672 (catalyst/catalyst_queue_2025)"
+
+stop-all-services: ## Stop ALL services
+        @echo "$(BLUE)🛑 Stopping complete Catalyst stack...$(NC)"
+        @docker compose -f docker-compose.full.yml down
+        @echo "$(GREEN)✅ All services stopped$(NC)"
+
+restart-all-services: stop-all-services start-all-services ## Restart ALL services
+
+logs-all-services: ## Show logs for all services
+        @docker compose -f docker-compose.full.yml logs -f
+
+status-all-services: ## Show status of all services
+        @echo "$(BLUE)📊 Complete Stack Status:$(NC)"
+        @echo ""
+        @docker compose -f docker-compose.full.yml ps
+
+health-all-services: ## Health check all services
+        @echo "$(BLUE)🏥 Health Check - Complete Stack:$(NC)"
+        @echo ""
+        @echo -n "MongoDB:  "; docker exec catalyst-mongodb mongosh --eval "db.adminCommand('ping')" --quiet > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+        @echo -n "Redis:    "; docker exec catalyst-redis redis-cli ping > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+        @echo -n "Qdrant:   "; curl -s http://localhost:6333/healthz > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+        @echo -n "RabbitMQ: "; docker exec catalyst-rabbitmq rabbitmq-diagnostics ping > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+        @echo -n "Backend:  "; curl -s http://localhost:8001/api/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+        @echo -n "Frontend: "; curl -s http://localhost:3000/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+
+setup-complete-stack: ## ONE COMMAND - Complete setup with ALL services (Regular Docker Hub)
+        @echo "$(GREEN)🎯 Setting up COMPLETE Catalyst stack...$(NC)"
+        @echo "$(BLUE)This will setup: MongoDB, Redis, Qdrant, RabbitMQ, Backend, Frontend$(NC)"
+        @$(MAKE) check-docker
+        @$(MAKE) setup-env
+        @echo "$(BLUE)Building all images...$(NC)"
+        @docker compose -f docker-compose.full.yml build
+        @echo "$(GREEN)✅ Build complete!$(NC)"
+        @echo ""
+        @echo "$(BLUE)Next step: Run 'make start-all-services' to launch everything$(NC)"
+
+
+
 ##@ Complete Stack - Artifactory (All Services in One)
 
 start-all-artifactory: ## Start ALL services (Main + Phase 4) with Artifactory
