@@ -122,7 +122,8 @@ class Phase2Orchestrator:
             if code_result["status"] != "success":
                 raise Exception(f"Code generation failed: {code_result.get('error')}")
             
-            await self._log(task_id, f"✅ {code_result['files_generated']} files generated")
+            files_generated = code_result['files_generated']
+            await self._log(task_id, f"✅ Code generation complete: {files_generated} files created")
             await self._save_task_data(task_id, {"code_result": code_result, "status": "testing_and_reviewing"})
             
             # STEP 4 & 5: Testing and Review in PARALLEL (both analyze generated code)
