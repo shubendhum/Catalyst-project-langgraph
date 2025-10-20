@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Settings, Bot, User, Loader2, BarChart3, FileText } from 'lucide-react';
+import { Send, Settings, Bot, User, Loader2, BarChart3, FileText, Plus, MessageSquare } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
