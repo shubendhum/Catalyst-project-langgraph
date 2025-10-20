@@ -372,6 +372,104 @@ async def create_github_pr(
         return {"success": False, "error": str(e)}
 
 
+# ============================================
+# Preview Deployment Endpoints
+# ============================================
+
+@api_router.get("/preview")
+async def list_preview_deployments():
+    """List all active preview deployments"""
+    from services.preview_deployment import get_preview_service
+    
+    try:
+        preview_service = get_preview_service()
+        
+        if not preview_service.enabled:
+            return {
+                "success": True,
+                "previews": [],
+                "message": "Preview deployments not available in this environment"
+            }
+        
+        previews = await preview_service.list_active_previews()
+        
+        return {"success": True, "previews": previews, "count": len(previews)}
+        
+    except Exception as e:
+        logger.error(f"Error listing previews: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/preview/{task_id}")
+async def get_preview_deployment(task_id: str):
+    """Get preview deployment details"""
+    from services.preview_deployment import get_preview_service
+    
+    try:
+        preview_service = get_preview_service()
+        
+        if not preview_service.enabled:
+            return {"success": False, "error": "Preview deployments not available"}
+        
+        preview = await preview_service.get_preview(task_id)
+        
+        if preview:
+            return {"success": True, "preview": preview}
+        else:
+            return {"success": False, "error": "Preview not found"}
+            
+    except Exception as e:
+        logger.error(f"Error getting preview: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.delete("/preview/{task_id}")
+async def delete_preview_deployment(task_id: str):
+    """Cleanup preview deployment"""
+    from services.preview_deployment import get_preview_service
+    
+    try:
+        preview_service = get_preview_service()
+        
+        if not preview_service.enabled:
+            return {"success": False, "error": "Preview deployments not available"}
+        
+        success = await preview_service.cleanup_preview(task_id)
+        
+        if success:
+            return {"success": True, "message": "Preview cleaned up successfully"}
+        else:
+            return {"success": False, "error": "Failed to cleanup preview"}
+            
+    except Exception as e:
+        logger.error(f"Error deleting preview: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.post("/preview/cleanup-expired")
+async def cleanup_expired_previews():
+    """Cleanup all expired preview deployments"""
+    from services.preview_deployment import get_preview_service
+    
+    try:
+        preview_service = get_preview_service()
+        
+        if not preview_service.enabled:
+            return {"success": False, "error": "Preview deployments not available"}
+        
+        count = await preview_service.cleanup_expired_previews()
+        
+        return {
+            "success": True,
+            "cleaned_up": count,
+            "message": f"Cleaned up {count} expired previews"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error cleaning up expired previews: {e}")
+        return {"success": False, "error": str(e)}
+
+
 @api_router.get("/logs/backend")
 async def get_backend_logs(minutes: int = 5, limit: int = 1000):
     """Get backend logs from the last N minutes"""
