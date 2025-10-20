@@ -513,22 +513,30 @@ const ChatInterface = () => {
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <div style={{ 
               padding: '8px', 
-              background: 'rgba(99, 179, 237, 0.1)', 
+              background: 'rgba(34, 197, 94, 0.1)', 
               borderRadius: '8px'
             }}>
-              <Bot size={20} style={{ color: '#63b3ed' }} />
+              <div style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                background: '#22c55e',
+                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+              }} />
             </div>
             <div style={{
               padding: '12px 16px',
               borderRadius: '12px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: 'rgba(34, 197, 94, 0.05)',
+              border: '1px solid rgba(34, 197, 94, 0.2)',
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
             }}>
-              <Loader2 size={16} className="animate-spin" style={{ color: '#63b3ed' }} />
-              <span style={{ color: '#94a3b8' }}>Thinking...</span>
+              <Loader2 size={16} className="animate-spin" style={{ color: '#22c55e' }} />
+              <span style={{ color: '#22c55e', fontWeight: '500' }}>
+                {activeTaskId ? 'Agent is running...' : 'Thinking...'}
+              </span>
             </div>
           </div>
         )}
