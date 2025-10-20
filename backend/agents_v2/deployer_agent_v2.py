@@ -158,62 +158,52 @@ class EventDrivenDeployerAgent(EventDrivenAgent):
         Mode A: Full auto-deploy with Docker-in-Docker
         """
         try:
+            from services.preview_deployment import get_preview_service
+            
+            preview_service = get_preview_service()
+            
             await self._log(task_id, "🤖 Deployer: Building Docker images...")
+            await self._log(task_id, "🐳 Building backend image... (this may take a minute)")
             
-            # Build images
-            backend_image = f"catalyst-preview/{task_id}-backend"
-            frontend_image = f"catalyst-preview/{task_id}-frontend"
+            # Deploy using preview service
+            result = await preview_service.deploy(
+                task_id=task_id,
+                project_name=project_name,
+                repo_path=repo_path,
+                branch=branch
+            )
             
-            await self._log(task_id, f"🐳 Building backend image... (this may take a minute)")
-            # Mock build for now
-            await self._log(task_id, f"✅ Backend image built (1.2 GB, 45s)")
+            if result["status"] == "deployed":
+                await self._log(task_id, "✅ Backend image built")
+                await self._log(task_id, "🐳 Building frontend image...")
+                await self._log(task_id, "✅ Frontend image built")
+                
+                await self._log(task_id, "🤖 Deployer: Creating preview environment...")
+                await self._log(task_id, f"🌐 Creating isolated network: preview-{task_id[:8]}")
+                
+                await self._log(task_id, f"🚀 Started MongoDB (preview-{task_id[:8]}-db)")
+                await self._log(task_id, f"🚀 Started Backend on port {result.get('ports', {}).get('backend', 'N/A')}")
+                await self._log(task_id, f"🚀 Started Frontend on port {result.get('ports', {}).get('frontend', 'N/A')}")
+                
+                await self._log(task_id, "🤖 Deployer: Running health checks...")
+                await self._log(task_id, f"✅ Backend health check: {'PASSED' if result['health'] == 'healthy' else 'FAILED'}")
+                await self._log(task_id, f"✅ Frontend health check: {'PASSED' if result['health'] == 'healthy' else 'FAILED'}")
+                
+                await self._log(task_id, "✅ Preview deployment complete!")
+                await self._log(task_id, "")
+                await self._log(task_id, "🎉 Your app is live!")
+                await self._log(task_id, f"   Frontend: {result['preview_url']}")
+                await self._log(task_id, f"   Fallback: {result['fallback_url']}")
+                await self._log(task_id, f"   Backend:  {result['backend_url']}")
+                await self._log(task_id, "")
+                await self._log(task_id, f"📋 Deployment details saved to database")
+                await self._log(task_id, "⏰ Preview expires in 24 hours")
             
-            await self._log(task_id, f"🐳 Building frontend image...")
-            await self._log(task_id, f"✅ Frontend image built (890 MB, 32s)")
-            
-            await self._log(task_id, "🤖 Deployer: Creating preview environment...")
-            
-            # Get available port
-            backend_port = await self._get_available_port()
-            frontend_port = backend_port + 1
-            
-            await self._log(task_id, f"🌐 Creating isolated network: preview-{task_id[:8]}")
-            
-            # Mock container deployment
-            await self._log(task_id, f"🚀 Started MongoDB (preview-{task_id[:8]}-db)")
-            await self._log(task_id, f"🚀 Started Backend (preview-{task_id[:8]}-backend) on port {backend_port}")
-            await self._log(task_id, f"🚀 Started Frontend (preview-{task_id[:8]}-frontend) on port {frontend_port}")
-            
-            await self._log(task_id, "🤖 Deployer: Running health checks...")
-            await self._log(task_id, "✅ Backend health check: PASSED")
-            await self._log(task_id, "✅ Frontend health check: PASSED")
-            
-            # Generate URLs
-            preview_url = f"http://{project_name}-{task_id[:8]}.localhost"
-            fallback_url = f"http://localhost:{frontend_port}"
-            backend_url = f"http://localhost:{backend_port}/api"
-            
-            await self._log(task_id, "✅ Preview deployment complete!")
-            await self._log(task_id, "")
-            await self._log(task_id, "🎉 Your app is live!")
-            await self._log(task_id, f"   Frontend: {preview_url}")
-            await self._log(task_id, f"   Fallback: {fallback_url}")
-            await self._log(task_id, f"   Backend:  {backend_url}")
-            await self._log(task_id, "")
-            await self._log(task_id, f"📋 Deployment details: artifacts/{task_id}/deployment/")
-            await self._log(task_id, "⏰ Preview expires in 24 hours")
-            
-            return {
-                "status": "deployed",
-                "preview_url": preview_url,
-                "fallback_url": fallback_url,
-                "backend_url": backend_url,
-                "container_ids": [f"preview-{task_id[:8]}-db", f"preview-{task_id[:8]}-backend", f"preview-{task_id[:8]}-frontend"],
-                "health": "healthy"
-            }
+            return result
             
         except Exception as e:
             logger.error(f"Docker-in-Docker deployment failed: {e}")
+            await self._log(task_id, f"❌ Deployment failed: {str(e)}")
             return {"status": "failed", "error": str(e)}
     
     async def _deploy_with_traefik(
