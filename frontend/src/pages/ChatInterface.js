@@ -219,6 +219,19 @@ const ChatInterface = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Check if a task was started
+      const metadata = response.data.message.metadata || {};
+      if (metadata.action === 'task_started' && metadata.task_id) {
+        // Connect WebSocket for real-time updates
+        setActiveTaskId(metadata.task_id);
+        connectWebSocket(metadata.task_id);
+        addSystemMessage('📡 Connected to live updates - you\'ll see progress in real-time...');
+        // Keep loading state active until task completes
+      } else {
+        // No task started, just normal chat
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       addSystemMessage('Error sending message. Please try again.');
