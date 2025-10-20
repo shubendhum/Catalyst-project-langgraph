@@ -603,13 +603,14 @@ const ChatInterface = () => {
           />
           <Button 
             onClick={sendMessage}
-            disabled={isLoading || !inputMessage.trim()}
+            disabled={isLoading || !inputMessage.trim() || activeTaskId}
             className="btn-primary"
             style={{ 
               padding: '12px 24px',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '8px',
+              opacity: activeTaskId ? 0.5 : 1
             }}
           >
             {isLoading ? (
