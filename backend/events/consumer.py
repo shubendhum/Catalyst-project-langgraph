@@ -127,7 +127,7 @@ class EventConsumer:
     
     async def start_consuming_async(
         self,
-        callback: Callable[[AgentEvent], asyncio.coroutine],
+        callback: Callable,
         prefetch_count: int = 1
     ):
         """
