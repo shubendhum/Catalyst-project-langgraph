@@ -299,6 +299,8 @@ class DeployerAgent:
         deployment_files["README.EKS.md"] = await self._generate_eks_readme(project_name, config)
         
         return deployment_files
+    
+    async def _generate_backend_dockerfile(self, architecture: Dict) -> str:
         """Generate Dockerfile for backend"""
         
         prompt = """Generate a production-ready Dockerfile for FastAPI backend.
