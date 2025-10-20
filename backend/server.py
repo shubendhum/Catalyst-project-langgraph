@@ -1043,6 +1043,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    logger.info("🚀 Catalyst Backend Starting...")
+    
+    # Log environment
+    env_config = get_config()
+    logger.info(f"📍 Environment: {env_config['environment']}")
+    logger.info(f"🎯 Orchestration Mode: {env_config['orchestration_mode']}")
+    
+    # Start agent workers in event-driven mode
+    if is_docker_desktop():
+        logger.info("🐳 Docker Desktop detected - starting agent workers...")
+        worker_manager = get_worker_manager(db, manager)
+        asyncio.create_task(worker_manager.start_all_workers())
+        logger.info("✅ Agent workers started in background")
+    else:
+        logger.info("☸️ Kubernetes detected - using sequential mode")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    """Cleanup on shutdown"""
+    # Stop agent workers if running
+    if is_docker_desktop():
+        worker_manager = get_worker_manager(db, manager)
+        await worker_manager.stop_all_workers()
+    
+    # Close database
     client.close()
+    logger.info("✅ Catalyst Backend Shutdown Complete")
