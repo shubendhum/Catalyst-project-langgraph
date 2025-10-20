@@ -113,10 +113,15 @@ const ChatInterface = () => {
       const response = await axios.post(`${BACKEND_URL}/api/chat/conversations`, {
         title: 'New Conversation'
       });
-      setConversationId(response.data.id);
+      const newConversationId = response.data.id;
+      setConversationId(newConversationId);
+      
+      // Save to localStorage for persistence
+      localStorage.setItem('catalyst_conversation_id', newConversationId);
+      
       setMessages([]);
       addSystemMessage('New conversation started. How can I help you today?');
-      return response.data.id;
+      return newConversationId;
     } catch (error) {
       console.error('Error starting conversation:', error);
       addSystemMessage('Error starting conversation. Please check your backend connection.');
