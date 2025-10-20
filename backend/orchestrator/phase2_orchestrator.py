@@ -111,6 +111,7 @@ class Phase2Orchestrator:
             # STEP 3: Code Generation
             await self._update_task_status(task_id, "coding")
             await self._log(task_id, "💻 Coder Agent: Generating production-ready code...")
+            await self._log(task_id, "📁 Creating project structure...")
             
             code_result = await self.coder.generate_code(
                 architecture=architecture,
