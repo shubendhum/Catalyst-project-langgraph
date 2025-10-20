@@ -14,6 +14,8 @@ const ChatInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState(null);
+  const [websocket, setWebsocket] = useState(null);
   
   // LLM Settings
   const [llmConfig, setLlmConfig] = useState({
