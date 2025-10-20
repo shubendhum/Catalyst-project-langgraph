@@ -185,33 +185,36 @@ services:
       - catalyst-network
 
   # ============================================
-  # Routing & Preview Management  
+  # Routing & Preview Management (OPTIONAL)
   # ============================================
   
   # Traefik for dynamic preview URL routing
-  traefik:
-    image: artifactory.devtools.syd.c1.macquarie.com:9996/traefik:v2.10
-    container_name: catalyst-traefik
-    restart: unless-stopped
-    ports:
-      - "80:80"      # HTTP
-      - "8080:8080"  # Dashboard
-    command:
-      - "--api.insecure=true"
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=catalyst-network"
-      - "--entrypoints.web.address=:80"
-      - "--log.level=INFO"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - catalyst-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
-      - "traefik.http.routers.dashboard.service=api@internal"
+  # Comment out if image not available in Artifactory
+  # Preview deployments will use fallback URLs (http://localhost:port)
+  #
+  # traefik:
+  #   image: artifactory.devtools.syd.c1.macquarie.com:9996/traefik:v2.10
+  #   container_name: catalyst-traefik
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"      # HTTP
+  #     - "8080:8080"  # Dashboard
+  #   command:
+  #     - "--api.insecure=true"
+  #     - "--api.dashboard=true"
+  #     - "--providers.docker=true"
+  #     - "--providers.docker.exposedbydefault=false"
+  #     - "--providers.docker.network=catalyst-network"
+  #     - "--entrypoints.web.address=:80"
+  #     - "--log.level=INFO"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   networks:
+  #     - catalyst-network
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+  #     - "traefik.http.routers.dashboard.service=api@internal"
 
 networks:
   catalyst-network:
