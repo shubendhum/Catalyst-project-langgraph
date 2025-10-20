@@ -102,6 +102,9 @@ RUN echo "=== Starting React build ===" && \
 # Stage 2: Runtime stage with Nginx
 FROM artifactory.devtools.syd.c1.macquarie.com:9996/nginx:alpine
 
+# Remove any existing entrypoint scripts to avoid conflicts
+RUN rm -rf /docker-entrypoint.d/* 2>/dev/null || true
+
 # Copy built application
 COPY --from=builder /app/build /usr/share/nginx/html
 
@@ -109,14 +112,10 @@ COPY --from=builder /app/build /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Fix permissions for nginx directories and files
-# Note: We need to run as root to allow nginx to bind to port 80
-# and to allow entrypoint scripts to execute properly
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx && \
     chown nginx:nginx /etc/nginx/nginx.conf && \
-    # Ensure entrypoint scripts are executable
-    chmod -R 755 /docker-entrypoint.d/ 2>/dev/null || true && \
     # Test nginx configuration
     nginx -t
 
@@ -127,6 +126,5 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
 
-# Use default nginx entrypoint (includes /docker-entrypoint.d/ scripts)
-# Start nginx
+# Start nginx directly without entrypoint scripts
 CMD ["nginx", "-g", "daemon off;"]
