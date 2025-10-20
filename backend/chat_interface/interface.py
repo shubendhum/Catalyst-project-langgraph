@@ -43,14 +43,16 @@ class ChatInterface:
             "create_project": [
                 r"create (a |an )?(?:new )?project",
                 r"start (a |an )?(?:new )?project",
-                r"new project",
-                r"build (a |an )?(?:new )?(?:app|application|project)"
+                r"new project"
             ],
             "build_app": [
-                r"build (a |an |me )?.+?(?:app|application)",
-                r"create (a |an |me )?.+?(?:app|application)",
-                r"develop (a |an |me )?.+?(?:app|application)",
-                r"make (a |an |me )?.+?(?:app|application)"
+                r"build (a |an |me )?(?:simple |basic |new )?\w+",
+                r"create (a |an |me )?(?:simple |basic |new )?\w+",
+                r"develop (a |an |me )?(?:simple |basic |new )?\w+",
+                r"make (a |an |me )?(?:simple |basic |new )?\w+",
+                r"i want (a |an )?(?:simple |basic )?\w+ (?:app|application|website|site|tool|system)",
+                r"can you (?:build|create|make|develop)",
+                r"let's (?:build|create|make|develop)"
             ],
             "add_feature": [
                 r"add (a |an )?(?:new )?feature",
