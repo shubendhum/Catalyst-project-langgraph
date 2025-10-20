@@ -80,7 +80,7 @@ services:
       - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
       - CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
       - PREVIEW_DOMAIN=localhost
-      - TRAEFIK_ENABLED=true
+      - TRAEFIK_ENABLED=false
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # Docker-in-Docker for previews
       - ./repos:/app/repos                          # Git repositories
