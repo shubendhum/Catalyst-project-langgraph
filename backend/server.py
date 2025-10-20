@@ -397,8 +397,15 @@ def get_chat_interface():
         # Get LLM client
         llm = get_llm_client(_llm_config)
         
-        # Initialize Phase2 orchestrator (complete agent suite)
-        _langgraph_orchestrator = get_phase2_orchestrator(db, manager, _llm_config or {})
+        # Initialize orchestrator based on environment
+        if is_docker_desktop():
+            # Use dual-mode orchestrator (will use event-driven)
+            _langgraph_orchestrator = get_dual_mode_orchestrator(db, manager, _llm_config or {})
+            logger.info("🐳 Using DualModeOrchestrator for Docker Desktop")
+        else:
+            # Use Phase2 orchestrator (sequential)
+            _langgraph_orchestrator = get_phase2_orchestrator(db, manager, _llm_config or {})
+            logger.info("☸️ Using Phase2Orchestrator for Kubernetes")
         
         # Initialize chat interface
         _chat_interface = ChatInterface(db, llm, _langgraph_orchestrator)
