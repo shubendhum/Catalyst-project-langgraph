@@ -16,6 +16,8 @@ uvloop>=0.19.0  # High-performance event loop
 # ============================================
 motor==3.3.1  # Async MongoDB driver
 pymongo==4.5.0  # MongoDB driver
+psycopg2-binary==2.9.9  # PostgreSQL driver
+asyncpg==0.29.0  # Async PostgreSQL driver
 
 # ============================================
 # Data Validation & Serialization
