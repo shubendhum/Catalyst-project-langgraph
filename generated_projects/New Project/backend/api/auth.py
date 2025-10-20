@@ -1,3 +1,1 @@
-### FastAPI Application Code
-
-Here's a complete FastAPI example with the requested features:
+Now, here’s a basic implementation of the authentication routes:
