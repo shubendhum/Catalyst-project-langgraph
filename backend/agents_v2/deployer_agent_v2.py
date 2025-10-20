@@ -196,7 +196,7 @@ class EventDrivenDeployerAgent(EventDrivenAgent):
                 await self._log(task_id, f"   Fallback: {result['fallback_url']}")
                 await self._log(task_id, f"   Backend:  {result['backend_url']}")
                 await self._log(task_id, "")
-                await self._log(task_id, f"📋 Deployment details saved to database")
+                await self._log(task_id, "📋 Deployment details saved to database")
                 await self._log(task_id, "⏰ Preview expires in 24 hours")
             
             return result
@@ -249,12 +249,12 @@ class EventDrivenDeployerAgent(EventDrivenAgent):
             )
             
             if result["status"] == "deployed":
-                await self._log(task_id, f"📦 Generated docker-compose.preview.yml")
+                await self._log(task_id, "📦 Generated docker-compose.preview.yml")
                 await self._log(task_id, f"📋 Deployment files: {result.get('compose_file')}")
                 await self._log(task_id, "")
                 await self._log(task_id, "📖 To deploy manually:")
                 await self._log(task_id, f"   cd /app/artifacts/{task_id}/deployment")
-                await self._log(task_id, f"   docker-compose -f docker-compose.preview.yml up -d")
+                await self._log(task_id, "   docker-compose -f docker-compose.preview.yml up -d")
             
             return result
             
