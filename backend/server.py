@@ -201,6 +201,30 @@ async def get_task(task_id: str):
 # Backend Logs Endpoints (must come before /logs/{task_id})
 # ============================================
 
+@api_router.get("/environment/info")
+async def get_environment_info():
+    """Get current environment information"""
+    from config.environment import get_config
+    
+    config = get_config()
+    
+    return {
+        "success": True,
+        "environment": config["environment"],
+        "orchestration_mode": config["orchestration_mode"],
+        "features": {
+            "postgres": config["databases"]["postgres"]["enabled"],
+            "event_streaming": config["event_streaming"]["enabled"],
+            "git_integration": config["git"]["enabled"],
+            "preview_deployments": config["preview"]["enabled"]
+        },
+        "infrastructure": {
+            "mongodb": config["databases"]["mongodb"]["enabled"],
+            "redis": config["databases"]["redis"].get("enabled", False),
+            "qdrant": config["databases"]["qdrant"].get("enabled", False)
+        }
+    }
+
 @api_router.get("/logs/backend")
 async def get_backend_logs(minutes: int = 5, limit: int = 1000):
     """Get backend logs from the last N minutes"""
