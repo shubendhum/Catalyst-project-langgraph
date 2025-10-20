@@ -93,7 +93,7 @@ class Phase2Orchestrator:
                 user_requirements=user_requirements,
                 project_name=project_name
             )
-            await self._log(task_id, f"✅ Plan created with {len(plan.get('features', []))} features")
+            await self._log(task_id, f"✅ Plan created with {len(plan.get('features', []))} features and {len(plan.get('api_endpoints', []))} API endpoints")
             await self._save_task_data(task_id, {"plan": plan, "status": "architecting"})
             
             # STEP 2: Architecture Design
