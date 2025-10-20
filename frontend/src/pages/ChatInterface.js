@@ -203,6 +203,15 @@ const ChatInterface = () => {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Button 
+            variant="outline" 
+            onClick={startNewConversation}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            title="Start New Conversation"
+          >
+            <Plus size={18} />
+            New Chat
+          </Button>
           <Link to="/costs" style={{ textDecoration: 'none' }}>
             <Button variant="outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <BarChart3 size={18} />
