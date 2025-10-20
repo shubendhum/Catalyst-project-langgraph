@@ -59,9 +59,17 @@ const ChatInterface = () => {
     ws.onmessage = (event) => {
       try {
         const logData = JSON.parse(event.data);
-        // Add agent log as system message
-        const agentMessage = `🤖 **${logData.agent_name}**: ${logData.message}`;
-        addSystemMessage(agentMessage);
+        
+        // Check if this is a completion message
+        if (logData.message && logData.message.includes('completed successfully')) {
+          setActiveTaskId(null);
+          setIsLoading(false);
+          addSystemMessage(`✅ ${logData.agent_name}: ${logData.message}`);
+        } else {
+          // Add agent log as system message with formatting
+          const agentMessage = `🤖 **${logData.agent_name}**: ${logData.message}`;
+          addSystemMessage(agentMessage);
+        }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
       }
