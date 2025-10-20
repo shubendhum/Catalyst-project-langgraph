@@ -211,10 +211,52 @@ services:
   #     - /var/run/docker.sock:/var/run/docker.sock:ro
   #   networks:
   #     - catalyst-network
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
-  #     - "traefik.http.routers.dashboard.service=api@internal"
+
+  # ============================================
+  # LLM Observability (Docker Desktop Only)
+  # ============================================
+  
+  # Langfuse - Self-hosted LLM observability
+  langfuse-db:
+    image: artifactory.devtools.syd.c1.macquarie.com:9996/postgres:15-alpine
+    container_name: catalyst-langfuse-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: langfuse
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: langfuse_pass_2025
+    volumes:
+      - langfuse_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - catalyst-network
+
+  langfuse:
+    image: langfuse/langfuse:latest
+    container_name: catalyst-langfuse
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - DATABASE_URL=postgresql://langfuse:langfuse_pass_2025@langfuse-db:5432/langfuse
+      - NEXTAUTH_URL=http://localhost:3001
+      - NEXTAUTH_SECRET=catalyst_langfuse_secret_key_2025_change_in_production
+      - SALT=catalyst_langfuse_salt_key_2025
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+    networks:
+      - catalyst-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/public/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 networks:
   catalyst-network:
