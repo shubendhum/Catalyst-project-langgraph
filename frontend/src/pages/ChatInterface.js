@@ -36,12 +36,41 @@ const ChatInterface = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Load current LLM config on mount
+  // Load current LLM config and restore conversation on mount
   useEffect(() => {
     loadLLMConfig();
-    // Add welcome message
-    addSystemMessage("👋 Welcome to Catalyst! I can help you build applications, analyze repositories, and more. What would you like to create today?");
+    loadOrCreateConversation();
   }, []);
+
+  const loadOrCreateConversation = async () => {
+    // Try to get conversation ID from localStorage
+    const savedConversationId = localStorage.getItem('catalyst_conversation_id');
+    
+    if (savedConversationId) {
+      // Try to load existing conversation
+      try {
+        const response = await axios.get(`${BACKEND_URL}/api/chat/conversations/${savedConversationId}`);
+        if (response.data && response.data.messages) {
+          setConversationId(savedConversationId);
+          // Load messages from backend
+          const loadedMessages = response.data.messages.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+            timestamp: msg.timestamp
+          }));
+          setMessages(loadedMessages);
+          console.log(`✅ Loaded ${loadedMessages.length} messages from conversation ${savedConversationId}`);
+          return;
+        }
+      } catch (error) {
+        console.warn('Failed to load previous conversation:', error);
+        // Continue to create new conversation
+      }
+    }
+    
+    // No saved conversation or failed to load - add welcome message
+    addSystemMessage("👋 Welcome to Catalyst! I can help you build applications, analyze repositories, and more. What would you like to create today?");
+  };
 
   const loadLLMConfig = async () => {
     try {
