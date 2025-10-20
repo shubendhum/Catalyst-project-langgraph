@@ -235,35 +235,32 @@ class EventDrivenDeployerAgent(EventDrivenAgent):
         Mode B: Generate docker-compose.yml only
         """
         try:
+            from services.preview_deployment import get_preview_service
+            
+            preview_service = get_preview_service()
+            
             await self._log(task_id, "🤖 Deployer: Generating deployment files...")
             
-            # Generate docker-compose.preview.yml
-            compose_content = self._generate_preview_compose(project_name, repo_path)
+            result = await preview_service.deploy(
+                task_id=task_id,
+                project_name=project_name,
+                repo_path=repo_path,
+                branch=""
+            )
             
-            # Save to artifacts
-            deploy_dir = Path(f"/app/artifacts/{task_id}/deployment")
-            deploy_dir.mkdir(parents=True, exist_ok=True)
+            if result["status"] == "deployed":
+                await self._log(task_id, f"📦 Generated docker-compose.preview.yml")
+                await self._log(task_id, f"📋 Deployment files: {result.get('compose_file')}")
+                await self._log(task_id, "")
+                await self._log(task_id, "📖 To deploy manually:")
+                await self._log(task_id, f"   cd /app/artifacts/{task_id}/deployment")
+                await self._log(task_id, f"   docker-compose -f docker-compose.preview.yml up -d")
             
-            compose_path = deploy_dir / "docker-compose.preview.yml"
-            with open(compose_path, 'w') as f:
-                f.write(compose_content)
-            
-            await self._log(task_id, f"📦 Generated docker-compose.preview.yml")
-            await self._log(task_id, f"📋 Deployment files: {deploy_dir}/")
-            await self._log(task_id, "")
-            await self._log(task_id, "📖 To deploy manually:")
-            await self._log(task_id, f"   cd {deploy_dir}")
-            await self._log(task_id, f"   docker-compose -f docker-compose.preview.yml up -d")
-            
-            return {
-                "status": "deployed",
-                "deployment_mode": "compose_only",
-                "compose_file": str(compose_path),
-                "health": "unknown"
-            }
+            return result
             
         except Exception as e:
             logger.error(f"Compose generation failed: {e}")
+            await self._log(task_id, f"❌ Deployment generation failed: {str(e)}")
             return {"status": "failed", "error": str(e)}
     
     def _generate_preview_compose(self, project_name: str, repo_path: str) -> str:
