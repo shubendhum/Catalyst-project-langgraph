@@ -323,10 +323,17 @@ build-artifactory: ## Build images using Artifactory mirror
         @echo "$(GREEN)✓ Artifactory images built$(NC)"
 
 start-artifactory: ## Start services with Artifactory images
-        @echo "$(BLUE)Starting services with Artifactory...$(NC)"
+        @echo "$(BLUE)Starting complete Catalyst stack with Artifactory...$(NC)"
+        @echo "$(YELLOW)Services: MongoDB, Redis, Qdrant, RabbitMQ, Backend, Frontend$(NC)"
         @$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml up -d
-        @echo "$(GREEN)✓ Artifactory services started$(NC)"
+        @echo "$(GREEN)✓ All services started$(NC)"
+        @sleep 10
         @$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml ps
+        @echo ""
+        @echo "$(BLUE)Access Points:$(NC)"
+        @echo "  Frontend:    http://localhost:3000"
+        @echo "  Backend:     http://localhost:8001/api"
+        @echo "  RabbitMQ UI: http://localhost:15672 (catalyst/catalyst_queue_2025)"
 
 stop-artifactory: ## Stop Artifactory services
         @echo "$(BLUE)Stopping Artifactory services...$(NC)"
