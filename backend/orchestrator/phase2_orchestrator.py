@@ -170,7 +170,7 @@ class Phase2Orchestrator:
             deployment_target = self.config.get("deployment_target", "docker")
             deployment_config = self.config.get("deployment_config", {})
             
-            await self._log(task_id, f"🚀 Deployer Agent: Creating {deployment_target.upper()} deployment configuration...")
+            await self._log(task_id, f"🚀 Deployer Agent: Creating {deployment_target.upper()} deployment files...")
             
             deployment_result = await self.deployer.deploy_application(
                 project_name=project_name,
@@ -184,6 +184,7 @@ class Phase2Orchestrator:
                 raise Exception(f"Deployment configuration failed: {deployment_result.get('error')}")
             
             await self._log(task_id, "✅ Deployment configuration complete!")
+            await self._log(task_id, f"📦 Generated Dockerfile, docker-compose.yml, and deployment scripts")
             await self._save_task_data(task_id, {"deployment_result": deployment_result, "status": "completed"})
             
             # Mark as completed
