@@ -1,0 +1,203 @@
+# Catalyst Multi-Agent AI Platform - Local Environment Makefile
+# For use in Kubernetes-managed supervisor environment
+
+.PHONY: help status restart restart-backend restart-frontend restart-all \
+        logs logs-backend logs-frontend logs-backend-err test-api \
+        check-services clean-logs info
+
+# Colors for output
+RED := \033[0;31m
+GREEN := \033[0;32m
+YELLOW := \033[1;33m
+BLUE := \033[0;34m
+NC := \033[0m
+
+# Default target
+.DEFAULT_GOAL := help
+
+help: ## Display this help message
+	@echo "$(BLUE)Catalyst Platform - Local Environment$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Services managed by supervisorctl$(NC)"
+	@echo ""
+	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  $(BLUE)%-20s$(NC) %s\n", $$1, $$2 } /^##@/ { printf "\n$(YELLOW)%s$(NC)\n", substr($$0, 5) }' $(MAKEFILE_LIST)
+
+##@ Service Management
+
+status: ## Show status of all services
+	@echo "$(BLUE)Service Status:$(NC)"
+	@sudo supervisorctl status
+
+restart-all: ## Restart all services
+	@echo "$(BLUE)Restarting all services...$(NC)"
+	@sudo supervisorctl restart all
+	@echo "$(GREEN)✓ All services restarted$(NC)"
+
+restart-backend: ## Restart backend service
+	@echo "$(BLUE)Restarting backend...$(NC)"
+	@sudo supervisorctl restart backend
+	@echo "$(GREEN)✓ Backend restarted$(NC)"
+
+restart-frontend: ## Restart frontend service
+	@echo "$(BLUE)Restarting frontend...$(NC)"
+	@sudo supervisorctl restart frontend
+	@echo "$(GREEN)✓ Frontend restarted$(NC)"
+
+restart-mongodb: ## Restart MongoDB service
+	@echo "$(BLUE)Restarting MongoDB...$(NC)"
+	@sudo supervisorctl restart mongodb
+	@echo "$(GREEN)✓ MongoDB restarted$(NC)"
+
+start-all: ## Start all services
+	@echo "$(BLUE)Starting all services...$(NC)"
+	@sudo supervisorctl start all
+	@echo "$(GREEN)✓ All services started$(NC)"
+
+stop-all: ## Stop all services
+	@echo "$(BLUE)Stopping all services...$(NC)"
+	@sudo supervisorctl stop all
+	@echo "$(GREEN)✓ All services stopped$(NC)"
+
+##@ Logs
+
+logs-backend: ## Show backend output logs (last 50 lines)
+	@echo "$(BLUE)Backend Output Logs:$(NC)"
+	@tail -50 /var/log/supervisor/backend.out.log
+
+logs-backend-err: ## Show backend error logs (last 50 lines)
+	@echo "$(RED)Backend Error Logs:$(NC)"
+	@tail -50 /var/log/supervisor/backend.err.log
+
+logs-backend-live: ## Follow backend logs in real-time
+	@echo "$(BLUE)Following backend logs (Ctrl+C to stop)...$(NC)"
+	@tail -f /var/log/supervisor/backend.out.log
+
+logs-backend-err-live: ## Follow backend error logs in real-time
+	@echo "$(RED)Following backend error logs (Ctrl+C to stop)...$(NC)"
+	@tail -f /var/log/supervisor/backend.err.log
+
+logs-frontend: ## Show frontend logs (last 50 lines)
+	@echo "$(BLUE)Frontend Logs:$(NC)"
+	@tail -50 /var/log/supervisor/frontend.out.log
+
+logs-all: ## Show all service logs
+	@echo "$(BLUE)All Service Logs:$(NC)"
+	@sudo supervisorctl tail -10000 backend
+	@sudo supervisorctl tail -10000 frontend
+
+clean-logs: ## Clear all log files
+	@echo "$(YELLOW)Clearing log files...$(NC)"
+	@sudo truncate -s 0 /var/log/supervisor/*.log
+	@echo "$(GREEN)✓ Logs cleared$(NC)"
+
+##@ Testing
+
+test-api: ## Test backend API endpoints
+	@echo "$(BLUE)Testing backend API...$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Health Check:$(NC)"
+	@curl -s https://multiagent-dev-1.preview.emergentagent.com/api/ | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))" 2>/dev/null || echo "$(RED)Backend not responding$(NC)"
+	@echo ""
+	@echo "$(YELLOW)LLM Config:$(NC)"
+	@curl -s https://multiagent-dev-1.preview.emergentagent.com/api/chat/config | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))" 2>/dev/null || echo "$(RED)API not responding$(NC)"
+
+test-chat: ## Test chat endpoint
+	@echo "$(BLUE)Testing chat endpoint...$(NC)"
+	@curl -s -X POST https://multiagent-dev-1.preview.emergentagent.com/api/chat/send \
+		-H "Content-Type: application/json" \
+		-d '{"message": "Hello, test message"}' | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))"
+
+test-logs: ## Test logs endpoints
+	@echo "$(BLUE)Testing logs endpoints...$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Backend Logs (last 1 min):$(NC)"
+	@curl -s "https://multiagent-dev-1.preview.emergentagent.com/api/logs/backend?minutes=1" | python3 -c "import sys, json; d=json.load(sys.stdin); print(f\"Found {d.get('count', 0)} logs\")"
+	@echo ""
+	@echo "$(YELLOW)Cost Stats:$(NC)"
+	@curl -s "https://multiagent-dev-1.preview.emergentagent.com/api/logs/cost-stats" | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))"
+
+##@ Generated Projects
+
+list-projects: ## List generated projects
+	@echo "$(BLUE)Generated Projects:$(NC)"
+	@ls -lah /app/generated_projects/ 2>/dev/null || echo "$(YELLOW)No projects generated yet$(NC)"
+
+view-project: ## View specific project (use PROJECT=name)
+	@if [ -z "$(PROJECT)" ]; then \
+		echo "$(RED)Error: Please specify PROJECT=name$(NC)"; \
+		echo "$(YELLOW)Available projects:$(NC)"; \
+		ls /app/generated_projects/ 2>/dev/null; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Project: $(PROJECT)$(NC)"
+	@ls -lah "/app/generated_projects/$(PROJECT)/"
+
+clean-projects: ## Remove all generated projects (WARNING: Destructive)
+	@echo "$(RED)WARNING: This will delete all generated projects!$(NC)"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo "$(BLUE)Removing generated projects...$(NC)"; \
+		rm -rf /app/generated_projects/*; \
+		echo "$(GREEN)✓ Projects removed$(NC)"; \
+	else \
+		echo "$(YELLOW)Cancelled$(NC)"; \
+	fi
+
+##@ Development
+
+check-services: ## Check if all services are running and healthy
+	@echo "$(BLUE)Service Health Check:$(NC)"
+	@echo ""
+	@echo -n "Backend:  "
+	@curl -s https://multiagent-dev-1.preview.emergentagent.com/api/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+	@echo -n "Frontend: "
+	@curl -s https://multiagent-dev-1.preview.emergentagent.com/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+	@echo -n "MongoDB:  "
+	@sudo supervisorctl status mongodb | grep -q RUNNING && echo "$(GREEN)✅ Running$(NC)" || echo "$(RED)❌ Not Running$(NC)"
+
+info: ## Show environment information
+	@echo "$(BLUE)Catalyst Environment Information$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Environment:$(NC)"
+	@echo "  Type: Kubernetes-managed with Supervisor"
+	@echo "  Working Dir: /app"
+	@echo ""
+	@echo "$(YELLOW)Services:$(NC)"
+	@sudo supervisorctl status
+	@echo ""
+	@echo "$(YELLOW)URLs:$(NC)"
+	@echo "  Frontend:  https://multiagent-dev-1.preview.emergentagent.com"
+	@echo "  Backend:   https://multiagent-dev-1.preview.emergentagent.com/api"
+	@echo "  API Docs:  https://multiagent-dev-1.preview.emergentagent.com/docs"
+	@echo ""
+	@echo "$(YELLOW)Logs:$(NC)"
+	@echo "  Backend Out: /var/log/supervisor/backend.out.log"
+	@echo "  Backend Err: /var/log/supervisor/backend.err.log"
+	@echo "  Frontend:    /var/log/supervisor/frontend.out.log"
+	@echo ""
+	@echo "$(YELLOW)Generated Projects:$(NC)"
+	@echo "  Location: /app/generated_projects/"
+	@ls /app/generated_projects/ 2>/dev/null | wc -l | xargs echo "  Count:"
+
+watch-cost: ## Watch cost statistics in real-time
+	@echo "$(BLUE)Watching cost statistics (Ctrl+C to stop)...$(NC)"
+	@while true; do \
+		clear; \
+		echo "$(BLUE)Cost Statistics - $$(date)$(NC)"; \
+		echo ""; \
+		curl -s "https://multiagent-dev-1.preview.emergentagent.com/api/logs/cost-stats" | python3 -c "import sys, json; d=json.load(sys.stdin); gs=d.get('global_stats',{}); print(f\"Total Tasks: {gs.get('total_tasks',0)}\"); print(f\"Total LLM Calls: {gs.get('total_llm_calls',0)}\"); print(f\"Cache Hit Rate: {gs.get('cache_hit_rate',0):.1f}%\"); print(f\"Total Cost: \$${gs.get('total_cost',0):.4f}\"); print(f\"Avg Cost/Task: \$${gs.get('average_cost_per_task',0):.4f}\")"; \
+		sleep 5; \
+	done
+
+##@ Quick Actions
+
+quick-restart: restart-all check-services ## Quick restart all services and check health
+
+quick-check: status check-services test-api ## Quick health check of entire system
+
+deploy-fix: restart-backend logs-backend-err ## Quick deploy fix (restart backend and show errors)
+
+version: ## Show version
+	@echo "Catalyst v1.0.0 - Multi-Agent AI Platform"
+	@echo "Environment: Kubernetes/Supervisor"
