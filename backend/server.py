@@ -31,7 +31,9 @@ from agents.explorer import ExplorerAgent
 from orchestrator.executor import TaskExecutor
 from chat_interface.interface import ChatInterface, ChatMessage, Conversation
 from orchestrator.phase2_orchestrator import get_phase2_orchestrator
+from orchestrator.dual_mode_orchestrator import get_dual_mode_orchestrator
 from llm_client import get_llm_client
+from config.environment import get_config, is_docker_desktop
 
 # Phase 4 Services
 from services.context_manager import get_context_manager
