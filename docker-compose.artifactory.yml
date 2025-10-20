@@ -1,6 +1,32 @@
 version: '3.8'
 
 services:
+  # ============================================
+  # Core Data Layer
+  # ============================================
+  
+  # PostgreSQL for state management (event-driven mode only)
+  postgres:
+    image: artifactory.devtools.syd.c1.macquarie.com:9996/postgres:15-alpine
+    container_name: catalyst-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: catalyst_state
+      POSTGRES_USER: catalyst
+      POSTGRES_PASSWORD: catalyst_state_2025
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalyst"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - catalyst-network
+
   # MongoDB Database
   mongodb:
     image: artifactory.devtools.syd.c1.macquarie.com:9996/mongo:5.0
