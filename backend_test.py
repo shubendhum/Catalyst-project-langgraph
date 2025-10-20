@@ -1764,10 +1764,9 @@ class CatalystAPITester:
         success, response = self.run_test(
             "Model Selection API",
             "POST",
-            "optimizer/select-model",
+            "optimizer/select-model?task_description=simple%20task",
             200,
             data={
-                "task": "simple task",
                 "task_description": "Fix a typo in documentation",
                 "complexity": 0.3
             }
