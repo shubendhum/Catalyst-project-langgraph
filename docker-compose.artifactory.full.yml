@@ -10,7 +10,7 @@ services:
   
   # MongoDB Database
   mongodb:
-    image: artifactory.devtools.syd.c1.macquarie.com:9996/mongo:7
+    image: artifactory.devtools.syd.c1.macquarie.com:9996/mongo:5.0
     container_name: catalyst-mongodb
     restart: unless-stopped
     ports:
@@ -23,7 +23,7 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=catalyst_admin_pass
       - MONGO_INITDB_DATABASE=catalyst_db
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/catalyst_db --quiet
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
       interval: 10s
       timeout: 5s
       retries: 5
