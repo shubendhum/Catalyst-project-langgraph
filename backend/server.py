@@ -226,6 +226,152 @@ async def get_environment_info():
         }
     }
 
+
+# ============================================
+# Git Management Endpoints
+# ============================================
+
+@api_router.get("/git/repos")
+async def list_git_repos():
+    """List all local Git repositories"""
+    from services.git_service_v2 import get_git_service
+    
+    try:
+        git_service = get_git_service()
+        
+        if not git_service.enabled:
+            return {"success": True, "repos": [], "message": "Git not enabled in this environment"}
+        
+        repos = []
+        repos_path = git_service.repos_path
+        
+        if repos_path.exists():
+            for item in repos_path.iterdir():
+                if item.is_dir() and (item / ".git").exists():
+                    # Get repo info
+                    commits = git_service.get_commit_history(item.name, limit=1)
+                    last_commit = commits[0] if commits else None
+                    
+                    repos.append({
+                        "name": item.name,
+                        "path": str(item),
+                        "last_commit": last_commit,
+                        "branches": []  # TODO: List branches
+                    })
+        
+        return {"success": True, "repos": repos, "count": len(repos)}
+        
+    except Exception as e:
+        logger.error(f"Error listing repos: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/git/repos/{project_name}")
+async def get_git_repo_details(project_name: str):
+    """Get details of a specific repository"""
+    from services.git_service_v2 import get_git_service
+    
+    try:
+        git_service = get_git_service()
+        
+        if not git_service.enabled:
+            return {"success": False, "error": "Git not enabled"}
+        
+        repo_path = git_service.repos_path / project_name
+        
+        if not repo_path.exists():
+            return {"success": False, "error": "Repository not found"}
+        
+        # Get commit history
+        commits = git_service.get_commit_history(project_name, limit=20)
+        
+        # Get current commit
+        current_commit = git_service.get_current_commit(project_name)
+        
+        # Get LOC
+        loc = git_service.count_lines_of_code(project_name)
+        
+        return {
+            "success": True,
+            "repo": {
+                "name": project_name,
+                "path": str(repo_path),
+                "current_commit": current_commit,
+                "lines_of_code": loc,
+                "commits": commits
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting repo details: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.post("/git/repos/{project_name}/push")
+async def push_repo_to_github(project_name: str, branch: str = "main"):
+    """Push repository to GitHub"""
+    from integrations.github_integration import get_github_service
+    
+    try:
+        github_service = get_github_service()
+        
+        if not github_service.enabled:
+            return {
+                "success": False,
+                "error": "GitHub integration not enabled. Set GITHUB_TOKEN environment variable."
+            }
+        
+        success = await github_service.push_to_github(project_name, branch)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Pushed {branch} to GitHub",
+                "repo_url": f"https://github.com/{github_service.org}/{project_name}"
+            }
+        else:
+            return {"success": False, "error": "Push failed"}
+            
+    except Exception as e:
+        logger.error(f"Error pushing to GitHub: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.post("/git/repos/{project_name}/pr")
+async def create_github_pr(
+    project_name: str,
+    branch: str,
+    title: str,
+    description: str = "",
+    base: str = "main"
+):
+    """Create a pull request on GitHub"""
+    from integrations.github_integration import get_github_service
+    
+    try:
+        github_service = get_github_service()
+        
+        if not github_service.enabled:
+            return {"success": False, "error": "GitHub integration not enabled"}
+        
+        pr_url = await github_service.create_pull_request(
+            project_name=project_name,
+            branch=branch,
+            title=title,
+            description=description,
+            base=base
+        )
+        
+        if pr_url:
+            return {"success": True, "pr_url": pr_url}
+        else:
+            return {"success": False, "error": "Failed to create PR"}
+            
+    except Exception as e:
+        logger.error(f"Error creating PR: {e}")
+        return {"success": False, "error": str(e)}
+
+
 @api_router.get("/logs/backend")
 async def get_backend_logs(minutes: int = 5, limit: int = 1000):
     """Get backend logs from the last N minutes"""
