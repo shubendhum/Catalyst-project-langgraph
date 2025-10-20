@@ -86,8 +86,6 @@ services:
       - RABBITMQ_DEFAULT_USER=catalyst
       - RABBITMQ_DEFAULT_PASS=catalyst_queue_2025
       - RABBITMQ_DEFAULT_VHOST=catalyst
-      - RABBITMQ_SSL_VERIFY=verify_none
-      - RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT=false
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
