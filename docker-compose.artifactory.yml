@@ -60,6 +60,7 @@ services:
       - "8001:8001"
     environment:
       - MONGO_URL=mongodb://admin:catalyst_admin_pass@mongodb:27017
+      - POSTGRES_URL=postgresql://catalyst:catalyst_state_2025@postgres:5432/catalyst_state
       - DB_NAME=catalyst_db
       - REDIS_URL=redis://redis:6379
       - QDRANT_URL=http://qdrant:6333
@@ -78,7 +79,15 @@ services:
       - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
       - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
       - CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+      - PREVIEW_DOMAIN=localhost
+      - TRAEFIK_ENABLED=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker-in-Docker for previews
+      - ./repos:/app/repos                          # Git repositories
+      - ./artifacts:/app/artifacts                  # Build/test artifacts
     depends_on:
+      postgres:
+        condition: service_healthy
       mongodb:
         condition: service_healthy
       redis:
@@ -86,6 +95,8 @@ services:
       qdrant:
         condition: service_started
       rabbitmq:
+        condition: service_started
+      traefik:
         condition: service_started
     networks:
       - catalyst-network
