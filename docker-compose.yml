@@ -74,6 +74,8 @@ services:
       - ENABLE_COST_OPTIMIZER=true
       - ENABLE_LEARNING_SERVICE=true
       - ENABLE_CONTEXT_MANAGER=true
+      - PREVIEW_DOMAIN=localhost
+      - TRAEFIK_ENABLED=true
     depends_on:
       mongodb:
         condition: service_healthy
@@ -83,6 +85,8 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_started
+      traefik:
+        condition: service_started
     networks:
       - catalyst-network
     healthcheck:
@@ -91,6 +95,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api.localhost`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=8001"
 
   # Frontend Application
   frontend:
