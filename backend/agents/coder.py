@@ -370,16 +370,33 @@ Include:
         all_files: Dict,
         task_id: Optional[str] = None
     ) -> int:
-        """Save all generated files to disk"""
+        """Save all generated files to disk with detailed logging"""
         saved_count = 0
         
         for category, files in all_files.items():
             for file_path, content in files.items():
                 if self.file_service.write_file(project_name, file_path, content):
                     saved_count += 1
+                    # Log each file being created
+                    if task_id:
+                        file_icon = "📄"
+                        if file_path.endswith('.py'):
+                            file_icon = "🐍"
+                        elif file_path.endswith(('.js', '.jsx', '.ts', '.tsx')):
+                            file_icon = "⚛️"
+                        elif file_path.endswith('.html'):
+                            file_icon = "🌐"
+                        elif file_path.endswith('.css'):
+                            file_icon = "🎨"
+                        elif file_path.endswith(('.json', '.yml', '.yaml')):
+                            file_icon = "⚙️"
+                        elif file_path.endswith('.md'):
+                            file_icon = "📝"
+                        
+                        await self._log(task_id, f"{file_icon} Generated `{file_path}`")
         
         if task_id:
-            await self._log(task_id, f"💾 Saved {saved_count} files to disk")
+            await self._log(task_id, f"✅ Completed: {saved_count} files created")
         
         return saved_count
     
