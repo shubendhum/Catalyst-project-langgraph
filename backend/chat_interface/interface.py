@@ -229,13 +229,19 @@ If not clear, suggest a name based on context."""
     async def _handle_build_app(self, conversation: Conversation, message: str) -> Dict:
         """Handle app building request"""
         
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"🚀 _handle_build_app called for message: {message[:100]}")
+        
         # Ensure we have a project
         project_id = conversation.context.get("current_project_id")
         
         if not project_id:
             # Create project first
+            logger.info("Creating new project...")
             project_response = await self._handle_create_project(conversation, message)
             project_id = project_response["metadata"]["project_id"]
+            logger.info(f"Project created: {project_id}")
         
         # Create task
         task = {
@@ -251,12 +257,15 @@ If not clear, suggest a name based on context."""
         await self.db.tasks.insert_one(task)
         
         task_id = task["id"]
+        logger.info(f"Task created: {task_id}, triggering orchestrator...")
         
         # Start LangGraph orchestration in background
         import asyncio
         asyncio.create_task(
             self.orchestrator.execute_task(task_id, project_id, message)
         )
+        
+        logger.info(f"✅ Orchestrator triggered for task {task_id}")
         
         return {
             "content": f"""Perfect! I'm starting to work on that for you.
@@ -269,6 +278,7 @@ Here's what my team will do:
 5. Reviewer will check code quality
 6. Deployer will launch your app
 
+Task ID: {task_id}
 I'll keep you updated on progress. You can check the status anytime!""",
             "metadata": {
                 "action": "task_started",
