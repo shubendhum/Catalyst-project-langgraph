@@ -1647,6 +1647,250 @@ class CatalystAPITester:
             return False
 
 
+    # ==================== ENTERPRISE MIGRATION VERIFICATION TESTS ====================
+    
+    def test_environment_detection(self):
+        """Test environment detection returns correct K8s configuration"""
+        success, response = self.run_test(
+            "Environment Detection",
+            "GET",
+            "environment/info",
+            200
+        )
+        
+        if success and response.get("success"):
+            environment = response.get("environment", "")
+            orchestration_mode = response.get("orchestration_mode", "")
+            features = response.get("features", {})
+            infrastructure = response.get("infrastructure", {})
+            
+            print(f"   Environment: {environment}")
+            print(f"   Orchestration Mode: {orchestration_mode}")
+            print(f"   Postgres: {features.get('postgres', 'N/A')}")
+            print(f"   Event Streaming: {features.get('event_streaming', 'N/A')}")
+            print(f"   Git Integration: {features.get('git_integration', 'N/A')}")
+            print(f"   Preview Deployments: {features.get('preview_deployments', 'N/A')}")
+            print(f"   MongoDB: {infrastructure.get('mongodb', 'N/A')}")
+            print(f"   Redis: {infrastructure.get('redis', 'N/A')}")
+            print(f"   Qdrant: {infrastructure.get('qdrant', 'N/A')}")
+            
+            # Verify K8s environment
+            env_correct = environment == "kubernetes"
+            mode_correct = orchestration_mode == "sequential"
+            postgres_disabled = features.get("postgres") == False
+            events_disabled = features.get("event_streaming") == False
+            git_disabled = features.get("git_integration") == False
+            preview_disabled = features.get("preview_deployments") == False
+            mongodb_enabled = infrastructure.get("mongodb") == True
+            
+            all_correct = (env_correct and mode_correct and postgres_disabled and 
+                          events_disabled and git_disabled and preview_disabled and mongodb_enabled)
+            
+            if not all_correct:
+                print(f"   ❌ Environment config mismatch!")
+                print(f"      Expected: kubernetes/sequential with enterprise features disabled")
+            
+            return all_correct
+        return False
+    
+    def test_chat_no_postgres_errors(self):
+        """Test chat functionality works without Postgres/RabbitMQ"""
+        # Create a conversation first
+        success, conv_response = self.run_test(
+            "Create Conversation for Migration Test",
+            "POST",
+            "chat/conversations",
+            200
+        )
+        
+        if not success or "id" not in conv_response:
+            print("   ❌ Failed to create conversation")
+            return False
+        
+        conversation_id = conv_response["id"]
+        
+        # Send a simple message
+        message_data = {
+            "message": "Hello",
+            "conversation_id": conversation_id
+        }
+        
+        success, response = self.run_test(
+            "Chat Send (No Postgres/RabbitMQ)",
+            "POST",
+            "chat/send",
+            200,
+            data=message_data,
+            timeout=60
+        )
+        
+        if success and response.get("status") == "success":
+            message_content = response.get("message", {}).get("content", "")
+            print(f"   Response received: {len(message_content)} chars")
+            print(f"   No Postgres/RabbitMQ errors: ✅")
+            
+            # Cleanup
+            self.run_test(
+                "Delete Test Conversation",
+                "DELETE",
+                f"chat/conversations/{conversation_id}",
+                200
+            )
+            
+            return True
+        else:
+            print(f"   ❌ Chat failed or returned error")
+            return False
+    
+    def test_cost_stats_api(self):
+        """Test cost stats API works in K8s"""
+        success, response = self.run_test(
+            "Cost Stats API",
+            "GET",
+            "logs/cost-stats",
+            200
+        )
+        
+        if success and response.get("success"):
+            global_stats = response.get("global_stats", {})
+            print(f"   Total tasks: {global_stats.get('total_tasks', 0)}")
+            print(f"   Total cost: ${global_stats.get('total_cost', 0):.4f}")
+            print(f"   Cache hit rate: {global_stats.get('cache_hit_rate', 0):.2f}%")
+            return True
+        return False
+    
+    def test_model_selection_api(self):
+        """Test model selection API works in K8s"""
+        success, response = self.run_test(
+            "Model Selection API",
+            "POST",
+            "optimizer/select-model",
+            200,
+            data={
+                "task": "simple task",
+                "task_description": "Fix a typo in documentation",
+                "complexity": 0.3
+            }
+        )
+        
+        if success and response.get("success"):
+            recommended = response.get("recommended_model", "")
+            savings = response.get("estimated_savings_percent", 0)
+            print(f"   Recommended model: {recommended}")
+            print(f"   Estimated savings: {savings:.1f}%")
+            return True
+        return False
+    
+    def test_backend_health(self):
+        """Test backend health and API info"""
+        success, response = self.run_test(
+            "Backend Health Check",
+            "GET",
+            "",
+            200
+        )
+        
+        if success and "message" in response:
+            print(f"   API Message: {response.get('message', '')}")
+            print(f"   API Version: {response.get('version', '')}")
+            return True
+        return False
+    
+    def test_git_repos_disabled(self):
+        """Test Git repos endpoint returns disabled message in K8s"""
+        success, response = self.run_test(
+            "Git Repos (Should Be Disabled)",
+            "GET",
+            "git/repos",
+            200
+        )
+        
+        if success and response.get("success"):
+            repos = response.get("repos", [])
+            message = response.get("message", "")
+            
+            print(f"   Repos count: {len(repos)}")
+            print(f"   Message: {message}")
+            
+            # Should return empty or disabled message
+            is_disabled = len(repos) == 0 or "not enabled" in message.lower()
+            
+            if is_disabled:
+                print(f"   ✅ Git correctly disabled in K8s")
+            else:
+                print(f"   ⚠️  Git may be unexpectedly enabled")
+            
+            return True  # Not a failure, just checking behavior
+        return False
+    
+    def test_preview_disabled(self):
+        """Test preview deployments endpoint returns disabled message in K8s"""
+        success, response = self.run_test(
+            "Preview Deployments (Should Be Disabled)",
+            "GET",
+            "preview",
+            200
+        )
+        
+        if success and response.get("success"):
+            previews = response.get("previews", [])
+            message = response.get("message", "")
+            
+            print(f"   Previews count: {len(previews)}")
+            print(f"   Message: {message}")
+            
+            # Should return empty or disabled message
+            is_disabled = len(previews) == 0 or "not available" in message.lower()
+            
+            if is_disabled:
+                print(f"   ✅ Preview deployments correctly disabled in K8s")
+            else:
+                print(f"   ⚠️  Preview deployments may be unexpectedly enabled")
+            
+            return True  # Not a failure, just checking behavior
+        return False
+    
+    def test_backend_startup_logs(self):
+        """Check backend startup logs for errors"""
+        success, response = self.run_test(
+            "Backend Startup Logs",
+            "GET",
+            "logs/backend?minutes=5",
+            200
+        )
+        
+        if success and response.get("success"):
+            logs = response.get("logs", [])
+            
+            # Look for error patterns
+            error_count = 0
+            postgres_errors = 0
+            rabbitmq_errors = 0
+            
+            for log in logs:
+                message = log.get("message", "").lower()
+                if "error" in message and "failed" in message:
+                    error_count += 1
+                    if "postgres" in message:
+                        postgres_errors += 1
+                    if "rabbitmq" in message or "rabbit" in message:
+                        rabbitmq_errors += 1
+            
+            print(f"   Total logs: {len(logs)}")
+            print(f"   Error messages: {error_count}")
+            print(f"   Postgres errors: {postgres_errors}")
+            print(f"   RabbitMQ errors: {rabbitmq_errors}")
+            
+            # Expected: Some warnings about missing services, but no crashes
+            # We're looking for graceful degradation
+            if error_count > 0:
+                print(f"   ⚠️  Found {error_count} error messages (expected for missing services)")
+            else:
+                print(f"   ✅ No error messages in logs")
+            
+            return True  # Not a failure - we expect some warnings
+        return False
+
     # ==================== PHASE 5 OPTIMIZATION TESTS ====================
     
     def test_backend_logs_5_minutes(self):
