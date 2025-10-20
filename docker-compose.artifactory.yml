@@ -175,6 +175,7 @@ services:
       - RABBITMQ_DEFAULT_VHOST=catalyst
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq-init.sh:/docker-entrypoint-initdb.d/init.sh:ro
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -182,6 +183,35 @@ services:
       retries: 5
     networks:
       - catalyst-network
+
+  # ============================================
+  # Routing & Preview Management  
+  # ============================================
+  
+  # Traefik for dynamic preview URL routing
+  traefik:
+    image: artifactory.devtools.syd.c1.macquarie.com:9996/traefik:v2.10
+    container_name: catalyst-traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"      # HTTP
+      - "8080:8080"  # Dashboard
+    command:
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=catalyst-network"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=INFO"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - catalyst-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
 
 networks:
   catalyst-network:
