@@ -81,6 +81,13 @@ services:
       - CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
       - PREVIEW_DOMAIN=localhost
       - TRAEFIK_ENABLED=false
+      # LLM Observability
+      - LANGFUSE_PUBLIC_KEY=
+      - LANGFUSE_SECRET_KEY=
+      - LANGFUSE_HOST=http://langfuse:3000
+      - LANGCHAIN_TRACING_V2=false
+      - LANGCHAIN_API_KEY=
+      - LANGCHAIN_PROJECT=catalyst
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # Docker-in-Docker for previews
       - ./repos:/app/repos                          # Git repositories
