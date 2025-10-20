@@ -206,8 +206,10 @@ async def get_task(task_id: str):
 async def get_environment_info():
     """Get current environment information"""
     from config.environment import get_config
+    from services.llm_observability import get_observability_service
     
     config = get_config()
+    obs_service = get_observability_service()
     
     return {
         "success": True,
@@ -223,6 +225,12 @@ async def get_environment_info():
             "mongodb": config["databases"]["mongodb"]["enabled"],
             "redis": config["databases"]["redis"].get("enabled", False),
             "qdrant": config["databases"]["qdrant"].get("enabled", False)
+        },
+        "observability": {
+            "langfuse": obs_service.langfuse_enabled,
+            "langfuse_url": "http://localhost:3001" if obs_service.langfuse_enabled else None,
+            "langsmith": obs_service.langsmith_enabled,
+            "langsmith_url": "https://smith.langchain.com" if obs_service.langsmith_enabled else None
         }
     }
 
