@@ -235,7 +235,6 @@ const ChatInterface = () => {
     } catch (error) {
       console.error('Error sending message:', error);
       addSystemMessage('Error sending message. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };
