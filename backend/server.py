@@ -1319,6 +1319,11 @@ async def shutdown_db_client():
     if is_docker_desktop():
         worker_manager = get_worker_manager(db, manager)
         await worker_manager.stop_all_workers()
+        
+        # Stop background scheduler
+        from workers.background_scheduler import get_scheduler
+        scheduler = get_scheduler()
+        await scheduler.stop()
     
     # Close database
     client.close()
