@@ -1,63 +1,174 @@
+import uuid
+from datetime import datetime
 import pytest
-from pydantic import BaseModel, Field, ValidationError
-from bson import ObjectId
+from pydantic import BaseModel, EmailStr, ValidationError
+from typing import Dict, Optional
 
-# Define Pydantic model as per provided specifications
-class HelloModel(BaseModel):
-    id: ObjectId = Field(default_factory=ObjectId, alias='_id', title="ObjectId")
-    message: str = Field(..., title="Message", max_length=256)
+# Define Pydantic models based on the specifications
+class User(BaseModel):
+    id: uuid.UUID
+    email: EmailStr
+    hashed_password: str
+    is_active: bool = True
+    created_at: datetime = None
 
     class Config:
-        allow_population_by_field_name = True  # allows setting _id as id
+        orm_mode = True
+
+
+class DisplayHelloWorldMessage(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    data: Dict
+    created_at: datetime = None
+    updated_at: datetime = None
+
+    class Config:
+        orm_mode = True
+
+
+class BackendAPIEndpoint(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    data: Dict
+    created_at: datetime = None
+    updated_at: datetime = None
+
+    class Config:
+        orm_mode = True
+
+
+class FrontendIntegration(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    data: Dict
+    created_at: datetime = None
+    updated_at: datetime = None
+
+    class Config:
+        orm_mode = True
+
 
 # Test cases
-def test_hello_model_valid():
-    model = HelloModel(message="Hello, World!")
-    assert isinstance(model.id, ObjectId)
-    assert model.message == "Hello, World!"
+def test_user_validation():
+    # Valid user
+    user = User(
+        id=uuid.uuid4(),
+        email='test@example.com',
+        hashed_password='hashed_password123',
+    )
+    assert user.is_active is True
 
-def test_hello_model_missing_message():
-    with pytest.raises(ValidationError) as exc_info:
-        HelloModel(message=None)
-    assert "message" in str(exc_info.value)
+    # Invalid email
+    with pytest.raises(ValidationError):
+        User(
+            id=uuid.uuid4(),
+            email='invalid_email',
+            hashed_password='hashed_password123',
+        )
 
-def test_hello_model_long_message():
-    long_message = "a" * 257
-    with pytest.raises(ValidationError) as exc_info:
-        HelloModel(message=long_message)
-    assert "ensure this value has at most 256 characters" in str(exc_info.value)
+    # Missing required field
+    with pytest.raises(ValidationError):
+        User(
+            id=uuid.uuid4(),
+            email='test@example.com',
+        )
 
-def test_hello_model_id_auto_generation():
-    model = HelloModel(message="Hello again!")
-    assert isinstance(model.id, ObjectId)
 
-def test_hello_model_serialization():
-    model = HelloModel(message="Serialization Test")
-    data = model.dict()
-    assert data['message'] == "Serialization Test"
-    assert 'id' in data
+def test_display_hello_world_message_validation():
+    user_id = uuid.uuid4()
+    message = DisplayHelloWorldMessage(
+        id=uuid.uuid4(),
+        user_id=user_id,
+        data={"message": "Hello, World!"},
+    )
+    assert message.data == {"message": "Hello, World!"}
 
-def test_hello_model_deserialization():
-    data = {'_id': ObjectId(), 'message': "Deserialization Test"}
-    model = HelloModel(**data)
-    assert model.message == "Deserialization Test"
-    assert isinstance(model.id, ObjectId)
+    # Missing required field 'data'
+    with pytest.raises(ValidationError):
+        DisplayHelloWorldMessage(
+            id=uuid.uuid4(),
+            user_id=user_id,
+        )
 
-def test_hello_model_invalid_id_type():
-    with pytest.raises(ValidationError) as exc_info:
-        HelloModel(id="not-an-objectid", message="Invalid ID")
-    assert "value is not a valid ObjectId" in str(exc_info.value)
 
-def test_hello_model_edge_cases():
-    # test empty message
-    with pytest.raises(ValidationError) as exc_info:
-        HelloModel(message="")
-    assert "ensure this value has at least 1 characters" in str(exc_info.value)
+def test_backend_api_endpoint_validation():
+    user_id = uuid.uuid4()
+    endpoint = BackendAPIEndpoint(
+        id=uuid.uuid4(),
+        user_id=user_id,
+        data={"api_endpoint": "/v1/resource"},
+    )
+    assert endpoint.data == {"api_endpoint": "/v1/resource"}
 
-    # test message with only whitespace
-    with pytest.raises(ValidationError) as exc_info:
-        HelloModel(message="   ")
-    assert "ensure this value has at least 1 characters" in str(exc_info.value)
+    # Missing required field 'data'
+    with pytest.raises(ValidationError):
+        BackendAPIEndpoint(
+            id=uuid.uuid4(),
+            user_id=user_id,
+        )
 
-if __name__ == "__main__":
-    pytest.main()
+
+def test_frontend_integration_validation():
+    user_id = uuid.uuid4()
+    integration = FrontendIntegration(
+        id=uuid.uuid4(),
+        user_id=user_id,
+        data={"integration_source": "frontend"},
+    )
+    assert integration.data == {"integration_source": "frontend"}
+
+    # Missing required field 'data'
+    with pytest.raises(ValidationError):
+        FrontendIntegration(
+            id=uuid.uuid4(),
+            user_id=user_id,
+        )
+
+
+def test_serialization_deserialization():
+    user_id = uuid.uuid4()
+    user = User(
+        id=user_id,
+        email='test@example.com',
+        hashed_password='hashed_password123',
+    )
+    
+    serialized_user = user.json()
+    deserialized_user = User.parse_raw(serialized_user)
+    assert user == deserialized_user
+
+
+def test_relationships():
+    user_id = uuid.uuid4()
+    user = User(
+        id=user_id,
+        email='test@example.com',
+        hashed_password='hashed_password123',
+    )
+    
+    message = DisplayHelloWorldMessage(
+        id=uuid.uuid4(),
+        user_id=user.id,
+        data={"message": "Hello, World!"},
+    )
+    
+    assert message.user_id == user.id
+
+
+def test_edge_cases():
+    # Check for UUID validation
+    with pytest.raises(ValidationError):
+        User(
+            id="invalid-uuid",
+            email='test@example.com',
+            hashed_password='hashed_password123',
+        )
+
+    # Check for empty data field
+    with pytest.raises(ValidationError):
+        DisplayHelloWorldMessage(
+            id=uuid.uuid4(),
+            user_id=uuid.uuid4(),
+            data=None,
+        )

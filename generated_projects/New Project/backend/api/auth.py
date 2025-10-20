@@ -1,3 +1,3 @@
-### Directory Structure
+### FastAPI Application Code
 
-Let's assume you have a basic directory structure like this:
+Here's a complete FastAPI example with the requested features:

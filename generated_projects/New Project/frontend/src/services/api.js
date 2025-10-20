@@ -1,3 +1,1 @@
-### Step 2: Create the API Service Client
-
-You can create a file called `apiService.js` with the following code:
+Next, you can create an API service client as follows:

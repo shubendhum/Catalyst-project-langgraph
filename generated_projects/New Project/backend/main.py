@@ -1,41 +1,72 @@
-# app/main.py
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
-from app.api.routes import api_router
-from app.config import MONGODB_URL
+import os
+import uuid
+from pydantic import BaseModel
+from datetime import datetime
+
+#MongoDB connection details
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "mydatabase")
 
 app = FastAPI()
 
-# CORS middleware
+# CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# MongoDB connection
-client = MongoClient(MONGODB_URL)
-db = client.get_default_database()
+# MongoDB setup
+client = MongoClient(MONGO_URI)
+db = client[DATABASE_NAME]
+
+# Pydantic models
+class User(BaseModel):
+    id: str = str(uuid.uuid4())
+    email: str
+    hashed_password: str
+    is_active: bool = True
+    created_at: datetime = datetime.now()
+
+class DisplayHelloWorldMessage(BaseModel):
+    id: str = str(uuid.uuid4())
+    user_id: str
+    data: dict
+    created_at: datetime = datetime.now()
+    updated_at: datetime = datetime.now()
+
+# API endpoints
+@app.get("/api/hello")
+async def read_hello():
+    try:
+        return {"message": "Hello, World!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy"}
+    try:
+        server_status = client.admin.command('ping')
+        return {"status": "Healthy", "server_status": server_status}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Database connection error.")
 
-# Include the API routes
-app.include_router(api_router, prefix="/api", tags=["API"])
+# Route for user creation (example)
+@app.post("/api/users/", response_model=User)
+async def create_user(user: User):
+    try:
+        user_dict = user.dict()
+        db.users.insert_one(user_dict)
+        return user
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-# Add an error handler
-@app.exception_handler(Exception)
-async def unicorn_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=500,
-        content={"message": "An unexpected error occurred."}
-    )
+# Further endpoints and logic can be added here
 
 if __name__ == "__main__":
     import uvicorn
