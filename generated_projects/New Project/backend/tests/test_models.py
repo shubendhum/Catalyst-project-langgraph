@@ -1,174 +1,68 @@
-import uuid
-from datetime import datetime
 import pytest
-from pydantic import BaseModel, EmailStr, ValidationError
-from typing import Dict, Optional
+from pydantic import BaseModel, ValidationError, Field
+from bson import ObjectId
+from datetime import datetime
+from typing import Optional
 
-# Define Pydantic models based on the specifications
-class User(BaseModel):
-    id: uuid.UUID
-    email: EmailStr
-    hashed_password: str
-    is_active: bool = True
-    created_at: datetime = None
+# Define the Pydantic model for Message
+class Message(BaseModel):
+    id: ObjectId
+    content: str = Field(..., description="Required field")
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Auto-generated field")
 
-    class Config:
-        orm_mode = True
+# Helper function for creating a new ObjectId
+def new_object_id():
+    return ObjectId()
 
+# Test cases for the Message model
+class TestMessageModel:
 
-class DisplayHelloWorldMessage(BaseModel):
-    id: uuid.UUID
-    user_id: uuid.UUID
-    data: Dict
-    created_at: datetime = None
-    updated_at: datetime = None
+    def test_valid_message_creation(self):
+        message = Message(id=new_object_id(), content="Hello, World!")
+        assert message.id is not None
+        assert message.content == "Hello, World!"
+        assert isinstance(message.timestamp, datetime)
 
-    class Config:
-        orm_mode = True
+    def test_missing_content(self):
+        with pytest.raises(ValidationError) as exc:
+            Message(id=new_object_id())
+        assert "content" in str(exc.value)
 
+    def test_empty_content(self):
+        with pytest.raises(ValidationError) as exc:
+            Message(id=new_object_id(), content="")
+        assert "value is not a valid string" in str(exc.value)
 
-class BackendAPIEndpoint(BaseModel):
-    id: uuid.UUID
-    user_id: uuid.UUID
-    data: Dict
-    created_at: datetime = None
-    updated_at: datetime = None
+    def test_timestamp_auto_generation(self):
+        message = Message(id=new_object_id(), content="Testing auto timestamp")
+        assert isinstance(message.timestamp, datetime)
 
-    class Config:
-        orm_mode = True
+    def test_id_is_objectid(self):
+        with pytest.raises(ValidationError):
+            Message(id="not-an-objectid", content="Invalid ID")
 
+    def test_message_serialization(self):
+        message = Message(id=new_object_id(), content="Serializable Message")
+        serialized = message.json()
+        deserialized = Message.parse_raw(serialized)
+        assert deserialized.content == message.content
+        assert deserialized.timestamp == message.timestamp
+        assert deserialized.id == message.id
 
-class FrontendIntegration(BaseModel):
-    id: uuid.UUID
-    user_id: uuid.UUID
-    data: Dict
-    created_at: datetime = None
-    updated_at: datetime = None
+    def test_edge_case_empty_content(self):
+        with pytest.raises(ValidationError):
+            Message(id=new_object_id(), content=null)
 
-    class Config:
-        orm_mode = True
+    def test_edge_case_large_content(self):
+        large_content = "A" * 10000  # Large content to test the limit
+        message = Message(id=new_object_id(), content=large_content)
+        assert message.content == large_content
 
+    def test_invalid_id_type(self):
+        with pytest.raises(ValidationError):
+            Message(id=1234, content="This should fail")
 
-# Test cases
-def test_user_validation():
-    # Valid user
-    user = User(
-        id=uuid.uuid4(),
-        email='test@example.com',
-        hashed_password='hashed_password123',
-    )
-    assert user.is_active is True
-
-    # Invalid email
-    with pytest.raises(ValidationError):
-        User(
-            id=uuid.uuid4(),
-            email='invalid_email',
-            hashed_password='hashed_password123',
-        )
-
-    # Missing required field
-    with pytest.raises(ValidationError):
-        User(
-            id=uuid.uuid4(),
-            email='test@example.com',
-        )
-
-
-def test_display_hello_world_message_validation():
-    user_id = uuid.uuid4()
-    message = DisplayHelloWorldMessage(
-        id=uuid.uuid4(),
-        user_id=user_id,
-        data={"message": "Hello, World!"},
-    )
-    assert message.data == {"message": "Hello, World!"}
-
-    # Missing required field 'data'
-    with pytest.raises(ValidationError):
-        DisplayHelloWorldMessage(
-            id=uuid.uuid4(),
-            user_id=user_id,
-        )
-
-
-def test_backend_api_endpoint_validation():
-    user_id = uuid.uuid4()
-    endpoint = BackendAPIEndpoint(
-        id=uuid.uuid4(),
-        user_id=user_id,
-        data={"api_endpoint": "/v1/resource"},
-    )
-    assert endpoint.data == {"api_endpoint": "/v1/resource"}
-
-    # Missing required field 'data'
-    with pytest.raises(ValidationError):
-        BackendAPIEndpoint(
-            id=uuid.uuid4(),
-            user_id=user_id,
-        )
-
-
-def test_frontend_integration_validation():
-    user_id = uuid.uuid4()
-    integration = FrontendIntegration(
-        id=uuid.uuid4(),
-        user_id=user_id,
-        data={"integration_source": "frontend"},
-    )
-    assert integration.data == {"integration_source": "frontend"}
-
-    # Missing required field 'data'
-    with pytest.raises(ValidationError):
-        FrontendIntegration(
-            id=uuid.uuid4(),
-            user_id=user_id,
-        )
-
-
-def test_serialization_deserialization():
-    user_id = uuid.uuid4()
-    user = User(
-        id=user_id,
-        email='test@example.com',
-        hashed_password='hashed_password123',
-    )
-    
-    serialized_user = user.json()
-    deserialized_user = User.parse_raw(serialized_user)
-    assert user == deserialized_user
-
-
-def test_relationships():
-    user_id = uuid.uuid4()
-    user = User(
-        id=user_id,
-        email='test@example.com',
-        hashed_password='hashed_password123',
-    )
-    
-    message = DisplayHelloWorldMessage(
-        id=uuid.uuid4(),
-        user_id=user.id,
-        data={"message": "Hello, World!"},
-    )
-    
-    assert message.user_id == user.id
-
-
-def test_edge_cases():
-    # Check for UUID validation
-    with pytest.raises(ValidationError):
-        User(
-            id="invalid-uuid",
-            email='test@example.com',
-            hashed_password='hashed_password123',
-        )
-
-    # Check for empty data field
-    with pytest.raises(ValidationError):
-        DisplayHelloWorldMessage(
-            id=uuid.uuid4(),
-            user_id=uuid.uuid4(),
-            data=None,
-        )
+    def test_id_field_required(self):
+        with pytest.raises(ValidationError) as exc:
+            Message(content="Message without ID")
+        assert "field required" in str(exc.value)

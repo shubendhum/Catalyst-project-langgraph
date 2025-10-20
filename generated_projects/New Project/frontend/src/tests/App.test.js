@@ -1,99 +1,103 @@
 // App.test.js
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { BrowserRouter as Router, MemoryRouter } from 'react-router-dom';
-import App from './App'; // Adjust the import based on your project structure
-import '@testing-library/jest-dom/extend-expect';
-import * as api from './api'; // Import your API module for mocking
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import App from './App'; // Adjust the path based on your folder structure
+import * as api from './api'; // Import your API functions
 
-jest.mock('./api'); // Mock the API module
+// Mock the API function for authentication
+jest.mock('./api');
 
-describe('App Component', () => {
-  
+describe('App', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.clearAllMocks(); // Clear mocks before each test
   });
 
-  test('renders the Home page on the root path', () => {
+  it('renders the Home page at the root path', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <Router>
         <App />
-      </MemoryRouter>
+      </Router>
     );
 
-    expect(screen.getByText(/Landing page/i)).toBeInTheDocument();
+    expect(screen.getByText(/welcome to the home page/i)).toBeInTheDocument(); // Adjust according to your Home component
   });
 
-  test('navigates to the Login page', () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>
-    );
-
-    fireEvent.click(screen.getByText(/Login/i));
-
-    expect(screen.getByText(/Login page/i)).toBeInTheDocument();
-  });
-
-  test('navigates to the Register page', () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>
-    );
-
-    fireEvent.click(screen.getByText(/Register/i));
-
-    expect(screen.getByText(/Registration page/i)).toBeInTheDocument();
-  });
-
-  test('navigates to the Dashboard page when authenticated', async () => {
-    // Mock API call to simulate successful login
-    api.loginUser.mockResolvedValueOnce({ token: 'test-token' });
+  it('navigates to protected route when authenticated', async () => {
+    // Mock the API call to simulate successful authentication
+    api.authenticateUser.mockResolvedValueOnce({ success: true });
 
     render(
-      <MemoryRouter initialEntries={['/login']}>
+      <Router>
         <App />
-      </MemoryRouter>
+      </Router>
     );
 
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'testuser' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password' } });
-    fireEvent.click(screen.getByText(/Submit/i));
+    // Simulate a click to authenticate the user
+    fireEvent.click(screen.getByText(/login/i)); // Adjust according to your Login button text
 
-    await waitFor(() => expect(api.loginUser).toHaveBeenCalledTimes(1)); 
+    await waitFor(() => {
+      expect(api.authenticateUser).toHaveBeenCalled();
+    });
 
-    // After login, check for dashboard content
-    expect(screen.getByText(/Main dashboard/i)).toBeInTheDocument();
+    // Check for the protected component
+    expect(screen.getByText(/protected route content/i)).toBeInTheDocument(); // Adjust according to your protected component content
   });
 
-  test('redirects to login page when accessing protected routes without authentication', () => {
+  it('does not allow access to protected route when not authenticated', () => {
     render(
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <Router>
         <App />
-      </MemoryRouter>
+      </Router>
     );
 
-    expect(screen.getByText(/Login page/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Main dashboard/i)).not.toBeInTheDocument();
-  });
+    // Attempt to access protected route directly (you may need to replace the path with the actual protected route)
+    window.history.pushState({}, 'Protected Route', '/protected');
 
-  test('navigates to other pages', async () => {
     render(
-      <MemoryRouter>
+      <Router>
         <App />
-      </MemoryRouter>
+      </Router>
     );
 
-    fireEvent.click(screen.getByText(/Display Hello World Message/i));
-
-    expect(screen.getByText(/Page for Display Hello World Message/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByText(/Backend API Endpoint/i));
-
-    expect(screen.getByText(/Page for Backend API Endpoint/i)).toBeInTheDocument();
+    // Check for redirect to Home or an unauthorized message
+    expect(screen.getByText(/please log in to access this page/i)).toBeInTheDocument(); // Adjust according to your unauthenticated message
   });
 
-  // Add more tests as needed for other routes, error handling, etc.
+  it('renders a loading state while authenticating', async () => {
+    // Simulate a pending API call
+    api.authenticateUser.mockImplementation(() => new Promise(() => {})); // Never resolve to keep in loading state
+
+    render(
+      <Router>
+        <App />
+      </Router>
+    );
+
+    fireEvent.click(screen.getByText(/login/i)); // Adjust according to your Login button text
+
+    // Check for loading state
+    expect(screen.getByText(/loading.../i)).toBeInTheDocument(); // Adjust to match your loading text
+
+    // Cleanup pending promise
+    api.authenticateUser.mockClear();
+  });
+
+  it('shows error message on failed authentication', async () => {
+    // Mock the API call to simulate failed authentication
+    api.authenticateUser.mockResolvedValueOnce({ success: false, message: 'Invalid credentials' });
+
+    render(
+      <Router>
+        <App />
+      </Router>
+    );
+
+    fireEvent.click(screen.getByText(/login/i)); // Adjust according to your Login button text
+
+    await waitFor(() => {
+      expect(api.authenticateUser).toHaveBeenCalled();
+      expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument(); // Adjust according to your error message
+    });
+  });
 });

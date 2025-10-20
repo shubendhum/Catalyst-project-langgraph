@@ -1,88 +1,78 @@
-// components.test.js
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
+import Home from './Home'; // Adjust the path as necessary
+import MessageForm from './MessageForm'; // Adjust the path as necessary
 
-// Import your components
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
-import LoginForm from './LoginForm';
-import RegisterForm from './RegisterForm';
-import DisplayHelloWorldMessageCard from './DisplayHelloWorldMessageCard';
-
-// Mock API functions for Login and Register
+// Mock API function for greeting
 jest.mock('./api', () => ({
-  loginUser: jest.fn(),
-  registerUser: jest.fn(),
+  fetchGreeting: jest.fn(() => Promise.resolve("Hello from mock API!"))
 }));
 
-// Test Suite for Navbar
-describe('Navbar', () => {
-  it('renders Navbar', () => {
-    render(<Navbar />);
-    expect(screen.getByRole('navigation')).toBeInTheDocument();
-  });
-});
-
-// Test Suite for Sidebar
-describe('Sidebar', () => {
-  it('renders Sidebar', () => {
-    render(<Sidebar />);
-    expect(screen.getByRole('list')).toBeInTheDocument();
-  });
-});
-
-// Test Suite for LoginForm
-describe('LoginForm', () => {
+describe('Home Component', () => {
   beforeEach(() => {
-    render(<LoginForm />);
+    render(<Home />);
   });
 
-  it('renders LoginForm', () => {
-    expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
+  test('renders greeting message', () => {
+    const greetingMessage = screen.getByText(/Welcome to the Greeting App/i);
+    expect(greetingMessage).toBeInTheDocument();
   });
 
-  it('calls loginUser API on submit', async () => {
-    const { loginUser } = require('./api');
-    loginUser.mockResolvedValueOnce({ success: true });
+  test('renders MessageForm', () => {
+    const messageForm = screen.getByRole('form');
+    expect(messageForm).toBeInTheDocument();
+  });
 
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'testuser' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+  test('submits form and displays greeting message', async () => {
+    const greetingInput = screen.getByLabelText(/Enter your greeting/i);
+    const submitButton = screen.getByRole('button', { name: /Submit/i });
 
-    await waitFor(() => expect(loginUser).toHaveBeenCalledWith('testuser', 'password123'));
+    fireEvent.change(greetingInput, { target: { value: 'Hello World!' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      const displayMessage = screen.getByText(/Hello World!/i);
+      expect(displayMessage).toBeInTheDocument();
+    });
   });
 });
 
-// Test Suite for RegisterForm
-describe('RegisterForm', () => {
+// Tests for MessageForm Component
+describe('MessageForm Component', () => {
+  let handleChangeMock;
+
   beforeEach(() => {
-    render(<RegisterForm />);
+    handleChangeMock = jest.fn();
+    render(<MessageForm onGreetingChange={handleChangeMock} />);
   });
 
-  it('renders RegisterForm', () => {
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument();
+  test('renders input and button', () => {
+    const input = screen.getByLabelText(/Enter your greeting/i);
+    const button = screen.getByRole('button', { name: /Submit/i });
+
+    expect(input).toBeInTheDocument();
+    expect(button).toBeInTheDocument();
   });
 
-  it('calls registerUser API on submit', async () => {
-    const { registerUser } = require('./api');
-    registerUser.mockResolvedValueOnce({ success: true });
+  test('on input change calls onGreetingChange prop', () => {
+    const greetingInput = screen.getByLabelText(/Enter your greeting/i);
 
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'testuser@example.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /register/i }));
-
-    await waitFor(() => expect(registerUser).toHaveBeenCalledWith('testuser@example.com', 'password123'));
+    fireEvent.change(greetingInput, { target: { value: 'Hi!' } });
+    expect(handleChangeMock).toHaveBeenCalled();
+    expect(handleChangeMock).toHaveBeenCalledWith('Hi!');
   });
-});
 
-// Test Suite for DisplayHelloWorldMessageCard
-describe('DisplayHelloWorldMessageCard', () => {
-  it('renders message card with correct content', () => {
-    render(<DisplayHelloWorldMessageCard />);
-    expect(screen.getByText(/hello world/i)).toBeInTheDocument();
+  test('calls the API and updates state on submit', async () => {
+    const greetingInput = screen.getByLabelText(/Enter your greeting/i);
+    const submitButton = screen.getByRole('button', { name: /Submit/i });
+
+    fireEvent.change(greetingInput, { target: { value: 'Greetings!' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      const displayMessage = screen.getByText(/Hello from mock API!/i);
+      expect(displayMessage).toBeInTheDocument();
+    });
   });
 });
