@@ -120,7 +120,7 @@ const ChatInterface = () => {
       localStorage.setItem('catalyst_conversation_id', newConversationId);
       
       setMessages([]);
-      addSystemMessage('New conversation started. How can I help you today?');
+      addSystemMessage('🆕 New conversation started. How can I help you today?');
       return newConversationId;
     } catch (error) {
       console.error('Error starting conversation:', error);
