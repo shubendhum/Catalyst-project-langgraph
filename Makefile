@@ -151,6 +151,8 @@ install-mongo: ## Install and start MongoDB via Docker
 ##@ Service Management (Docker Default)
 
 start: docker-up ## Start all services using Docker (DEFAULT)
+	@echo "$(YELLOW)Starting complete Catalyst stack...$(NC)"
+	@echo "Services: MongoDB, Redis, Qdrant, RabbitMQ, Backend, Frontend"
 
 start-local: start-mongo start-backend-local start-frontend-local ## Start services locally (alternative)
         @echo "$(GREEN)All local services started!$(NC)"
