@@ -93,14 +93,14 @@ install: install-backend install-frontend ## Install all dependencies (backend +
 install-backend: ## Install backend Python dependencies
         @echo "$(BLUE)Installing backend dependencies...$(NC)"
         @cd $(BACKEND_DIR) && \
-        if [ ! -d "venv" ]; then \
-        $(PYTHON) -m venv venv; \
-        fi && \
-        . venv/bin/activate && \
-        $(PIP) install --upgrade pip && \
-        $(PIP) install -r requirements.txt && \
-        $(PIP) install -r requirements-langgraph.txt && \
-        $(PIP) install emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
+                if [ ! -d "venv" ]; then \
+                        $(PYTHON) -m venv venv; \
+                fi && \
+                . venv/bin/activate && \
+                $(PIP) install --upgrade pip && \
+                $(PIP) install -r requirements.txt && \
+                $(PIP) install -r requirements-langgraph.txt && \
+                $(PIP) install emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
         @echo "$(GREEN)✓ Backend dependencies installed$(NC)"
 
 install-frontend: ## Install frontend Node dependencies
@@ -111,48 +111,46 @@ install-frontend: ## Install frontend Node dependencies
 setup-env: ## Create .env files from examples
         @echo "$(BLUE)Setting up environment files...$(NC)"
         @if [ ! -f $(BACKEND_DIR)/.env ]; then \
-        cp $(BACKEND_DIR)/.env.example $(BACKEND_DIR)/.env 2>/dev/null || \
-        echo "MONGO_URL=mongodb://$(MONGO_USER):$(MONGO_PASS)@localhost:$(MONGO_PORT)\nDB_NAME=$(MONGO_DB)\nEMERGENT_LLM_KEY=sk-emergent-b14E29723DeDaF2A74\nDEFAULT_LLM_PROVIDER=emergent\nDEFAULT_LLM_MODEL=claude-3-7-sonnet-20250219\nCORS_ORIGINS=*\nLOG_LEVEL=INFO" > $(BACKEND_DIR)/.env; \
-        echo "$(GREEN)✓ Created backend/.env$(NC)"; \
+                cp $(BACKEND_DIR)/.env.example $(BACKEND_DIR)/.env 2>/dev/null || \
+                echo "MONGO_URL=mongodb://$(MONGO_USER):$(MONGO_PASS)@localhost:$(MONGO_PORT)\nDB_NAME=$(MONGO_DB)\nEMERGENT_LLM_KEY=sk-emergent-b14E29723DeDaF2A74\nDEFAULT_LLM_PROVIDER=emergent\nDEFAULT_LLM_MODEL=claude-3-7-sonnet-20250219\nCORS_ORIGINS=*\nLOG_LEVEL=INFO" > $(BACKEND_DIR)/.env; \
+                echo "$(GREEN)✓ Created backend/.env$(NC)"; \
         else \
-        echo "$(YELLOW)backend/.env already exists$(NC)"; \
+                echo "$(YELLOW)backend/.env already exists$(NC)"; \
         fi
         @if [ ! -f $(FRONTEND_DIR)/.env ]; then \
-        cp $(FRONTEND_DIR)/.env.example $(FRONTEND_DIR)/.env 2>/dev/null || \
-        echo "REACT_APP_BACKEND_URL=http://localhost:8001" > $(FRONTEND_DIR)/.env; \
-        echo "$(GREEN)✓ Created frontend/.env$(NC)"; \
+                cp $(FRONTEND_DIR)/.env.example $(FRONTEND_DIR)/.env 2>/dev/null || \
+                echo "REACT_APP_BACKEND_URL=http://localhost:8001" > $(FRONTEND_DIR)/.env; \
+                echo "$(GREEN)✓ Created frontend/.env$(NC)"; \
         else \
-        echo "$(YELLOW)frontend/.env already exists$(NC)"; \
+                echo "$(YELLOW)frontend/.env already exists$(NC)"; \
         fi
 
 install-mongo: ## Install and start MongoDB via Docker
         @echo "$(BLUE)Setting up MongoDB...$(NC)"
         @if [ "$$($(DOCKER) ps -a -q -f name=$(MONGO_CONTAINER))" ]; then \
-        if [ "$$($(DOCKER) ps -q -f name=$(MONGO_CONTAINER))" ]; then \
-        echo "$(YELLOW)MongoDB already running$(NC)"; \
+                if [ "$$($(DOCKER) ps -q -f name=$(MONGO_CONTAINER))" ]; then \
+                        echo "$(YELLOW)MongoDB already running$(NC)"; \
+                else \
+                        echo "$(BLUE)Starting existing MongoDB container...$(NC)"; \
+                        $(DOCKER) start $(MONGO_CONTAINER); \
+                        echo "$(GREEN)✓ MongoDB started$(NC)"; \
+                fi; \
         else \
-        echo "$(BLUE)Starting existing MongoDB container...$(NC)"; \
-        $(DOCKER) start $(MONGO_CONTAINER); \
-        echo "$(GREEN)✓ MongoDB started$(NC)"; \
-        fi; \
-        else \
-        echo "$(BLUE)Creating MongoDB container...$(NC)"; \
-        $(DOCKER) run -d \
-        --name $(MONGO_CONTAINER) \
-        -p $(MONGO_PORT):27017 \
-        -e MONGO_INITDB_ROOT_USERNAME=$(MONGO_USER) \
-        -e MONGO_INITDB_ROOT_PASSWORD=$(MONGO_PASS) \
-        -e MONGO_INITDB_DATABASE=$(MONGO_DB) \
-        -v catalyst_mongo_data:/data/db \
-        mongo:5.0; \
-        echo "$(GREEN)✓ MongoDB installed and started$(NC)"; \
+                echo "$(BLUE)Creating MongoDB container...$(NC)"; \
+                $(DOCKER) run -d \
+                        --name $(MONGO_CONTAINER) \
+                        -p $(MONGO_PORT):27017 \
+                        -e MONGO_INITDB_ROOT_USERNAME=$(MONGO_USER) \
+                        -e MONGO_INITDB_ROOT_PASSWORD=$(MONGO_PASS) \
+                        -e MONGO_INITDB_DATABASE=$(MONGO_DB) \
+                        -v catalyst_mongo_data:/data/db \
+                        mongo:5.0; \
+                echo "$(GREEN)✓ MongoDB installed and started$(NC)"; \
         fi
 
 ##@ Service Management (Docker Default)
 
 start: docker-up ## Start all services using Docker (DEFAULT)
-	@echo "$(YELLOW)Starting complete Catalyst stack...$(NC)"
-	@echo "Services: MongoDB, Redis, Qdrant, RabbitMQ, Backend, Frontend"
 
 start-local: start-mongo start-backend-local start-frontend-local ## Start services locally (alternative)
         @echo "$(GREEN)All local services started!$(NC)"
@@ -168,21 +166,21 @@ start-local: start-mongo start-backend-local start-frontend-local ## Start servi
 start-mongo: ## Start MongoDB only
         @echo "$(BLUE)Starting MongoDB...$(NC)"
         @if [ "$$($(DOCKER) ps -q -f name=$(MONGO_CONTAINER))" ]; then \
-        echo "$(YELLOW)MongoDB already running$(NC)"; \
+                echo "$(YELLOW)MongoDB already running$(NC)"; \
         else \
-        if [ "$$($(DOCKER) ps -a -q -f name=$(MONGO_CONTAINER))" ]; then \
-        $(DOCKER) start $(MONGO_CONTAINER); \
-        else \
-        $(MAKE) install-mongo; \
-        fi; \
-        echo "$(GREEN)✓ MongoDB started$(NC)"; \
+                if [ "$$($(DOCKER) ps -a -q -f name=$(MONGO_CONTAINER))" ]; then \
+                        $(DOCKER) start $(MONGO_CONTAINER); \
+                else \
+                        $(MAKE) install-mongo; \
+                fi; \
+                echo "$(GREEN)✓ MongoDB started$(NC)"; \
         fi
 
 start-backend-local: ## Start backend API server locally
         @echo "$(BLUE)Starting backend server locally...$(NC)"
         @if [ ! -d $(BACKEND_DIR)/venv ]; then \
-        echo "$(RED)Backend not installed. Run 'make install-backend' first.$(NC)"; \
-        exit 1; \
+                echo "$(RED)Backend not installed. Run 'make install-backend' first.$(NC)"; \
+                exit 1; \
         fi
         @echo "$(YELLOW)Starting backend on http://localhost:8001$(NC)"
         @echo "$(YELLOW)Press Ctrl+C to stop, or run 'make stop-backend-local' in another terminal$(NC)"
@@ -191,8 +189,8 @@ start-backend-local: ## Start backend API server locally
 start-frontend-local: ## Start frontend development server locally
         @echo "$(BLUE)Starting frontend server locally...$(NC)"
         @if [ ! -d $(FRONTEND_DIR)/node_modules ]; then \
-        echo "$(RED)Frontend not installed. Run 'make install-frontend' first.$(NC)"; \
-        exit 1; \
+                echo "$(RED)Frontend not installed. Run 'make install-frontend' first.$(NC)"; \
+                exit 1; \
         fi
         @echo "$(YELLOW)Starting frontend on http://localhost:3000$(NC)"
         @echo "$(YELLOW)Press Ctrl+C to stop, or run 'make stop-frontend-local' in another terminal$(NC)"
@@ -224,24 +222,24 @@ status: ## Show status of all services
         @echo ""
         @echo "$(YELLOW)MongoDB:$(NC)"
         @if [ "$$($(DOCKER) ps -q -f name=$(MONGO_CONTAINER))" ]; then \
-        echo "  $(GREEN)✓ Running$(NC)"; \
-        $(DOCKER) ps -f name=$(MONGO_CONTAINER) --format "  Container: {{.Names}} ({{.Status}})"; \
+                echo "  $(GREEN)✓ Running$(NC)"; \
+                $(DOCKER) ps -f name=$(MONGO_CONTAINER) --format "  Container: {{.Names}} ({{.Status}})"; \
         else \
-        echo "  $(RED)✗ Not running$(NC)"; \
+                echo "  $(RED)✗ Not running$(NC)"; \
         fi
         @echo ""
         @echo "$(YELLOW)Backend:$(NC)"
         @if pgrep -f "uvicorn server:app" > /dev/null; then \
-        echo "  $(GREEN)✓ Running on http://localhost:8001$(NC)"; \
+                echo "  $(GREEN)✓ Running on http://localhost:8001$(NC)"; \
         else \
-        echo "  $(RED)✗ Not running$(NC)"; \
+                echo "  $(RED)✗ Not running$(NC)"; \
         fi
         @echo ""
         @echo "$(YELLOW)Frontend:$(NC)"
         @if pgrep -f "react-scripts start" > /dev/null; then \
-        echo "  $(GREEN)✓ Running on http://localhost:3000$(NC)"; \
+                echo "  $(GREEN)✓ Running on http://localhost:3000$(NC)"; \
         else \
-        echo "  $(RED)✗ Not running$(NC)"; \
+                echo "  $(RED)✗ Not running$(NC)"; \
         fi
 
 logs: ## Show logs (MongoDB)
@@ -283,17 +281,10 @@ docker-build: ## Build Docker images
         @echo "$(GREEN)✓ Images built$(NC)"
 
 docker-up: ## Start Docker Compose services
-        @echo "$(BLUE)Starting complete Catalyst stack...$(NC)"
-        @echo "$(YELLOW)Services: MongoDB, Redis, Qdrant, RabbitMQ, Backend, Frontend$(NC)"
+        @echo "$(BLUE)Starting Docker services...$(NC)"
         @$(DOCKER_COMPOSE) up -d
-        @echo "$(GREEN)✓ All services started$(NC)"
-        @sleep 10
+        @echo "$(GREEN)✓ Services started$(NC)"
         @$(MAKE) docker-status
-        @echo ""
-        @echo "$(BLUE)Access Points:$(NC)"
-        @echo "  Frontend:    http://localhost:3000"
-        @echo "  Backend:     http://localhost:8001/api"
-        @echo "  RabbitMQ UI: http://localhost:15672 (catalyst/catalyst_queue_2025)"
 
 docker-down: ## Stop Docker Compose services
         @echo "$(BLUE)Stopping Docker services...$(NC)"
@@ -332,17 +323,10 @@ build-artifactory: ## Build images using Artifactory mirror
         @echo "$(GREEN)✓ Artifactory images built$(NC)"
 
 start-artifactory: ## Start services with Artifactory images
-        @echo "$(BLUE)Starting complete Catalyst stack with Artifactory...$(NC)"
-        @echo "$(YELLOW)Services: MongoDB, Redis, Qdrant, RabbitMQ, Backend, Frontend$(NC)"
+        @echo "$(BLUE)Starting services with Artifactory...$(NC)"
         @$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml up -d
-        @echo "$(GREEN)✓ All services started$(NC)"
-        @sleep 10
+        @echo "$(GREEN)✓ Artifactory services started$(NC)"
         @$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml ps
-        @echo ""
-        @echo "$(BLUE)Access Points:$(NC)"
-        @echo "  Frontend:    http://localhost:3000"
-        @echo "  Backend:     http://localhost:8001/api"
-        @echo "  RabbitMQ UI: http://localhost:15672 (catalyst/catalyst_queue_2025)"
 
 stop-artifactory: ## Stop Artifactory services
         @echo "$(BLUE)Stopping Artifactory services...$(NC)"
@@ -368,27 +352,27 @@ db-backup: ## Backup MongoDB database
         @echo "$(BLUE)Backing up MongoDB...$(NC)"
         @mkdir -p backups
         @$(DOCKER) exec $(MONGO_CONTAINER) mongodump \
-        --username $(MONGO_USER) \
-        --password $(MONGO_PASS) \
-        --authenticationDatabase admin \
-        --db $(MONGO_DB) \
-        --out /tmp/backup
+                --username $(MONGO_USER) \
+                --password $(MONGO_PASS) \
+                --authenticationDatabase admin \
+                --db $(MONGO_DB) \
+                --out /tmp/backup
         @$(DOCKER) cp $(MONGO_CONTAINER):/tmp/backup backups/backup-$$(date +%Y%m%d-%H%M%S)
         @echo "$(GREEN)✓ Backup completed$(NC)"
 
 db-restore: ## Restore MongoDB database (use BACKUP_DIR=backups/backup-xxx)
         @if [ -z "$(BACKUP_DIR)" ]; then \
-        echo "$(RED)Error: Please specify BACKUP_DIR=backups/backup-xxx$(NC)"; \
-        exit 1; \
+                echo "$(RED)Error: Please specify BACKUP_DIR=backups/backup-xxx$(NC)"; \
+                exit 1; \
         fi
         @echo "$(BLUE)Restoring MongoDB from $(BACKUP_DIR)...$(NC)"
         @$(DOCKER) cp $(BACKUP_DIR) $(MONGO_CONTAINER):/tmp/restore
         @$(DOCKER) exec $(MONGO_CONTAINER) mongorestore \
-        --username $(MONGO_USER) \
-        --password $(MONGO_PASS) \
-        --authenticationDatabase admin \
-        --db $(MONGO_DB) \
-        /tmp/restore/$(MONGO_DB)
+                --username $(MONGO_USER) \
+                --password $(MONGO_PASS) \
+                --authenticationDatabase admin \
+                --db $(MONGO_DB) \
+                /tmp/restore/$(MONGO_DB)
         @echo "$(GREEN)✓ Restore completed$(NC)"
 
 db-reset: ## Reset MongoDB database (WARNING: Deletes all data)
@@ -396,9 +380,9 @@ db-reset: ## Reset MongoDB database (WARNING: Deletes all data)
         @read -p "Are you sure? [y/N] " -n 1 -r; \
         echo; \
         if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-        echo "$(BLUE)Resetting database...$(NC)"; \
-        $(DOCKER) exec $(MONGO_CONTAINER) mongo -u $(MONGO_USER) -p $(MONGO_PASS) --authenticationDatabase admin --eval "db.getSiblingDB('$(MONGO_DB)').dropDatabase()"; \
-        echo "$(GREEN)✓ Database reset$(NC)"; \
+                echo "$(BLUE)Resetting database...$(NC)"; \
+                $(DOCKER) exec $(MONGO_CONTAINER) mongo -u $(MONGO_USER) -p $(MONGO_PASS) --authenticationDatabase admin --eval "db.getSiblingDB('$(MONGO_DB)').dropDatabase()"; \
+                echo "$(GREEN)✓ Database reset$(NC)"; \
         fi
 
 ##@ Kubernetes
@@ -407,11 +391,11 @@ k8s-deploy: ## Deploy to Kubernetes
         @echo "$(BLUE)Deploying to Kubernetes...$(NC)"
         @kubectl create namespace catalyst 2>/dev/null || echo "Namespace exists"
         @kubectl create secret generic catalyst-secrets \
-        --from-literal=mongo-username=$(MONGO_USER) \
-        --from-literal=mongo-password=$(MONGO_PASS) \
-        --from-literal=emergent-llm-key=sk-emergent-b14E29723DeDaF2A74 \
-        --from-literal=mongo-url=mongodb://$(MONGO_USER):$(MONGO_PASS)@mongodb:27017 \
-        -n catalyst 2>/dev/null || echo "Secrets exist"
+                --from-literal=mongo-username=$(MONGO_USER) \
+                --from-literal=mongo-password=$(MONGO_PASS) \
+                --from-literal=emergent-llm-key=sk-emergent-b14E29723DeDaF2A74 \
+                --from-literal=mongo-url=mongodb://$(MONGO_USER):$(MONGO_PASS)@mongodb:27017 \
+                -n catalyst 2>/dev/null || echo "Secrets exist"
         @$(KUBECTL) apply -f $(K8S_DIR)/ -n catalyst
         @echo "$(GREEN)✓ Deployed to Kubernetes$(NC)"
         @$(KUBECTL) get pods -n catalyst
@@ -567,11 +551,11 @@ phase4-clean: ## Stop and remove Phase 4 services and volumes (DESTRUCTIVE)
         @read -p "Are you sure? [y/N] " -n 1 -r; \
         echo; \
         if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-        echo "$(BLUE)🗑️  Cleaning up Phase 4 infrastructure...$(NC)"; \
-        docker compose -f docker-compose.phase4.yml down -v; \
-        echo "$(GREEN)✅ Cleanup complete$(NC)"; \
+                echo "$(BLUE)🗑️  Cleaning up Phase 4 infrastructure...$(NC)"; \
+                docker compose -f docker-compose.phase4.yml down -v; \
+                echo "$(GREEN)✅ Cleanup complete$(NC)"; \
         else \
-        echo "$(YELLOW)❌ Cleanup cancelled$(NC)"; \
+                echo "$(YELLOW)❌ Cleanup cancelled$(NC)"; \
         fi
 
 phase4-health: ## Check health of all Phase 4 services
@@ -642,11 +626,11 @@ phase4-artifactory-clean: ## Clean Phase 4 Artifactory services (DESTRUCTIVE)
         @read -p "Are you sure? [y/N] " -n 1 -r; \
         echo; \
         if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-        echo "$(BLUE)🗑️  Cleaning up Phase 4 Artifactory infrastructure...$(NC)"; \
-        docker compose -f docker-compose.phase4.artifactory.yml down -v; \
-        echo "$(GREEN)✅ Cleanup complete$(NC)"; \
+                echo "$(BLUE)🗑️  Cleaning up Phase 4 Artifactory infrastructure...$(NC)"; \
+                docker compose -f docker-compose.phase4.artifactory.yml down -v; \
+                echo "$(GREEN)✅ Cleanup complete$(NC)"; \
         else \
-        echo "$(YELLOW)❌ Cleanup cancelled$(NC)"; \
+                echo "$(YELLOW)❌ Cleanup cancelled$(NC)"; \
         fi
 
 phase4-artifactory-setup: phase4-install-deps phase4-artifactory-start ## Complete Phase 4 setup with Artifactory
@@ -690,106 +674,3 @@ phase4-info: ## Show Phase 4 infrastructure information
         @echo "  Redis:    redis_data"
         @echo "  Qdrant:   qdrant_data"
         @echo "  RabbitMQ: rabbitmq_data"
-
-
-
-##@ Troubleshooting
-
-fix-mongo-version: ## Fix MongoDB version compatibility (clears data and restarts)
-        @echo "$(RED)⚠️  WARNING: This will DELETE all MongoDB data and restart with clean state!$(NC)"
-        @read -p "Are you sure? [y/N] " -n 1 -r; \
-        echo; \
-        if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-                echo "$(BLUE)Stopping MongoDB...$(NC)"; \
-                docker stop catalyst-mongodb 2>/dev/null || true; \
-                docker rm catalyst-mongodb 2>/dev/null || true; \
-                echo "$(BLUE)Removing old MongoDB data volume...$(NC)"; \
-                docker volume rm mongodb_data 2>/dev/null || true; \
-                docker volume rm mongodb_config 2>/dev/null || true; \
-                echo "$(GREEN)✅ MongoDB data cleared$(NC)"; \
-                echo "$(BLUE)Now restart services: make start-all-artifactory$(NC)"; \
-        else \
-                echo "$(YELLOW)❌ Operation cancelled$(NC)"; \
-        fi
-
-fix-all-volumes: ## Clear all data volumes and restart fresh (DESTRUCTIVE)
-        @echo "$(RED)⚠️  WARNING: This will DELETE ALL data (MongoDB, Redis, Qdrant, RabbitMQ)!$(NC)"
-        @read -p "Are you sure? [y/N] " -n 1 -r; \
-        echo; \
-        if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-                echo "$(BLUE)Stopping all services...$(NC)"; \
-                make stop-all-artifactory 2>/dev/null || true; \
-                echo "$(BLUE)Removing all containers...$(NC)"; \
-                docker rm -f catalyst-mongodb catalyst-redis catalyst-qdrant catalyst-rabbitmq catalyst-backend catalyst-frontend 2>/dev/null || true; \
-                echo "$(BLUE)Removing all data volumes...$(NC)"; \
-                docker volume rm mongodb_data mongodb_config redis_data qdrant_data rabbitmq_data 2>/dev/null || true; \
-                echo "$(GREEN)✅ All data cleared - fresh start ready$(NC)"; \
-                echo "$(BLUE)Now run: make start-all-artifactory$(NC)"; \
-        else \
-                echo "$(YELLOW)❌ Operation cancelled$(NC)"; \
-        fi
-
-        @echo ""
-        @echo "$(YELLOW)Waiting for services to be healthy...$(NC)"
-        @sleep 15
-        @docker compose -f docker-compose.artifactory.full.yml ps
-        @echo ""
-        @echo "$(GREEN)✅ Complete stack started!$(NC)"
-        @echo ""
-        @echo "$(BLUE)Service URLs:$(NC)"
-        @echo "  Frontend:    http://localhost:3000"
-        @echo "  Backend:     http://localhost:8001/api"
-        @echo "  API Docs:    http://localhost:8001/docs"
-        @echo "  MongoDB:     mongodb://localhost:27017"
-        @echo "  Redis:       redis://localhost:6379"
-        @echo "  Qdrant:      http://localhost:6333"
-        @echo "  RabbitMQ:    amqp://localhost:5672"
-        @echo "  RabbitMQ UI: http://localhost:15672 (catalyst/catalyst_queue_2025)"
-
-stop-all-artifactory: ## Stop ALL services
-        @echo "$(BLUE)🛑 Stopping complete Catalyst stack...$(NC)"
-        @docker compose -f docker-compose.artifactory.full.yml down
-        @echo "$(GREEN)✅ All services stopped$(NC)"
-
-restart-all-artifactory: stop-all-artifactory start-all-artifactory ## Restart ALL services
-
-logs-all-artifactory: ## Show logs for all services
-        @docker compose -f docker-compose.artifactory.full.yml logs -f
-
-status-all-artifactory: ## Show status of all services
-        @echo "$(BLUE)📊 Complete Stack Status:$(NC)"
-        @echo ""
-        @docker compose -f docker-compose.artifactory.full.yml ps
-
-health-all-artifactory: ## Health check all services
-        @echo "$(BLUE)🏥 Health Check - Complete Stack:$(NC)"
-        @echo ""
-        @echo -n "MongoDB:  "; docker exec catalyst-mongodb mongosh --eval "db.adminCommand('ping')" --quiet > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
-        @echo -n "Redis:    "; docker exec catalyst-redis redis-cli ping > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
-        @echo -n "Qdrant:   "; curl -s http://localhost:6333/healthz > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
-        @echo -n "RabbitMQ: "; docker exec catalyst-rabbitmq rabbitmq-diagnostics ping > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
-        @echo -n "Backend:  "; curl -s http://localhost:8001/api/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
-        @echo -n "Frontend: "; curl -s http://localhost:3000/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
-
-setup-complete-artifactory: ## ONE COMMAND - Complete setup with ALL services (Artifactory)
-        @echo "$(GREEN)🎯 Setting up COMPLETE Catalyst stack with Artifactory...$(NC)"
-        @echo "$(BLUE)This will setup: MongoDB, Redis, Qdrant, RabbitMQ, Backend, Frontend$(NC)"
-        @$(MAKE) check-docker
-        @$(MAKE) setup-env
-        @echo "$(BLUE)Building all images from Artifactory...$(NC)"
-        @docker compose -f docker-compose.artifactory.full.yml build
-        @echo "$(GREEN)✅ Build complete!$(NC)"
-        @echo ""
-        @echo "$(BLUE)Next step: Run 'make start-all-artifactory' to launch everything$(NC)"
-
-clean-all-artifactory: ## Stop and remove ALL services and volumes (DESTRUCTIVE)
-        @echo "$(RED)⚠️  WARNING: This will remove all containers and data volumes!$(NC)"
-        @read -p "Are you sure? [y/N] " -n 1 -r; \
-        echo; \
-        if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-        echo "$(BLUE)🗑️  Cleaning up complete stack...$(NC)"; \
-        docker compose -f docker-compose.artifactory.full.yml down -v; \
-        echo "$(GREEN)✅ Cleanup complete$(NC)"; \
-        else \
-        echo "$(YELLOW)❌ Cleanup cancelled$(NC)"; \
-        fi
