@@ -1,3 +1,3 @@
-### Step 2: Create the FastAPI Application
+### Directory Structure
 
-Here is how you can implement the authentication routes with the described functionalities:
+Let's assume you have a basic directory structure like this:

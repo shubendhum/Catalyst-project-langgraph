@@ -1,209 +1,63 @@
 import pytest
-from uuid import uuid4
-from datetime import datetime
-from pydantic import BaseModel, EmailStr, ValidationError
+from pydantic import BaseModel, Field, ValidationError
+from bson import ObjectId
 
-# Define the Pydantic models based on the provided specs
-
-class User(BaseModel):
-    id: str  # should be a UUID
-    email: EmailStr
-    hashed_password: str
-    is_active: bool = True
-    created_at: datetime = None
+# Define Pydantic model as per provided specifications
+class HelloModel(BaseModel):
+    id: ObjectId = Field(default_factory=ObjectId, alias='_id', title="ObjectId")
+    message: str = Field(..., title="Message", max_length=256)
 
     class Config:
-        orm_mode = True
+        allow_population_by_field_name = True  # allows setting _id as id
 
-class IncrementCounter(BaseModel):
-    id: str  # should be a UUID
-    user_id: str  # should be a UUID referring to User
-    data: dict
-    created_at: datetime = None
-    updated_at: datetime = None
+# Test cases
+def test_hello_model_valid():
+    model = HelloModel(message="Hello, World!")
+    assert isinstance(model.id, ObjectId)
+    assert model.message == "Hello, World!"
 
-    class Config:
-        orm_mode = True
+def test_hello_model_missing_message():
+    with pytest.raises(ValidationError) as exc_info:
+        HelloModel(message=None)
+    assert "message" in str(exc_info.value)
 
-class DecrementCounter(BaseModel):
-    id: str  # should be a UUID
-    user_id: str  # should be a UUID referring to User
-    data: dict
-    created_at: datetime = None
-    updated_at: datetime = None
+def test_hello_model_long_message():
+    long_message = "a" * 257
+    with pytest.raises(ValidationError) as exc_info:
+        HelloModel(message=long_message)
+    assert "ensure this value has at most 256 characters" in str(exc_info.value)
 
-    class Config:
-        orm_mode = True
+def test_hello_model_id_auto_generation():
+    model = HelloModel(message="Hello again!")
+    assert isinstance(model.id, ObjectId)
 
-class ResetCounter(BaseModel):
-    id: str  # should be a UUID
-    user_id: str  # should be a UUID referring to User
-    data: dict
-    created_at: datetime = None
-    updated_at: datetime = None
+def test_hello_model_serialization():
+    model = HelloModel(message="Serialization Test")
+    data = model.dict()
+    assert data['message'] == "Serialization Test"
+    assert 'id' in data
 
-    class Config:
-        orm_mode = True
+def test_hello_model_deserialization():
+    data = {'_id': ObjectId(), 'message': "Deserialization Test"}
+    model = HelloModel(**data)
+    assert model.message == "Deserialization Test"
+    assert isinstance(model.id, ObjectId)
 
-# Test file
+def test_hello_model_invalid_id_type():
+    with pytest.raises(ValidationError) as exc_info:
+        HelloModel(id="not-an-objectid", message="Invalid ID")
+    assert "value is not a valid ObjectId" in str(exc_info.value)
 
-def test_user_model_validation():
-    user_id = str(uuid4())
-    
-    # Valid case
-    user = User(
-        id=user_id,
-        email="test@example.com",
-        hashed_password="hashedpassword123",
-        created_at=datetime.utcnow()
-    )
-    assert user.id == user_id
-    assert user.email == "test@example.com"
-    assert user.is_active is True
+def test_hello_model_edge_cases():
+    # test empty message
+    with pytest.raises(ValidationError) as exc_info:
+        HelloModel(message="")
+    assert "ensure this value has at least 1 characters" in str(exc_info.value)
 
-    # Invalid cases
-    with pytest.raises(ValidationError):
-        User(
-            id=user_id,
-            email="invalid-email",
-            hashed_password="hashedpassword123"
-        )
-    with pytest.raises(ValidationError):
-        User(
-            id=user_id,
-            email="test@example.com",
-            hashed_password=None
-        )
-
-def test_increment_counter_model_validation():
-    increment_counter_id = str(uuid4())
-    user_id = str(uuid4())
-    
-    # Valid case
-    increment_counter = IncrementCounter(
-        id=increment_counter_id,
-        user_id=user_id,
-        data={"key": "value"},
-        created_at=datetime.utcnow()
-    )
-    assert increment_counter.id == increment_counter_id
-    assert increment_counter.data == {"key": "value"}
-
-    # Invalid cases
-    with pytest.raises(ValidationError):
-        IncrementCounter(
-            id=increment_counter_id,
-            user_id=user_id,
-            data=None
-        )
-
-def test_decrement_counter_model_validation():
-    decrement_counter_id = str(uuid4())
-    user_id = str(uuid4())
-    
-    # Valid case
-    decrement_counter = DecrementCounter(
-        id=decrement_counter_id,
-        user_id=user_id,
-        data={"key": "value"},
-        created_at=datetime.utcnow()
-    )
-    assert decrement_counter.id == decrement_counter_id
-    assert decrement_counter.data == {"key": "value"}
-
-    # Invalid cases
-    with pytest.raises(ValidationError):
-        DecrementCounter(
-            id=decrement_counter_id,
-            user_id=user_id,
-            data=None
-        )
-
-def test_reset_counter_model_validation():
-    reset_counter_id = str(uuid4())
-    user_id = str(uuid4())
-    
-    # Valid case
-    reset_counter = ResetCounter(
-        id=reset_counter_id,
-        user_id=user_id,
-        data={"key": "value"},
-        created_at=datetime.utcnow()
-    )
-    assert reset_counter.id == reset_counter_id
-    assert reset_counter.data == {"key": "value"}
-
-    # Invalid cases
-    with pytest.raises(ValidationError):
-        ResetCounter(
-            id=reset_counter_id,
-            user_id=user_id,
-            data=None
-        )
-
-def test_user_serialization():
-    user_id = str(uuid4())
-    user = User(
-        id=user_id,
-        email="test@example.com",
-        hashed_password="hashedpassword123",
-        created_at=datetime.utcnow()
-    )
-    
-    user_json = user.json()
-    assert "id" in user_json
-    assert "email" in user_json
-    assert "hashed_password" in user_json
-    assert user_json['is_active'] is True
-    assert user_json['created_at'] is not None
-
-def test_relationships():
-    user_id = str(uuid4())
-    user = User(
-        id=user_id,
-        email="test@example.com",
-        hashed_password="hashedpassword123",
-    )
-    
-    increment_counter = IncrementCounter(
-        id=str(uuid4()),
-        user_id=user.id,
-        data={"count": 1}
-    )
-    assert increment_counter.user_id == user.id
-
-    decrement_counter = DecrementCounter(
-        id=str(uuid4()),
-        user_id=user.id,
-        data={"count": 2}
-    )
-    assert decrement_counter.user_id == user.id
-
-    reset_counter = ResetCounter(
-        id=str(uuid4()),
-        user_id=user.id,
-        data={"reset": True}
-    )
-    assert reset_counter.user_id == user.id
-
-# Edge cases tests
-def test_user_model_empty_email():
-    with pytest.raises(ValidationError):
-        User(
-            id=str(uuid4()),
-            email="",
-            hashed_password="hashedpassword123"
-        )
-
-def test_increment_counter_with_empty_data():
-    with pytest.raises(ValidationError):
-        IncrementCounter(
-            id=str(uuid4()),
-            user_id=str(uuid4()),
-            data=None
-        )
-
-# Add more edge cases as necessary...
+    # test message with only whitespace
+    with pytest.raises(ValidationError) as exc_info:
+        HelloModel(message="   ")
+    assert "ensure this value has at least 1 characters" in str(exc_info.value)
 
 if __name__ == "__main__":
     pytest.main()

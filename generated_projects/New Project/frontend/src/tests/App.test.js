@@ -1,130 +1,92 @@
 // App.test.js
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import App from './App'; // Adjust the import path based on your file structure
-import * as api from './api'; // Assuming `api.js` contains your API calls
+import { BrowserRouter as Router, Route, Routes, MemoryRouter } from 'react-router-dom';
+import App from './App'; // Make sure this path matches your project structure
+import '@testing-library/jest-dom/extend-expect';
+import * as api from './api'; // Adjust the import as needed for your API calls
+import { UserProvider } from './UserContext'; // Context for managing user authentication
 
 // Mock the API calls
 jest.mock('./api');
 
+// Mock the components for routing
+jest.mock('./HomePage', () => {
+  return () => <div>Home Page</div>;
+});
+
+jest.mock('./ProtectedPage', () => {
+  return () => <div>Protected Page</div>;
+});
+
 describe('App Component', () => {
   beforeEach(() => {
-    // Reset all mocks before each test
     jest.clearAllMocks();
   });
 
-  test('renders home page on default route', () => {
+  test('renders HomePage on initial load', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <App />
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/Landing page/i)).toBeInTheDocument();
+    expect(screen.getByText('Home Page')).toBeInTheDocument();
   });
 
-  test('navigates to login page', async () => {
+  test('navigates to ProtectedPage when logged in', async () => {
+    api.mockLogin.mockResolvedValue({ success: true });
+
     render(
       <MemoryRouter initialEntries={['/']}>
-        <App />
+        <UserProvider>
+          <App />
+        </UserProvider>
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByText(/Login/i));
-    expect(screen.getByText(/Login page/i)).toBeInTheDocument();
-  });
+    // Simulate login action
+    fireEvent.click(screen.getByText('Login')); // Assumes there's a button for login which triggers the API call
 
-  test('navigates to register page', async () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <App />
-      </MemoryRouter>
-    );
-
-    fireEvent.click(screen.getByText(/Register/i));
-    expect(screen.getByText(/Registration page/i)).toBeInTheDocument();
-  });
-
-  test('navigates to dashboard when authenticated', async () => {
-    api.checkAuth.mockResolvedValueOnce(true); // Mock authenticated API response
-    
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <App />
-      </MemoryRouter>
-    );
-
-    fireEvent.click(screen.getByText(/Login/i));
     await waitFor(() => {
-      expect(screen.getByText(/Main dashboard/i)).toBeInTheDocument();
+      expect(api.mockLogin).toHaveBeenCalledTimes(1);
+    });
+
+    expect(screen.getByText('Home Page')).toBeInTheDocument(); // Confirm we are still on HomePage
+    fireEvent.click(screen.getByText('Go to Protected')); // Assumes a navigation link/button to ProtectedPage
+
+    await waitFor(() => {
+      expect(screen.getByText('Protected Page')).toBeInTheDocument();
     });
   });
 
-  test('redirects to login when accessing protected route', async () => {
-    api.checkAuth.mockResolvedValueOnce(false); // Mock unauthenticated API response
-    
+  test('redirects to login when accessing protected route if not authenticated', async () => {
     render(
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <App />
+      <MemoryRouter initialEntries={['/protected']}>
+        <UserProvider>
+          <App />
+        </UserProvider>
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/Login page/i)).toBeInTheDocument();
+    expect(screen.getByText('Login to access this page')).toBeInTheDocument(); // Assumes there is a message for redirect
   });
 
-  test('navigates to increment counter page', async () => {
+  test('shows error message on failed login', async () => {
+    api.mockLogin.mockResolvedValue({ success: false, message: 'Login failed' });
+
     render(
       <MemoryRouter initialEntries={['/']}>
-        <App />
+        <UserProvider>
+          <App />
+        </UserProvider>
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByText(/Increment Counter/i));
-    expect(screen.getByText(/Page for Increment Counter/i)).toBeInTheDocument();
-  });
+    fireEvent.click(screen.getByText('Login'));
 
-  test('navigates to decrement counter page', async () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <App />
-      </MemoryRouter>
-    );
-
-    fireEvent.click(screen.getByText(/Decrement Counter/i));
-    expect(screen.getByText(/Page for Decrement Counter/i)).toBeInTheDocument();
-  });
-
-  test('navigates to reset counter page', async () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <App />
-      </MemoryRouter>
-    );
-
-    fireEvent.click(screen.getByText(/Reset Counter/i));
-    expect(screen.getByText(/Page for Reset Counter/i)).toBeInTheDocument();
-  });
-
-  test('navigates to display counter value page', async () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <App />
-      </MemoryRouter>
-    );
-
-    fireEvent.click(screen.getByText(/Display Counter Value/i));
-    expect(screen.getByText(/Page for Display Counter Value/i)).toBeInTheDocument();
-  });
-
-  test('navigates to history log page', async () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <App />
-      </MemoryRouter>
-    );
-
-    fireEvent.click(screen.getByText(/History Log/i));
-    expect(screen.getByText(/Page for History Log/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Login failed')).toBeInTheDocument(); // Assumes an error message is shown
+    });
   });
 });

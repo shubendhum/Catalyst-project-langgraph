@@ -1,97 +1,68 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
-import LoginForm from './LoginForm';
-import RegisterForm from './RegisterForm';
-import IncrementCounterCard from './IncrementCounterCard';
+import HelloWorld from './HelloWorld'; // Adjust the import path as necessary
+import axios from 'axios';
 
-// Mocking any necessary API functions or fetching behavior
-jest.mock('axios'); // Example with axios
+// Mock the axios module
+jest.mock('axios');
 
-describe('React Component Tests', () => {
-  describe('<Navbar />', () => {
-    it('renders the Navbar component', () => {
-      render(<Navbar />);
-      expect(screen.getByRole('navigation')).toBeInTheDocument();
-    });
+describe('HelloWorld Component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks(); // Clear mocks before each test
   });
 
-  describe('<Sidebar />', () => {
-    it('renders the Sidebar component', () => {
-      render(<Sidebar />);
-      expect(screen.getByRole('complementary')).toBeInTheDocument();
-    });
+  test('renders HelloWorld component', () => {
+    render(<HelloWorld />);
+    const headingElement = screen.getByText(/hello world/i);
+    expect(headingElement).toBeInTheDocument();
   });
 
-  describe('<LoginForm />', () => {
-    it('renders the LoginForm component', () => {
-      render(<LoginForm />);
-      expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    });
+  test('displays fetched message from API', async () => {
+    const message = "Hello, World from API!";
+    axios.get.mockResolvedValueOnce({ data: { message } });
 
-    it('submits the form with correct data', async () => {
-      const loginData = { username: 'testuser', password: 'password' };
-      render(<LoginForm />);
-      
-      fireEvent.change(screen.getByLabelText(/username/i), { target: { value: loginData.username } });
-      fireEvent.change(screen.getByLabelText(/password/i), { target: { value: loginData.password } });
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    render(<HelloWorld />);
 
-      expect(await screen.findByText(/login successful/i)).toBeInTheDocument(); // Example success message
-    });
-
-    it('handles API errors', async () => {
-      // Mock API call failure
-      axios.post.mockImplementationOnce(() => Promise.reject(new Error('API Error')));
-      
-      render(<LoginForm />);
-      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
-
-      expect(await screen.findByText(/login failed/i)).toBeInTheDocument(); // Example failure message
-    });
+    // Wait for the message to be displayed
+    const messageElement = await screen.findByText(message);
+    expect(messageElement).toBeInTheDocument();
   });
 
-  describe('<RegisterForm />', () => {
-    it('renders the RegisterForm component', () => {
-      render(<RegisterForm />);
-      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    });
+  test('handles user interactions', async () => {
+    const message = "Hello, World from API!";
+    axios.get.mockResolvedValueOnce({ data: { message } });
 
-    it('submits the form with correct data', async () => {
-      const registerData = { email: 'test@test.com', password: 'password' };
-      render(<RegisterForm />);
-      
-      fireEvent.change(screen.getByLabelText(/email/i), { target: { value: registerData.email } });
-      fireEvent.change(screen.getByLabelText(/password/i), { target: { value: registerData.password } });
-      fireEvent.click(screen.getByRole('button', { name: /register/i }));
+    render(<HelloWorld />);
 
-      expect(await screen.findByText(/registration successful/i)).toBeInTheDocument(); // Example success
-    });
+    // Assume there's a button that fetches the message
+    const buttonElement = screen.getByRole('button', { name: /fetch message/i });
+    fireEvent.click(buttonElement);
+
+    const messageElement = await screen.findByText(message);
+    expect(messageElement).toBeInTheDocument();
   });
 
-  describe('<IncrementCounterCard />', () => {
-    it('renders the IncrementCounterCard component', () => {
-      render(<IncrementCounterCard />);
-      expect(screen.getByText(/increment counter/i)).toBeInTheDocument(); // Assume there's a heading or label
-    });
+  test('component accepts props', () => {
+    const mockClassName = "custom-class";
+    render(<HelloWorld className={mockClassName} />);
+    
+    const component = screen.getByText(/hello world/i).closest('div');
+    expect(component).toHaveClass(mockClassName);
+  });
 
-    it('increments the counter when button is clicked', () => {
-      render(<IncrementCounterCard />);
-      const incrementButton = screen.getByRole('button', { name: /increment/i });
+  test('state changes correctly after fetching', async () => {
+    const message = "State changed message!";
+    axios.get.mockResolvedValueOnce({ data: { message } });
 
-      fireEvent.click(incrementButton);
-      expect(screen.getByText(/current count: 1/i)).toBeInTheDocument(); // Example counter display
-    });
+    render(<HelloWorld />);
+    
+    // Assume the initial state contains a loading message
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
 
-    it('decrements the counter when button is clicked', () => {
-      render(<IncrementCounterCard />);
-      const decrementButton = screen.getByRole('button', { name: /decrement/i });
-
-      fireEvent.click(decrementButton); // Make sure the initial count is 0 before clicking
-      expect(screen.getByText(/current count: -1/i)).toBeInTheDocument(); // Example counter display
-    });
+    fireEvent.click(screen.getByRole('button', { name: /fetch message/i }));
+    
+    const messageElement = await screen.findByText(message);
+    expect(messageElement).toBeInTheDocument();
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
   });
 });

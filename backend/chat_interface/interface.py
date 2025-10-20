@@ -261,6 +261,10 @@ If not clear, suggest a name based on context."""
         task_id = task["id"]
         logger.info(f"Task created: {task_id}, triggering orchestrator...")
         
+        # Update conversation context with active task
+        conversation.context["current_task_id"] = task_id
+        conversation.context["task_started_at"] = datetime.now(timezone.utc).isoformat()
+        
         # Start LangGraph orchestration in background
         import asyncio
         asyncio.create_task(
@@ -273,15 +277,16 @@ If not clear, suggest a name based on context."""
             "content": f"""Perfect! I'm starting to work on that for you.
 
 Here's what my team will do:
-1. Planner will analyze your requirements
-2. Architect will design the system
-3. Coder will write the implementation
-4. Tester will validate everything works
-5. Reviewer will check code quality
-6. Deployer will launch your app
+1. 📋 Planner will analyze your requirements
+2. 🏗️ Architect will design the system
+3. 💻 Coder will write the implementation
+4. 🧪 Tester will validate everything works
+5. 🔍 Reviewer will check code quality
+6. 🚀 Deployer will launch your app
 
-Task ID: {task_id}
-I'll keep you updated on progress. You can check the status anytime!""",
+**Task ID:** `{task_id}`
+
+I'm working on it in the background. Send me a message anytime to check progress, or just say "status" to see how it's going!""",
             "metadata": {
                 "action": "task_started",
                 "task_id": task_id,
