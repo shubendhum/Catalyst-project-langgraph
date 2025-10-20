@@ -108,6 +108,11 @@ class ChatInterface:
         # Detect intent
         intent = self._detect_intent(user_message)
         
+        # LOG INTENT DETECTION
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"🎯 Intent detected: {intent} for message: '{user_message[:50]}...'")
+        
         # Generate response based on intent
         assistant_response = await self._generate_response(
             conversation, 
