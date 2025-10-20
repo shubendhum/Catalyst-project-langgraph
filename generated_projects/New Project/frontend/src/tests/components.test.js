@@ -1,78 +1,97 @@
-// __tests__/Components.test.js
-
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
-import LoginForm from '../components/LoginForm';
-import RegisterForm from '../components/RegisterForm';
-import PersonalizedGreetingCard from '../components/PersonalizedGreetingCard';
+import Navbar from './Navbar';
+import Sidebar from './Sidebar';
+import LoginForm from './LoginForm';
+import RegisterForm from './RegisterForm';
+import IncrementCounterCard from './IncrementCounterCard';
 
-// Mock API Call
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    json: () => Promise.resolve({ message: 'Success' }),
-  })
-);
+// Mocking any necessary API functions or fetching behavior
+jest.mock('axios'); // Example with axios
 
-describe('React Components', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  // Test for Navbar
-  test('renders Navbar', () => {
-    render(<Navbar />);
-    expect(screen.getByText(/navigation/i)).toBeInTheDocument();
-  });
-
-  // Test for Sidebar
-  test('renders Sidebar', () => {
-    render(<Sidebar />);
-    expect(screen.getByText(/side menu/i)).toBeInTheDocument();
-  });
-
-  // Test for LoginForm
-  test('renders LoginForm and submits', async () => {
-    render(<LoginForm />);
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'john_doe' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /login/i }));
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenCalledWith('/api/login', expect.any(Object));
+describe('React Component Tests', () => {
+  describe('<Navbar />', () => {
+    it('renders the Navbar component', () => {
+      render(<Navbar />);
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
     });
   });
 
-  // Test for RegisterForm
-  test('renders RegisterForm and submits', async () => {
-    render(<RegisterForm />);
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'jane_doe' } });
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password456' } });
-    fireEvent.click(screen.getByRole('button', { name: /register/i }));
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenCalledWith('/api/register', expect.any(Object));
+  describe('<Sidebar />', () => {
+    it('renders the Sidebar component', () => {
+      render(<Sidebar />);
+      expect(screen.getByRole('complementary')).toBeInTheDocument();
     });
   });
 
-  // Test for PersonalizedGreetingCard
-  test('renders PersonalizedGreetingCard with props', () => {
-    const testMessage = 'Happy Birthday, John!';
-    render(<PersonalizedGreetingCard message={testMessage} />);
-    expect(screen.getByText(testMessage)).toBeInTheDocument();
+  describe('<LoginForm />', () => {
+    it('renders the LoginForm component', () => {
+      render(<LoginForm />);
+      expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    });
+
+    it('submits the form with correct data', async () => {
+      const loginData = { username: 'testuser', password: 'password' };
+      render(<LoginForm />);
+      
+      fireEvent.change(screen.getByLabelText(/username/i), { target: { value: loginData.username } });
+      fireEvent.change(screen.getByLabelText(/password/i), { target: { value: loginData.password } });
+      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+
+      expect(await screen.findByText(/login successful/i)).toBeInTheDocument(); // Example success message
+    });
+
+    it('handles API errors', async () => {
+      // Mock API call failure
+      axios.post.mockImplementationOnce(() => Promise.reject(new Error('API Error')));
+      
+      render(<LoginForm />);
+      fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+
+      expect(await screen.findByText(/login failed/i)).toBeInTheDocument(); // Example failure message
+    });
   });
 
-  // Additional state change test for LoginForm example
-  test('LoginForm state changes on input', () => {
-    const { getByLabelText } = render(<LoginForm />);
-    const usernameInput = getByLabelText(/username/i);
-    
-    fireEvent.change(usernameInput, { target: { value: 'john_doe' }});
-    expect(usernameInput.value).toBe('john_doe');
+  describe('<RegisterForm />', () => {
+    it('renders the RegisterForm component', () => {
+      render(<RegisterForm />);
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    });
+
+    it('submits the form with correct data', async () => {
+      const registerData = { email: 'test@test.com', password: 'password' };
+      render(<RegisterForm />);
+      
+      fireEvent.change(screen.getByLabelText(/email/i), { target: { value: registerData.email } });
+      fireEvent.change(screen.getByLabelText(/password/i), { target: { value: registerData.password } });
+      fireEvent.click(screen.getByRole('button', { name: /register/i }));
+
+      expect(await screen.findByText(/registration successful/i)).toBeInTheDocument(); // Example success
+    });
+  });
+
+  describe('<IncrementCounterCard />', () => {
+    it('renders the IncrementCounterCard component', () => {
+      render(<IncrementCounterCard />);
+      expect(screen.getByText(/increment counter/i)).toBeInTheDocument(); // Assume there's a heading or label
+    });
+
+    it('increments the counter when button is clicked', () => {
+      render(<IncrementCounterCard />);
+      const incrementButton = screen.getByRole('button', { name: /increment/i });
+
+      fireEvent.click(incrementButton);
+      expect(screen.getByText(/current count: 1/i)).toBeInTheDocument(); // Example counter display
+    });
+
+    it('decrements the counter when button is clicked', () => {
+      render(<IncrementCounterCard />);
+      const decrementButton = screen.getByRole('button', { name: /decrement/i });
+
+      fireEvent.click(decrementButton); // Make sure the initial count is 0 before clicking
+      expect(screen.getByText(/current count: -1/i)).toBeInTheDocument(); // Example counter display
+    });
   });
 });

@@ -1,100 +1,130 @@
 // App.test.js
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import App from './App'; // Make sure the correct path is used
-import * as api from './api'; // Assuming you have an api.js for API calls
-import { AuthProvider } from './AuthContext'; // Assuming you have an AuthContext for managing authentication
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import App from './App'; // Adjust the import path based on your file structure
+import * as api from './api'; // Assuming `api.js` contains your API calls
 
-// Mock API calls
+// Mock the API calls
 jest.mock('./api');
 
-const renderWithRouter = (ui, { route = '/' } = {}) => {
-  return render(
-    <MemoryRouter initialEntries={[route]}>
-      <AuthProvider>{ui}</AuthProvider>
-    </MemoryRouter>
-  );
-};
-
-test('renders Home page at /', () => {
-  renderWithRouter(<App />);
-  expect(screen.getByText(/Landing page/i)).toBeInTheDocument();
-});
-
-test('navigates to Login page', () => {
-  renderWithRouter(<App />);
-
-  const loginLink = screen.getByRole('link', { name: /login/i });
-  fireEvent.click(loginLink);
-
-  expect(screen.getByText(/login page/i)).toBeInTheDocument();
-});
-
-test('navigates to Register page', () => {
-  renderWithRouter(<App />);
-  
-  const registerLink = screen.getByRole('link', { name: /register/i });
-  fireEvent.click(registerLink);
-
-  expect(screen.getByText(/registration page/i)).toBeInTheDocument();
-});
-
-test('allows user to log in and navigate to Dashboard', async () => {
-  api.login.mockResolvedValueOnce({ token: 'mock-token' });
-
-  renderWithRouter(<App />);
-
-  fireEvent.click(screen.getByRole('link', { name: /login/i }));
-  
-  fireEvent.change(screen.getByPlaceholderText(/username/i), {
-    target: { value: 'testuser' },
+describe('App Component', () => {
+  beforeEach(() => {
+    // Reset all mocks before each test
+    jest.clearAllMocks();
   });
-  fireEvent.change(screen.getByPlaceholderText(/password/i), {
-    target: { value: 'password' },
+
+  test('renders home page on default route', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Landing page/i)).toBeInTheDocument();
   });
-  
-  fireEvent.click(screen.getByText(/submit/i));
 
-  await waitFor(() => expect(screen.getByText(/main dashboard/i)).toBeInTheDocument());
+  test('navigates to login page', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText(/Login/i));
+    expect(screen.getByText(/Login page/i)).toBeInTheDocument();
+  });
+
+  test('navigates to register page', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText(/Register/i));
+    expect(screen.getByText(/Registration page/i)).toBeInTheDocument();
+  });
+
+  test('navigates to dashboard when authenticated', async () => {
+    api.checkAuth.mockResolvedValueOnce(true); // Mock authenticated API response
+    
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText(/Login/i));
+    await waitFor(() => {
+      expect(screen.getByText(/Main dashboard/i)).toBeInTheDocument();
+    });
+  });
+
+  test('redirects to login when accessing protected route', async () => {
+    api.checkAuth.mockResolvedValueOnce(false); // Mock unauthenticated API response
+    
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Login page/i)).toBeInTheDocument();
+  });
+
+  test('navigates to increment counter page', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText(/Increment Counter/i));
+    expect(screen.getByText(/Page for Increment Counter/i)).toBeInTheDocument();
+  });
+
+  test('navigates to decrement counter page', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText(/Decrement Counter/i));
+    expect(screen.getByText(/Page for Decrement Counter/i)).toBeInTheDocument();
+  });
+
+  test('navigates to reset counter page', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText(/Reset Counter/i));
+    expect(screen.getByText(/Page for Reset Counter/i)).toBeInTheDocument();
+  });
+
+  test('navigates to display counter value page', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText(/Display Counter Value/i));
+    expect(screen.getByText(/Page for Display Counter Value/i)).toBeInTheDocument();
+  });
+
+  test('navigates to history log page', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText(/History Log/i));
+    expect(screen.getByText(/Page for History Log/i)).toBeInTheDocument();
+  });
 });
-
-test('prevents access to Dashboard when not authenticated', () => {
-  renderWithRouter(<App />, { route: '/dashboard' });
-
-  expect(screen.getByText(/please log in/i)).toBeInTheDocument(); // Check if login prompt is displayed
-});
-
-test('navigates to Personalized Greeting page', async () => {
-  renderWithRouter(<App />);
-
-  const personalizedGreetingLink = screen.getByRole('link', { name: /personalized greeting/i });
-  fireEvent.click(personalizedGreetingLink);
-
-  expect(screen.getByText(/page for personalized greeting/i)).toBeInTheDocument();
-});
-
-test('mock API call in Display Greeting page', async () => {
-  api.fetchGreeting.mockResolvedValueOnce({ greeting: 'Hello, User!' });
-
-  renderWithRouter(<App />, { route: '/displaygreeting' });
-
-  await waitFor(() => expect(screen.getByText(/hello, user!/i)).toBeInTheDocument());
-});
-
-test('navigates to Responsive Design page', () => {
-  renderWithRouter(<App />);
-  
-  const responsiveDesignLink = screen.getByRole('link', { name: /responsive design/i });
-  fireEvent.click(responsiveDesignLink);
-
-  expect(screen.getByText(/page for responsive design/i)).toBeInTheDocument();
-});
-
-test('tests Basic Error Handling route', () => {
-  renderWithRouter(<App />, { route: '/basicerrorhandling' });
-  
-  expect(screen.getByText(/page for basic error handling/i)).toBeInTheDocument();
-});
-
-// Additional tests can be added for other routes...
