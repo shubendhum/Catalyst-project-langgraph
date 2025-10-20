@@ -31,7 +31,9 @@ class OptimizedLLMClient:
         db=None,
         project_id: Optional[str] = None,
         default_provider: str = "emergent",
-        default_model: str = "claude-3-7-sonnet-20250219"
+        default_model: str = "claude-3-7-sonnet-20250219",
+        task_id: Optional[str] = None,
+        agent_name: Optional[str] = None
     ):
         """
         Initialize optimized LLM client
@@ -41,15 +43,26 @@ class OptimizedLLMClient:
             project_id: Project ID for budget tracking
             default_provider: Default LLM provider
             default_model: Default model to use
+            task_id: Task ID for observability tracing
+            agent_name: Agent name for observability
         """
         self.db = db
         self.project_id = project_id
         self.default_provider = default_provider
         self.default_model = default_model
+        self.task_id = task_id
+        self.agent_name = agent_name
         
         # Initialize cost optimizer and context manager
         self.cost_optimizer = get_cost_optimizer(db)
         self.context_manager = get_context_manager(default_model)
+        
+        # Initialize observability
+        try:
+            from services.llm_observability import get_observability_service
+            self.observability = get_observability_service()
+        except:
+            self.observability = None
         
         # Current LLM client (will be initialized per call)
         self.base_client = None
