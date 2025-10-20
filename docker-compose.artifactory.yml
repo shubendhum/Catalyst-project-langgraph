@@ -218,6 +218,8 @@ networks:
     driver: bridge
 
 volumes:
+  postgres_data:
+    driver: local
   mongodb_data:
     driver: local
   mongodb_config:
