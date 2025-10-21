@@ -51,7 +51,7 @@ class Phase2Orchestrator:
         # Initialize all agents - using optimized client for better cost management
         self.planner = get_planner_agent(self.optimized_llm_client)
         self.architect = get_architect_agent(self.optimized_llm_client)
-        self.coder = get_coder_agent(self.optimized_llm_client, db, manager, self.file_service)
+        self.coder = get_rapid_mvp_coder(self.optimized_llm_client, db, manager, self.file_service)
         self.tester = get_tester_agent(self.optimized_llm_client, db, manager, self.file_service)
         self.reviewer = get_reviewer_agent(self.optimized_llm_client, db, manager, self.file_service)
         self.deployer = get_deployer_agent(self.optimized_llm_client, db, manager, self.file_service)
