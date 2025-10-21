@@ -163,6 +163,9 @@ class ChatInterface:
         if intent == "create_project":
             return await self._handle_create_project(conversation, message)
         
+        elif intent == "build_mvp":
+            return await self._handle_build_mvp(conversation, message)
+        
         elif intent == "build_app":
             return await self._handle_build_app(conversation, message)
         
