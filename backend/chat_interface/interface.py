@@ -240,7 +240,7 @@ If not clear, suggest a name based on context."""
         }
     
     async def _handle_build_app(self, conversation: Conversation, message: str) -> Dict:
-        """Handle app building request"""
+        """Handle app building request using full workflow"""
         
         import logging
         logger = logging.getLogger(__name__)
@@ -276,7 +276,7 @@ If not clear, suggest a name based on context."""
         conversation.context["current_task_id"] = task_id
         conversation.context["task_started_at"] = datetime.now(timezone.utc).isoformat()
         
-        # Start LangGraph orchestration in background
+        # Start orchestration in background (full workflow)
         import asyncio
         asyncio.create_task(
             self.orchestrator.execute_task(task_id, project_id, message)
@@ -285,7 +285,7 @@ If not clear, suggest a name based on context."""
         logger.info(f"✅ Orchestrator triggered for task {task_id}")
         
         return {
-            "content": f"""Perfect! I'm starting to work on that for you.
+            "content": f"""Perfect! I'm starting the **full development workflow** for you.
 
 Here's what my team will do:
 1. 📋 Planner will analyze your requirements
@@ -297,11 +297,90 @@ Here's what my team will do:
 
 **Task ID:** `{task_id}`
 
-I'm working on it in the background. Send me a message anytime to check progress, or just say "status" to see how it's going!""",
+This is the complete workflow with all best practices. Estimated time: 3-5 minutes.
+
+💡 **Want it faster?** Say "build a quick MVP" instead!
+
+I'm working on it in the background. I'll keep you updated!""",
             "metadata": {
                 "action": "task_started",
                 "task_id": task_id,
-                "project_id": project_id
+                "project_id": project_id,
+                "workflow": "full"
+            }
+        }
+    
+    async def _handle_build_mvp(self, conversation: Conversation, message: str) -> Dict:
+        """Handle rapid MVP building request (FAST workflow)"""
+        
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"⚡ _handle_build_mvp called for message: {message[:100]}")
+        
+        # Ensure we have a project
+        project_id = conversation.context.get("current_project_id")
+        
+        if not project_id:
+            # Create project first
+            project_response = await self._handle_create_project(conversation, message)
+            project_id = project_response["metadata"]["project_id"]
+        
+        # Create task
+        task = {
+            "id": str(uuid.uuid4()),
+            "project_id": project_id,
+            "prompt": message,
+            "graph_state": {},
+            "status": "pending",
+            "cost": 0.0,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "workflow": "rapid_mvp"
+        }
+        
+        await self.db.tasks.insert_one(task)
+        
+        task_id = task["id"]
+        logger.info(f"Task created: {task_id}, triggering RAPID MVP workflow...")
+        
+        # Update conversation context
+        conversation.context["current_task_id"] = task_id
+        conversation.context["task_started_at"] = datetime.now(timezone.utc).isoformat()
+        conversation.context["workflow"] = "rapid_mvp"
+        
+        # Use Rapid MVP Orchestrator instead of full workflow
+        from orchestrator.rapid_mvp_orchestrator import get_rapid_mvp_orchestrator
+        
+        rapid_orchestrator = get_rapid_mvp_orchestrator(self.db, self.orchestrator.manager, {})
+        
+        import asyncio
+        asyncio.create_task(
+            rapid_orchestrator.execute_task(task_id, project_id, message)
+        )
+        
+        logger.info(f"✅ Rapid MVP Orchestrator triggered for task {task_id}")
+        
+        return {
+            "content": f"""⚡ **RAPID MVP MODE** - Building your app super fast!
+
+I'm focusing on the max value feature to give you that "aha moment" quickly.
+
+**What I'm doing:**
+💨 Skipping detailed planning
+💨 No complex architecture
+✅ Building beautiful, functional UI
+✅ Core feature working end-to-end
+✅ Modern design with advanced Tailwind
+
+**Task ID:** `{task_id}`
+
+**Estimated time:** 60-90 seconds
+
+I'll create a working demo that showcases the main value. Let's ship fast! 🚀""",
+            "metadata": {
+                "action": "task_started",
+                "task_id": task_id,
+                "project_id": project_id,
+                "workflow": "rapid_mvp"
             }
         }
     
