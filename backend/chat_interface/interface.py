@@ -45,6 +45,14 @@ class ChatInterface:
                 r"start (a |an )?(?:new )?project",
                 r"new project"
             ],
+            "build_mvp": [
+                r"(?:build|create|make) (?:a |an )?(?:quick|rapid|fast|simple|minimal|basic) (?:mvp|prototype|demo)",
+                r"(?:build|create|make) (?:a |an )?mvp",
+                r"rapid (?:prototype|mvp|build)",
+                r"quick (?:prototype|mvp|build|demo)",
+                r"(?:build|create|make) (?:me )?(?:a |an )?(?:simple|quick|fast) \w+",
+                r"can you quickly (?:build|create|make)"
+            ],
             "build_app": [
                 r"build (a |an |me )?(?:simple |basic |new )?\w+",
                 r"create (a |an |me )?(?:simple |basic |new )?\w+",
