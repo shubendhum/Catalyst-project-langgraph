@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 from agents.planner_agent import get_planner_agent
 from agents.architect_agent import get_architect_agent
-from agents.coder import get_coder_agent
+from agents.rapid_mvp_coder import get_rapid_mvp_coder
 from agents.tester_agent import get_tester_agent
 from agents.reviewer_agent import get_reviewer_agent
 from agents.deployer_agent import get_deployer_agent
