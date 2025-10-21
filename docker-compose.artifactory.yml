@@ -243,7 +243,7 @@ services:
       - catalyst-network
 
   langfuse:
-    image: langfuse/langfuse:latest
+    image: artifactory.devtools.syd.c1.macquarie.com:9996/langfuse/langfuse:latest
     container_name: catalyst-langfuse
     restart: unless-stopped
     ports:
