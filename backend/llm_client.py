@@ -155,6 +155,28 @@ class UnifiedLLMClient:
         # Convert response to AIMessage
         return AIMessage(content=response_text)
     
+    async def _invoke_org_azure(
+        self,
+        messages: List[BaseMessage],
+        system_message: Optional[str] = None
+    ) -> AIMessage:
+        """Invoke using organization's Azure OpenAI with OAuth2"""
+        
+        from services.org_azure_openai import create_org_azure_client
+        
+        # Initialize client if not already done
+        if not self.org_azure_client:
+            self.org_azure_client = create_org_azure_client(self.org_azure_config)
+        
+        # Add system message if provided
+        if system_message:
+            messages = [SystemMessage(content=system_message)] + messages
+        
+        # Call organization's Azure OpenAI
+        response = await self.org_azure_client.ainvoke(messages)
+        
+        return response
+    
     def invoke(
         self,
         messages: List[BaseMessage],
