@@ -640,10 +640,21 @@ async def get_explorer_scans():
 
 # Chat configuration models
 class LLMConfig(BaseModel):
-    provider: str = "emergent"  # emergent, anthropic, bedrock
+    provider: str = "emergent"  # emergent, anthropic, bedrock, org_azure
     model: str = "claude-3-7-sonnet-20250219"
     api_key: Optional[str] = None
     aws_config: Optional[Dict[str, str]] = None
+    # Organization Azure OpenAI OAuth2 Config
+    org_azure_base_url: Optional[str] = None
+    org_azure_deployment: Optional[str] = None
+    org_azure_api_version: Optional[str] = None
+    org_azure_subscription_key: Optional[str] = None
+    oauth_auth_url: Optional[str] = None
+    oauth_token_url: Optional[str] = None
+    oauth_client_id: Optional[str] = None
+    oauth_client_secret: Optional[str] = None
+    oauth_redirect_uri: Optional[str] = None
+    oauth_scopes: Optional[str] = None
 
 class SendMessageRequest(BaseModel):
     message: str
