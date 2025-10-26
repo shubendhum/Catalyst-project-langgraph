@@ -79,6 +79,10 @@ class UnifiedLLMClient:
                 bedrock_kwargs["endpoint_url"] = aws_config.get("endpoint_url")
             
             self.client = ChatBedrock(**bedrock_kwargs)
+        elif provider == "org_azure":
+            self.client_type = "org_azure"
+            # Will be initialized lazily when needed
+            self.org_azure_client = None
         else:
             raise ValueError(f"Unsupported provider: {provider}")
     
