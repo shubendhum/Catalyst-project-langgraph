@@ -27,21 +27,24 @@ class UnifiedLLMClient:
         provider: str = "emergent",
         model: str = "claude-3-7-sonnet-20250219",
         api_key: Optional[str] = None,
-        aws_config: Optional[Dict[str, str]] = None
+        aws_config: Optional[Dict[str, str]] = None,
+        org_azure_config: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize the LLM client
         
         Args:
-            provider: "emergent", "anthropic", or "bedrock"
+            provider: "emergent", "anthropic", "bedrock", or "org_azure"
             model: Model name
             api_key: API key (for emergent or anthropic)
-            aws_config: AWS configuration dict with access_key_id, secret_access_key, region
+            aws_config: AWS configuration dict
+            org_azure_config: Organization Azure OpenAI config (OAuth2 + API details)
         """
         self.provider = provider
         self.model = model
         self.api_key = api_key or os.getenv("EMERGENT_LLM_KEY")
         self.aws_config = aws_config
+        self.org_azure_config = org_azure_config
         
         # Initialize the appropriate client
         if provider == "emergent":
