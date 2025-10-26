@@ -1,0 +1,198 @@
+"""
+Organization Azure OpenAI Client
+Handles authentication and API calls to organization's Azure OpenAI endpoint
+"""
+import logging
+import httpx
+import uuid
+from typing import List, Dict, Optional
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+
+from services.oauth2_service import get_oauth2_service
+
+logger = logging.getLogger(__name__)
+
+
+class OrganizationAzureOpenAIClient:
+    """
+    Custom OpenAI client for organization's Azure OpenAI endpoint
+    Handles OAuth2 authentication and custom headers
+    """
+    
+    def __init__(
+        self,
+        base_url: str,
+        deployment: str,
+        api_version: str,
+        subscription_key: str,
+        oauth_config: Dict,
+        model: str = "gpt-4"
+    ):
+        """
+        Initialize organization's Azure OpenAI client
+        
+        Args:
+            base_url: Base path (e.g., https://api.macquarie.com)
+            deployment: Deployment name (e.g., gpt-4, gpt-35-turbo)
+            api_version: API version (e.g., 2024-02-15-preview)
+            subscription_key: Ocp-Apim-Subscription-Key
+            oauth_config: OAuth2 configuration dict
+            model: Model name for compatibility
+        """
+        self.base_url = base_url.rstrip('/')
+        self.deployment = deployment
+        self.api_version = api_version
+        self.subscription_key = subscription_key
+        self.oauth_config = oauth_config
+        self.model = model
+        
+        self.oauth_service = get_oauth2_service()
+        
+        # Build endpoint URL
+        self.endpoint_url = (
+            f"{self.base_url}/openai/deployments/{self.deployment}"
+            f"/chat/completions?api-version={self.api_version}"
+        )
+        
+        logger.info(f"✅ Organization Azure OpenAI client initialized")
+        logger.info(f"   Endpoint: {self.endpoint_url}")
+        logger.info(f"   Deployment: {self.deployment}")
+    
+    async def ainvoke(self, messages: List[BaseMessage], **kwargs) -> AIMessage:
+        """
+        Invoke Azure OpenAI with OAuth2 authentication
+        
+        Args:
+            messages: List of messages (LangChain format)
+            **kwargs: Additional parameters (temperature, max_tokens, etc.)
+            
+        Returns:
+            AIMessage with response
+        """
+        
+        # Get access token (will handle OAuth2 flow automatically)
+        access_token = await self._get_access_token()
+        
+        if not access_token:
+            raise Exception("Failed to acquire OAuth2 access token")
+        
+        # Convert messages to OpenAI format
+        openai_messages = self._convert_messages(messages)
+        
+        # Generate correlation ID
+        correlation_id = str(uuid.uuid4())
+        
+        # Prepare request
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Ocp-Apim-Subscription-Key": self.subscription_key,
+            "x-correlation-id": correlation_id,
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        
+        body = {
+            "messages": openai_messages,
+            "temperature": kwargs.get("temperature", 0.7),
+            "max_tokens": kwargs.get("max_tokens", 2000),
+            "stream": False
+        }
+        
+        logger.info(f"🔐 Calling Azure OpenAI (correlation: {correlation_id[:8]}...)")
+        
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    self.endpoint_url,
+                    headers=headers,
+                    json=body
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Extract response
+                    content = data["choices"][0]["message"]["content"]
+                    
+                    logger.info(f"✅ Response received (correlation: {correlation_id[:8]}...)")
+                    
+                    return AIMessage(content=content)
+                
+                elif response.status_code == 401:
+                    # Token expired or invalid
+                    logger.warning("Access token expired or invalid, refreshing...")
+                    
+                    # Clear cache and retry
+                    self.oauth_service.clear_cache()
+                    
+                    # Retry once with new token
+                    return await self.ainvoke(messages, **kwargs)
+                
+                else:
+                    error_msg = f"Azure OpenAI API error: {response.status_code} - {response.text}"
+                    logger.error(error_msg)
+                    raise Exception(error_msg)
+                    
+        except httpx.TimeoutException:
+            logger.error("Azure OpenAI API timeout")
+            raise Exception("API request timed out")
+        except Exception as e:
+            logger.error(f"Azure OpenAI API call failed: {e}")
+            raise
+    
+    async def _get_access_token(self) -> Optional[str]:
+        """
+        Get valid access token (handles OAuth2 flow)
+        """
+        
+        return await self.oauth_service.get_access_token(
+            auth_url=self.oauth_config["auth_url"],
+            token_url=self.oauth_config["token_url"],
+            client_id=self.oauth_config["client_id"],
+            client_secret=self.oauth_config["client_secret"],
+            redirect_uri=self.oauth_config["redirect_uri"],
+            scopes=self.oauth_config["scopes"]
+        )
+    
+    def _convert_messages(self, messages: List[BaseMessage]) -> List[Dict]:
+        """Convert LangChain messages to OpenAI format"""
+        openai_messages = []
+        
+        for msg in messages:
+            if isinstance(msg, HumanMessage):
+                role = "user"
+            elif isinstance(msg, AIMessage):
+                role = "assistant"
+            elif isinstance(msg, SystemMessage):
+                role = "system"
+            else:
+                role = "user"
+            
+            content = msg.content if hasattr(msg, 'content') else str(msg)
+            
+            openai_messages.append({
+                "role": role,
+                "content": content
+            })
+        
+        return openai_messages
+
+
+def create_org_azure_client(config: Dict) -> OrganizationAzureOpenAIClient:
+    """
+    Factory function to create Organization Azure OpenAI client
+    
+    Args:
+        config: Configuration dict with all required fields
+        
+    Returns:
+        OrganizationAzureOpenAIClient instance
+    """
+    return OrganizationAzureOpenAIClient(
+        base_url=config["base_url"],
+        deployment=config["deployment"],
+        api_version=config["api_version"],
+        subscription_key=config["subscription_key"],
+        oauth_config=config["oauth_config"],
+        model=config.get("model", "gpt-4")
+    )
