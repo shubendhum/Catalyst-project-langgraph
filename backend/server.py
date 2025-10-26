@@ -709,9 +709,8 @@ async def set_llm_config(config: LLMConfig):
     config_dict = config.model_dump()
     
     # Transform frontend config to backend format
-    # Frontend sends: aws_access_key_id, aws_secret_access_key, aws_region, aws_endpoint_url
-    # Backend expects: aws_config dict
     if config_dict.get("provider") == "bedrock":
+        # Handle Bedrock config
         aws_config = {}
         if "aws_access_key_id" in config_dict:
             aws_config["access_key_id"] = config_dict.pop("aws_access_key_id", "")
@@ -725,10 +724,29 @@ async def set_llm_config(config: LLMConfig):
             config_dict["model"] = config_dict.pop("bedrock_model_id", config_dict["model"])
         
         config_dict["aws_config"] = aws_config
+    
     elif config_dict.get("provider") == "anthropic":
         # Handle Anthropic API key
         if "anthropic_api_key" in config_dict:
             config_dict["api_key"] = config_dict.pop("anthropic_api_key", "")
+    
+    elif config_dict.get("provider") == "org_azure":
+        # Handle Organization Azure OpenAI config
+        org_azure_config = {
+            "base_url": config_dict.pop("org_azure_base_url", ""),
+            "deployment": config_dict.pop("org_azure_deployment", ""),
+            "api_version": config_dict.pop("org_azure_api_version", ""),
+            "subscription_key": config_dict.pop("org_azure_subscription_key", ""),
+            "oauth_config": {
+                "auth_url": config_dict.pop("oauth_auth_url", ""),
+                "token_url": config_dict.pop("oauth_token_url", ""),
+                "client_id": config_dict.pop("oauth_client_id", ""),
+                "client_secret": config_dict.pop("oauth_client_secret", ""),
+                "redirect_uri": config_dict.pop("oauth_redirect_uri", "http://localhost:8001/api/auth/oauth/callback"),
+                "scopes": config_dict.pop("oauth_scopes", "")
+            }
+        }
+        config_dict["org_azure_config"] = org_azure_config
     
     _llm_config = config_dict
     
