@@ -103,6 +103,8 @@ class UnifiedLLMClient:
         """
         if self.client_type == "emergent":
             return await self._invoke_emergent(messages, system_message)
+        elif self.client_type == "org_azure":
+            return await self._invoke_org_azure(messages, system_message)
         else:
             # For langchain clients (anthropic, bedrock)
             if system_message:
