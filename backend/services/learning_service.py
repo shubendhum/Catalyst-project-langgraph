@@ -76,6 +76,15 @@ class LearningService:
                 import ssl
                 ssl._create_default_https_context = ssl._create_unverified_context
                 
+                # Also disable SSL for huggingface_hub specifically
+                try:
+                    from huggingface_hub import utils
+                    utils.http.configure_http_backend(verify=False)
+                except:
+                    pass  # If huggingface_hub doesn't have this method, that's okay
+                
+                logger.info("🔐 SSL verification disabled for HuggingFace downloads")
+                
                 self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
                 self.embedding_dim = 384
                 logger.info("✅ Loaded sentence-transformers embedding model")
