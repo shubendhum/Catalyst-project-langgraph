@@ -12,6 +12,16 @@ from sklearn.metrics.pairwise import cosine_similarity
 import logging
 import json
 
+# Disable SSL verification for corporate environments
+# This affects all HTTP libraries including requests, urllib3, and httpx
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+# Set environment variables to disable SSL verification
+os.environ['CURL_CA_BUNDLE'] = ''
+os.environ['REQUESTS_CA_BUNDLE'] = ''
+os.environ['SSL_CERT_FILE'] = ''
+
 logger = logging.getLogger(__name__)
 
 # Try to import Qdrant
