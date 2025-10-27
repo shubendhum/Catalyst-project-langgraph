@@ -210,12 +210,7 @@ async def get_task(task_id: str):
 oauth_states = {}
 
 @api_router.post("/auth/oauth/start")
-async def start_oauth_flow(
-    auth_url: str,
-    client_id: str,
-    redirect_uri: str,
-    scopes: str
-):
+async def start_oauth_flow(request: OAuthStartRequest):
     """
     Start OAuth2 authorization code flow
     Returns authorization URL for user to visit
@@ -225,10 +220,10 @@ async def start_oauth_flow(
     
     try:
         logger.info("🔐 Starting OAuth2 authorization flow")
-        logger.info(f"   Auth URL: {auth_url}")
-        logger.info(f"   Client ID: {client_id[:10]}...")
-        logger.info(f"   Redirect URI: {redirect_uri}")
-        logger.info(f"   Scopes: {scopes}")
+        logger.info(f"   Auth URL: {request.auth_url}")
+        logger.info(f"   Client ID: {request.client_id[:10]}...")
+        logger.info(f"   Redirect URI: {request.redirect_uri}")
+        logger.info(f"   Scopes: {request.scopes}")
         
         oauth_service = get_oauth2_service()
         
@@ -245,10 +240,10 @@ async def start_oauth_flow(
         
         # Generate authorization URL
         authorization_url = await oauth_service.get_authorization_url(
-            auth_url=auth_url,
-            client_id=client_id,
-            redirect_uri=redirect_uri,
-            scopes=scopes,
+            auth_url=request.auth_url,
+            client_id=request.client_id,
+            redirect_uri=request.redirect_uri,
+            scopes=request.scopes,
             state=state
         )
         
