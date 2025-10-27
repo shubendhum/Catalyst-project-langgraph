@@ -377,6 +377,30 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
     }
   };
 
+  const handleSelectConversation = async (convId) => {
+    try {
+      // Load conversation messages
+      const response = await axios.get(`${BACKEND_URL}/api/chat/conversations/${convId}`);
+      const conversation = response.data;
+      
+      setConversationId(convId);
+      localStorage.setItem('catalyst_conversation_id', convId);
+      
+      // Load messages
+      const loadedMessages = conversation.messages || [];
+      setMessages(loadedMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp
+      })));
+      
+      console.log(`✅ Switched to conversation ${convId} with ${loadedMessages.length} messages`);
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+      addSystemMessage('Error loading conversation. Please try again.');
+    }
+  };
+
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
 
