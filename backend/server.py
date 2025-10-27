@@ -1,9 +1,25 @@
+"""
+Catalyst Backend Server
+Disable SSL verification globally for corporate environments
+"""
+import os
+import ssl
+
+# Disable SSL verification BEFORE any other imports
+# This is critical for corporate environments with SSL inspection/MITM proxies
+ssl._create_default_https_context = ssl._create_unverified_context
+
+# Set environment variables to disable SSL for all HTTP libraries
+os.environ['CURL_CA_BUNDLE'] = ''
+os.environ['REQUESTS_CA_BUNDLE'] = ''
+os.environ['SSL_CERT_FILE'] = ''
+os.environ['PYTHONHTTPSVERIFY'] = '0'
+
 from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
