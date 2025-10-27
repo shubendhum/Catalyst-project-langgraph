@@ -106,7 +106,7 @@ FROM artifactory.devtools.syd.c1.macquarie.com:9996/nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html
 
 # Copy custom nginx config from frontend directory
-COPY frontend/nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Create a simple entrypoint script that just starts nginx
 RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
