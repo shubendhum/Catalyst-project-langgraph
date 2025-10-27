@@ -1189,13 +1189,15 @@ async def get_llm_config():
         safe_config["org_azure_base_url"] = org_config.get("base_url", "")
         safe_config["org_azure_deployment"] = org_config.get("deployment", "")
         safe_config["org_azure_api_version"] = org_config.get("api_version", "2024-02-15-preview")
-        safe_config["org_azure_subscription_key"] = "***" if org_config.get("subscription_key") else ""
+        # Return actual subscription key so user can see/edit it
+        safe_config["org_azure_subscription_key"] = org_config.get("subscription_key", "")
         
         oauth_config = org_config.get("oauth_config", {})
         safe_config["oauth_auth_url"] = oauth_config.get("auth_url", "")
         safe_config["oauth_token_url"] = oauth_config.get("token_url", "")
         safe_config["oauth_client_id"] = oauth_config.get("client_id", "")
-        safe_config["oauth_client_secret"] = "***" if oauth_config.get("client_secret") else ""
+        # Return actual client secret so user can see/edit it
+        safe_config["oauth_client_secret"] = oauth_config.get("client_secret", "")
         safe_config["oauth_redirect_uri"] = oauth_config.get("redirect_uri", "http://localhost:8001/api/auth/oauth/callback")
         safe_config["oauth_scopes"] = oauth_config.get("scopes", "")
         safe_config["oauth_authenticated"] = False  # Will be updated by OAuth status
