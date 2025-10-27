@@ -335,6 +335,8 @@ class OrganizationOAuth2Service:
         except Exception as e:
             logger.error(f"❌ Device token polling error: {e}", exc_info=True)
             return {"status": "error", "error": str(e)}
+    
+    async def refresh_token(
         self,
         token_url: str,
         refresh_token: str,
