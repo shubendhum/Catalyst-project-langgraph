@@ -62,6 +62,10 @@ class LearningService:
         self.embedding_model = None
         if EMBEDDINGS_AVAILABLE:
             try:
+                # Disable SSL verification for HuggingFace downloads in corporate environments
+                import ssl
+                ssl._create_default_https_context = ssl._create_unverified_context
+                
                 self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
                 self.embedding_dim = 384
                 logger.info("✅ Loaded sentence-transformers embedding model")
