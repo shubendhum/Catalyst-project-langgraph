@@ -480,12 +480,14 @@ async def poll_device_authentication(session_id: str):
         
         # Poll for token
         oauth_service = get_oauth2_service()
+        # Use consistent user_id for device code flow
+        device_user_id = "device_code_user"
         result = await oauth_service.poll_device_token(
             token_url=session_data["token_url"],
             client_id=session_data["client_id"],
             client_secret=session_data["client_secret"],
             device_code=session_data["device_code"],
-            user_id=session_id
+            user_id=device_user_id  # Use consistent user_id across all device code flows
         )
         
         if result["status"] == "authorized":
@@ -493,6 +495,7 @@ async def poll_device_authentication(session_id: str):
             session_data["authenticated"] = True
             session_data["access_token"] = result["access_token"]
             logger.info(f"✅ Device authentication complete for session {session_id[:8]}...")
+            logger.info(f"   Token cached with user_id: {device_user_id}")
         elif result["status"] == "error":
             session_data["error"] = result["error"]
             logger.error(f"❌ Device authentication failed: {result['error']}")
