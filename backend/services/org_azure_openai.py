@@ -148,7 +148,23 @@ class OrganizationAzureOpenAIClient:
     async def _get_access_token(self) -> Optional[str]:
         """
         Get valid access token (handles OAuth2 flow)
+        Uses cached token from device code flow if available
         """
+        
+        # First check if we have a token from device code flow
+        # Device code flow stores tokens in oauth_service with user_id
+        # For device code flow, we use a consistent user_id
+        user_id = "device_code_user"
+        
+        # Check cached token first
+        cached_token = self.oauth_service._get_cached_token(user_id)
+        if cached_token:
+            logger.info(f"✅ Using cached device code token")
+            return cached_token
+        
+        # If no cached token, try to get one via client credentials
+        # (This is fallback for non-device-code scenarios)
+        logger.warning("⚠️ No cached device code token found, attempting client credentials flow")
         
         return await self.oauth_service.get_access_token(
             auth_url=self.oauth_config["auth_url"],
@@ -156,7 +172,8 @@ class OrganizationAzureOpenAIClient:
             client_id=self.oauth_config["client_id"],
             client_secret=self.oauth_config["client_secret"],
             redirect_uri=self.oauth_config["redirect_uri"],
-            scopes=self.oauth_config["scopes"]
+            scopes=self.oauth_config["scopes"],
+            user_id=user_id  # Use consistent user_id
         )
     
     def _convert_messages(self, messages: List[BaseMessage]) -> List[Dict]:
