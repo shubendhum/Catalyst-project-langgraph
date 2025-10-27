@@ -101,9 +101,12 @@ class OrganizationAzureOpenAIClient:
         }
         
         logger.info(f"🔐 Calling Azure OpenAI (correlation: {correlation_id[:8]}...)")
+        logger.info(f"   Endpoint: {self.endpoint_url}")
+        logger.info(f"   Deployment: {self.deployment}")
+        logger.info(f"   Messages count: {len(openai_messages)}")
         
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=60.0, verify=False) as client:  # Disable SSL verification
                 response = await client.post(
                     self.endpoint_url,
                     headers=headers,
