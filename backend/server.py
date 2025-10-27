@@ -224,6 +224,12 @@ async def start_oauth_flow(
     import uuid
     
     try:
+        logger.info("🔐 Starting OAuth2 authorization flow")
+        logger.info(f"   Auth URL: {auth_url}")
+        logger.info(f"   Client ID: {client_id[:10]}...")
+        logger.info(f"   Redirect URI: {redirect_uri}")
+        logger.info(f"   Scopes: {scopes}")
+        
         oauth_service = get_oauth2_service()
         
         # Generate state for CSRF protection
@@ -246,6 +252,9 @@ async def start_oauth_flow(
             state=state
         )
         
+        logger.info(f"✅ Authorization URL generated: {authorization_url[:100]}...")
+        logger.info(f"   State: {state}")
+        
         return {
             "success": True,
             "authorization_url": authorization_url,
@@ -253,7 +262,7 @@ async def start_oauth_flow(
         }
         
     except Exception as e:
-        logger.error(f"Error starting OAuth flow: {e}")
+        logger.error(f"❌ Error starting OAuth flow: {e}", exc_info=True)
         return {"success": False, "error": str(e)}
 
 
