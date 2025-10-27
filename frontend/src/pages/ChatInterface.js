@@ -528,13 +528,16 @@ const ChatInterface = () => {
                   </div>
 
                   <div>
-                    <Label>Subscription Key (Ocp-Apim-Subscription-Key)</Label>
+                    <Label>Subscription Key (x-subscription-key)</Label>
                     <Input 
                       type="password"
                       value={llmConfig.org_azure_subscription_key}
                       onChange={(e) => setLlmConfig({...llmConfig, org_azure_subscription_key: e.target.value})}
                       placeholder="Your subscription key"
                     />
+                    <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                      Sent as x-subscription-key header
+                    </p>
                   </div>
 
                   <hr style={{ margin: '16px 0', borderColor: '#e5e7eb' }} />
