@@ -87,9 +87,9 @@ RUN echo "================================================" && \
 RUN echo "=== Verifying installed packages ===" && \
     ls -la node_modules/.bin/ | head -20 && \
     if [ -f node_modules/.bin/craco ]; then \
-        echo "✓ craco binary found"; \
+        echo "craco binary found"; \
     else \
-        echo "✗ craco binary NOT found"; \
+        echo "craco binary NOT found"; \
         exit 1; \
     fi
 
