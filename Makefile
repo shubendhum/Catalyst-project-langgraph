@@ -319,28 +319,28 @@ setup-artifactory: ## Setup with Artifactory mirror
 
 build-artifactory: ## Build images using Artifactory mirror
 	@echo "$(BLUE)Building images from Artifactory...$(NC)"
-	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml build
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml -f docker-compose.artifactory.override.yml build
 	@echo "$(GREEN)✓ Artifactory images built$(NC)"
 
 start-artifactory: ## Start services with Artifactory images
 	@echo "$(BLUE)Starting services with Artifactory...$(NC)"
-	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml up -d
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml -f docker-compose.artifactory.override.yml up -d
 	@echo "$(GREEN)✓ Artifactory services started$(NC)"
-	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml ps
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml -f docker-compose.artifactory.override.yml ps
 
 stop-artifactory: ## Stop Artifactory services
 	@echo "$(BLUE)Stopping Artifactory services...$(NC)"
-	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml down
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml -f docker-compose.artifactory.override.yml down
 	@echo "$(GREEN)✓ Artifactory services stopped$(NC)"
 
 restart-artifactory: stop-artifactory start-artifactory ## Restart Artifactory services
 
 logs-artifactory: ## Show Artifactory service logs
-	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml logs -f
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml -f docker-compose.artifactory.override.yml logs -f
 
 status-artifactory: ## Show Artifactory service status
 	@echo "$(BLUE)Artifactory Service Status:$(NC)"
-	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml ps
+	@$(DOCKER_COMPOSE) -f docker-compose.artifactory.yml -f docker-compose.artifactory.override.yml ps
 
 ##@ Database Management
 
