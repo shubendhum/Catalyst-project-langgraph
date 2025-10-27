@@ -209,7 +209,132 @@ class OrganizationOAuth2Service:
             logger.error(f"❌ Token exchange error: {e}", exc_info=True)
             return None
     
-    async def refresh_token(
+    async def get_device_code(
+        self,
+        device_code_url: str,
+        client_id: str,
+        scopes: str
+    ) -> Optional[Dict]:
+        """
+        Start device code flow - get device code and verification URL
+        
+        Returns:
+            {
+                "device_code": "...",
+                "user_code": "ABC123",
+                "verification_uri": "https://microsoft.com/devicelogin",
+                "expires_in": 900,
+                "interval": 5
+            }
+        """
+        try:
+            logger.info(f"🔐 OAuth2: Requesting device code")
+            logger.info(f"   Device Code URL: {device_code_url}")
+            logger.info(f"   Client ID: {client_id[:10]}...")
+            logger.info(f"   Scopes: {scopes}")
+            
+            async with httpx.AsyncClient(verify=False) as client:  # Disable SSL verification
+                response = await client.post(
+                    device_code_url,
+                    data={
+                        "client_id": client_id,
+                        "scope": scopes
+                    },
+                    headers={"Content-Type": "application/x-www-form-urlencoded"}
+                )
+                
+                logger.info(f"   Response status: {response.status_code}")
+                
+                if response.status_code == 200:
+                    device_data = response.json()
+                    logger.info("✅ Device code acquired")
+                    logger.info(f"   User Code: {device_data.get('user_code')}")
+                    logger.info(f"   Verification URI: {device_data.get('verification_uri')}")
+                    logger.info(f"   Expires in: {device_data.get('expires_in')}s")
+                    return device_data
+                else:
+                    logger.error(f"❌ Device code request failed: {response.status_code}")
+                    logger.error(f"   Response: {response.text}")
+                    return None
+                    
+        except Exception as e:
+            logger.error(f"❌ Device code flow failed: {e}", exc_info=True)
+            return None
+    
+    async def poll_device_token(
+        self,
+        token_url: str,
+        client_id: str,
+        client_secret: str,
+        device_code: str,
+        user_id: str = "default"
+    ) -> Optional[Dict]:
+        """
+        Poll for device token (checks if user has completed authentication)
+        
+        Returns:
+            {
+                "status": "pending|authorized|error",
+                "access_token": "..." (if authorized),
+                "error": "..." (if error)
+            }
+        """
+        try:
+            async with httpx.AsyncClient(verify=False) as client:  # Disable SSL verification
+                response = await client.post(
+                    token_url,
+                    data={
+                        "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "device_code": device_code
+                    },
+                    headers={"Content-Type": "application/x-www-form-urlencoded"}
+                )
+                
+                if response.status_code == 200:
+                    token_data = response.json()
+                    
+                    # Cache token
+                    self._cache_token(user_id, token_data)
+                    
+                    logger.info(f"✅ Device authentication complete for {user_id}")
+                    logger.info(f"   Expires in: {token_data.get('expires_in', 'unknown')}s")
+                    
+                    return {
+                        "status": "authorized",
+                        "access_token": token_data["access_token"]
+                    }
+                elif response.status_code == 400:
+                    error_data = response.json()
+                    error_code = error_data.get("error", "")
+                    
+                    if error_code == "authorization_pending":
+                        # User hasn't completed authentication yet
+                        return {"status": "pending"}
+                    elif error_code == "slow_down":
+                        # Polling too fast
+                        logger.warning("⚠️ Polling too fast, slowing down")
+                        return {"status": "pending", "slow_down": True}
+                    elif error_code == "expired_token":
+                        # Device code expired
+                        logger.error("❌ Device code expired")
+                        return {"status": "error", "error": "Device code expired"}
+                    elif error_code == "access_denied":
+                        # User denied access
+                        logger.error("❌ User denied access")
+                        return {"status": "error", "error": "User denied access"}
+                    else:
+                        logger.error(f"❌ Device token error: {error_code}")
+                        return {"status": "error", "error": error_code}
+                else:
+                    logger.error(f"❌ Device token request failed: {response.status_code}")
+                    logger.error(f"   Response: {response.text}")
+                    return {"status": "error", "error": f"HTTP {response.status_code}"}
+                    
+        except Exception as e:
+            logger.error(f"❌ Device token polling error: {e}", exc_info=True)
+            return {"status": "error", "error": str(e)}
         self,
         token_url: str,
         refresh_token: str,
