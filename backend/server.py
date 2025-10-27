@@ -914,7 +914,8 @@ async def set_llm_config(config: LLMConfig):
         logger.info(f"      OAuth Config:")
         logger.info(f"         Auth URL: {org_azure_config['oauth_config']['auth_url']}")
         logger.info(f"         Token URL: {org_azure_config['oauth_config']['token_url']}")
-        logger.info(f"         Client ID: {org_azure_config['oauth_config']['client_id'][:10]}...")
+        client_id = org_azure_config['oauth_config']['client_id']
+        logger.info(f"         Client ID: {client_id[:10] if client_id else 'NOT SET'}...")
         logger.info(f"         Scopes: {org_azure_config['oauth_config']['scopes']}")
     
     _llm_config = config_dict
