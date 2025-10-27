@@ -679,14 +679,15 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
                   </div>
 
                   <div>
-                    <Label>Redirect URI</Label>
+                    <Label>Redirect URI (Not Used for Device Code Flow)</Label>
                     <Input 
                       value={llmConfig.oauth_redirect_uri}
                       onChange={(e) => setLlmConfig({...llmConfig, oauth_redirect_uri: e.target.value})}
-                      placeholder="http://localhost:8001/api/auth/oauth/callback"
+                      placeholder="Not required for device code flow"
+                      disabled
                     />
                     <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-                      Must match redirect URI configured in OAuth2 app
+                      Device Code Flow doesn't require redirect URI
                     </p>
                   </div>
 
@@ -704,11 +705,11 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
                     {!llmConfig.oauth_authenticated && (
                       <>
                         <p style={{ fontSize: '13px', color: '#92400e', marginBottom: '12px' }}>
-                          Click the button below to authenticate with your organization's credentials
+                          Click below to start device code authentication. You'll receive a code to enter on Microsoft's login page.
                         </p>
                         <Button 
-                          onClick={startOAuthFlow}
-                          disabled={isAuthenticating || !llmConfig.oauth_auth_url || !llmConfig.oauth_client_id}
+                          onClick={startDeviceCodeFlow}
+                          disabled={isAuthenticating || !llmConfig.oauth_token_url || !llmConfig.oauth_client_id}
                           className="btn-primary"
                           style={{ width: '100%' }}
                         >
