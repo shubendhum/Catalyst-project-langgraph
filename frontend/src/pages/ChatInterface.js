@@ -1058,6 +1058,7 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
         </div>
       </div>
     </div>
+    </>
   );
 };
 
