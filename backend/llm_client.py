@@ -201,7 +201,7 @@ def get_llm_client(config: Optional[Dict[str, Any]] = None) -> UnifiedLLMClient:
     Factory function to get LLM client based on configuration
     
     Args:
-        config: Configuration dict with provider, model, api_key, aws_config
+        config: Configuration dict with provider, model, api_key, aws_config, org_azure_config
         
     Returns:
         UnifiedLLMClient instance
@@ -213,10 +213,12 @@ def get_llm_client(config: Optional[Dict[str, Any]] = None) -> UnifiedLLMClient:
     model = config.get("model", os.getenv("DEFAULT_LLM_MODEL", "claude-3-7-sonnet-20250219"))
     api_key = config.get("api_key")
     aws_config = config.get("aws_config")
+    org_azure_config = config.get("org_azure_config")
     
     return UnifiedLLMClient(
         provider=provider,
         model=model,
         api_key=api_key,
-        aws_config=aws_config
+        aws_config=aws_config,
+        org_azure_config=org_azure_config
     )
