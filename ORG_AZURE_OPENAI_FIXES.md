@@ -42,6 +42,17 @@
   - Configuration is stored in global `_llm_config` variable
 - **File**: `/app/backend/server.py` (lines 837-905)
 
+### 6. **Removed Model Parameter** ✅
+- **Issue**: Azure OpenAI uses deployments, not models - model field was unnecessary
+- **Fix**: 
+  - Removed `model` parameter from `OrganizationAzureOpenAIClient`
+  - Deployment name is what matters (it's already configured with a model in Azure)
+  - Updated frontend help text to clarify this
+- **Files**:
+  - `/app/backend/services/org_azure_openai.py`
+  - `/app/backend/server.py`
+  - `/app/frontend/src/pages/ChatInterface.js`
+
 ## Technical Details
 
 ### Headers Used for Azure OpenAI API Calls
@@ -64,10 +75,13 @@ headers = {
 6. Token is cached with expiry tracking
 7. Subsequent API calls use cached token (auto-refresh if expired)
 
-### Deployment vs Model
-- **Azure OpenAI**: Uses "deployment" (not "model")
-- Deployment name is specific to the organization's Azure setup
-- Example: `gpt-4`, `gpt-35-turbo`, etc.
+### Deployment vs Model - IMPORTANT!
+- **Azure OpenAI uses "deployment" NOT "model"**
+- A deployment is configured on the Azure side with a specific model
+- Example: You create a deployment named "gpt-4" in Azure, which uses the GPT-4 model
+- In API calls, you use the **deployment name**, not the model name
+- The endpoint URL includes the deployment: `/openai/deployments/{deployment}/chat/completions`
+- **No "model" parameter is sent in the API request body**
 
 ## Configuration Example
 
@@ -76,7 +90,7 @@ headers = {
 {
   provider: "org_azure",
   org_azure_base_url: "https://api.macquarie.com",
-  org_azure_deployment: "gpt-4",
+  org_azure_deployment: "gpt-4",  // This is the deployment name, not model
   org_azure_api_version: "2024-02-15-preview",
   org_azure_subscription_key: "your-subscription-key",
   oauth_auth_url: "https://auth.example.com/oauth2/authorize",
@@ -92,10 +106,10 @@ headers = {
 ```python
 {
   "provider": "org_azure",
-  "model": "gpt-4",  # For compatibility
+  # NO "model" field - deployment handles this
   "org_azure_config": {
     "base_url": "https://api.macquarie.com",
-    "deployment": "gpt-4",
+    "deployment": "gpt-4",  # Deployment name configured in Azure
     "api_version": "2024-02-15-preview",
     "subscription_key": "your-subscription-key",
     "oauth_config": {
@@ -108,6 +122,16 @@ headers = {
     }
   }
 }
+```
+
+### API Endpoint URL
+```
+{base_url}/openai/deployments/{deployment}/chat/completions?api-version={api_version}
+```
+
+Example:
+```
+https://api.macquarie.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-15-preview
 ```
 
 ## Logging Output Examples
@@ -161,16 +185,25 @@ headers = {
    Response length: 245 chars
 ```
 
+## Network Connectivity
+
+### Docker Containers Use Your Laptop's Network ✅
+- All outbound API calls from Docker containers go through your laptop's internet connection
+- Corporate firewall/proxy/VPN settings apply to containers
+- SSL verification is disabled to handle corporate SSL inspection/MITM proxies
+- OAuth redirect URIs must be accessible from the OAuth server to your laptop
+
 ## Testing
 
 To test the OAuth2 flow:
 1. Configure Organization Azure OpenAI settings in frontend
-2. Click "Save Configuration"
-3. Check backend logs for configuration save confirmation
-4. Click "Authenticate with OAuth2"
-5. Complete OAuth flow in popup
-6. Send a test message
-7. Check backend logs for OAuth token acquisition and API call logs
+2. Use **deployment name** (e.g., "gpt-4") - NOT a model name
+3. Click "Save Configuration"
+4. Check backend logs for configuration save confirmation
+5. Click "Authenticate with OAuth2"
+6. Complete OAuth flow in popup
+7. Send a test message
+8. Check backend logs for OAuth token acquisition and API call logs
 
 ## Notes
 
@@ -179,3 +212,4 @@ To test the OAuth2 flow:
 - Token expiry is tracked and automatic refresh is attempted
 - All sensitive data is masked in logs
 - Correlation IDs allow tracking requests end-to-end
+- **Azure OpenAI uses deployments, not models** - this is a key difference from standard OpenAI API
