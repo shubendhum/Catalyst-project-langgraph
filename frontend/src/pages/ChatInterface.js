@@ -629,29 +629,39 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
                   <hr style={{ margin: '16px 0', borderColor: '#e5e7eb' }} />
 
                   <div style={{ marginBottom: '8px' }}>
-                    <strong style={{ fontSize: '14px', color: '#374151' }}>OAuth2 Configuration</strong>
+                    <strong style={{ fontSize: '14px', color: '#374151' }}>OAuth2 Configuration (Device Code Flow)</strong>
+                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                      No redirect URI needed - you'll authenticate in a separate browser window
+                    </p>
                   </div>
 
                   <div>
-                    <Label>Authorization URL</Label>
+                    <Label>Authorization URL (Optional)</Label>
                     <Input 
                       value={llmConfig.oauth_auth_url}
                       onChange={(e) => setLlmConfig({...llmConfig, oauth_auth_url: e.target.value})}
                       placeholder="https://login.microsoftonline.com/.../oauth2/v2.0/authorize"
+                      disabled
                     />
+                    <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                      Not used in device code flow
+                    </p>
                   </div>
 
                   <div>
-                    <Label>Token URL</Label>
+                    <Label>Token URL *</Label>
                     <Input 
                       value={llmConfig.oauth_token_url}
                       onChange={(e) => setLlmConfig({...llmConfig, oauth_token_url: e.target.value})}
                       placeholder="https://login.microsoftonline.com/.../oauth2/v2.0/token"
                     />
+                    <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                      Required for device code flow
+                    </p>
                   </div>
 
                   <div>
-                    <Label>Client ID</Label>
+                    <Label>Client ID *</Label>
                     <Input 
                       value={llmConfig.oauth_client_id}
                       onChange={(e) => setLlmConfig({...llmConfig, oauth_client_id: e.target.value})}
