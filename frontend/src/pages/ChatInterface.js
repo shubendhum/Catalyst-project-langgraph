@@ -42,6 +42,7 @@ const ChatInterface = () => {
   });
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [deviceCode, setDeviceCode] = useState(null); // For device code flow
 
   const messagesEndRef = useRef(null);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
