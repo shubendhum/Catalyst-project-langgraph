@@ -5,6 +5,7 @@ Handles authentication and API calls to organization's Azure OpenAI endpoint
 import logging
 import httpx
 import uuid
+import json
 from typing import List, Dict, Optional
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
 
