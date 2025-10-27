@@ -39,23 +39,30 @@ class OrganizationAzureOpenAIClient:
             subscription_key: x-subscription-key header value
             oauth_config: OAuth2 configuration dict
         """
-        self.base_url = base_url.rstrip('/')
-        self.deployment = deployment
-        self.api_version = api_version
-        self.subscription_key = subscription_key
-        self.oauth_config = oauth_config
-        
-        self.oauth_service = get_oauth2_service()
-        
-        # Build endpoint URL
-        self.endpoint_url = (
-            f"{self.base_url}/openai/deployments/{self.deployment}"
-            f"/chat/completions?api-version={self.api_version}"
-        )
-        
-        logger.info(f"✅ Organization Azure OpenAI client initialized")
-        logger.info(f"   Endpoint: {self.endpoint_url}")
-        logger.info(f"   Deployment: {self.deployment}")
+        try:
+            self.base_url = base_url.rstrip('/') if base_url else ""
+            self.deployment = deployment or ""
+            self.api_version = api_version or "2024-02-15-preview"
+            self.subscription_key = subscription_key or ""
+            self.oauth_config = oauth_config or {}
+            
+            self.oauth_service = get_oauth2_service()
+            
+            # Build endpoint URL
+            if not self.base_url or not self.deployment:
+                raise ValueError(f"Missing required config: base_url={base_url}, deployment={deployment}")
+            
+            self.endpoint_url = (
+                f"{self.base_url}/openai/deployments/{self.deployment}"
+                f"/chat/completions?api-version={self.api_version}"
+            )
+            
+            logger.info(f"✅ Organization Azure OpenAI client initialized")
+            logger.info(f"   Endpoint: {self.endpoint_url}")
+            logger.info(f"   Deployment: {self.deployment}")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Organization Azure OpenAI client: {e}")
+            raise
     
     async def ainvoke(self, messages: List[BaseMessage], **kwargs) -> AIMessage:
         """
