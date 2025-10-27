@@ -112,32 +112,41 @@ class OrganizationAzureOpenAIClient:
                 )
                 
                 if response.status_code == 200:
-                    # Handle streaming response
-                    if body.get("stream"):
+                    # Check if response is streaming (SSE) or regular JSON
+                    content_type = response.headers.get("content-type", "")
+                    
+                    if "text/event-stream" in content_type or body.get("stream"):
+                        # Handle streaming response (SSE format)
+                        logger.info("📡 Processing streaming response...")
                         full_content = ""
+                        
                         async for line in response.aiter_lines():
-                            if line.startswith("data: "):
-                                data_str = line[6:]  # Remove "data: " prefix
-                                
-                                if data_str == "[DONE]":
-                                    break
-                                
-                                try:
-                                    chunk_data = json.loads(data_str)
-                                    if "choices" in chunk_data and len(chunk_data["choices"]) > 0:
-                                        delta = chunk_data["choices"][0].get("delta", {})
-                                        content_chunk = delta.get("content", "")
-                                        if content_chunk:
-                                            full_content += content_chunk
-                                except json.JSONDecodeError:
-                                    continue
+                            if line.strip():
+                                if line.startswith("data: "):
+                                    data_str = line[6:]  # Remove "data: " prefix
+                                    
+                                    if data_str.strip() == "[DONE]":
+                                        break
+                                    
+                                    try:
+                                        chunk_data = json.loads(data_str)
+                                        if "choices" in chunk_data and len(chunk_data["choices"]) > 0:
+                                            delta = chunk_data["choices"][0].get("delta", {})
+                                            content_chunk = delta.get("content", "")
+                                            if content_chunk:
+                                                full_content += content_chunk
+                                                logger.debug(f"   Received chunk: {len(content_chunk)} chars")
+                                    except json.JSONDecodeError as e:
+                                        logger.warning(f"   Failed to parse SSE chunk: {data_str[:100]}")
+                                        continue
                         
                         logger.info(f"✅ Streaming response complete (correlation: {correlation_id[:8]}...)")
-                        logger.info(f"   Response length: {len(full_content)} chars")
+                        logger.info(f"   Total response length: {len(full_content)} chars")
                         
                         return AIMessage(content=full_content)
                     else:
-                        # Non-streaming response
+                        # Handle regular JSON response
+                        logger.info("📄 Processing non-streaming response...")
                         data = response.json()
                         content = data["choices"][0]["message"]["content"]
                         
