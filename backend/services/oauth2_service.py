@@ -171,7 +171,12 @@ class OrganizationOAuth2Service:
             Access token or None
         """
         try:
-            async with httpx.AsyncClient() as client:
+            logger.info(f"🔐 OAuth2: Exchanging authorization code for token")
+            logger.info(f"   Token URL: {token_url}")
+            logger.info(f"   Client ID: {client_id[:10]}...")
+            logger.info(f"   Redirect URI: {redirect_uri}")
+            
+            async with httpx.AsyncClient(verify=False) as client:  # Disable SSL verification
                 response = await client.post(
                     token_url,
                     data={
@@ -184,6 +189,8 @@ class OrganizationOAuth2Service:
                     headers={"Content-Type": "application/x-www-form-urlencoded"}
                 )
                 
+                logger.info(f"   Response status: {response.status_code}")
+                
                 if response.status_code == 200:
                     token_data = response.json()
                     
@@ -191,13 +198,15 @@ class OrganizationOAuth2Service:
                     self._cache_token(user_id, token_data)
                     
                     logger.info(f"✅ Access token acquired for {user_id}")
+                    logger.info(f"   Expires in: {token_data.get('expires_in', 'unknown')}s")
                     return token_data["access_token"]
                 else:
-                    logger.error(f"Token exchange failed: {response.status_code} - {response.text}")
+                    logger.error(f"❌ Token exchange failed: {response.status_code}")
+                    logger.error(f"   Response: {response.text}")
                     return None
                     
         except Exception as e:
-            logger.error(f"Token exchange error: {e}")
+            logger.error(f"❌ Token exchange error: {e}", exc_info=True)
             return None
     
     async def refresh_token(
