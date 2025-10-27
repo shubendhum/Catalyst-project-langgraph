@@ -606,6 +606,8 @@ phase4-artifactory-start: ## Start Phase 4 with Artifactory registry
 	@echo "  Qdrant:      http://localhost:6333"
 	@echo "  RabbitMQ:    amqp://localhost:5672"
 	@echo "  RabbitMQ UI: http://localhost:15672 (catalyst/catalyst_queue_2025)"
+	@echo ""
+	@echo "$(YELLOW)Note: Using docker-compose.artifactory.override.yml to fix runtime issues$(NC)"
 
 phase4-artifactory-stop: ## Stop Phase 4 Artifactory services
 	@echo "$(BLUE)🛑 Stopping Phase 4 Artifactory services...$(NC)"
