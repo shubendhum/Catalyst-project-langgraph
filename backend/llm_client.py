@@ -167,26 +167,38 @@ class UnifiedLLMClient:
         
         from services.org_azure_openai import create_org_azure_client
         
+        logger.info("🔐 Invoking Organization Azure OpenAI")
+        
         # Validate configuration
         if not self.org_azure_config:
+            logger.error("❌ Organization Azure OpenAI configuration is missing")
             raise ValueError("Organization Azure OpenAI configuration is missing. Please configure it in LLM Settings.")
+        
+        logger.info(f"   Config keys present: {list(self.org_azure_config.keys())}")
         
         required_fields = ["base_url", "deployment", "api_version", "subscription_key", "oauth_config"]
         missing_fields = [field for field in required_fields if field not in self.org_azure_config]
         
         if missing_fields:
+            logger.error(f"❌ Missing required fields: {missing_fields}")
             raise ValueError(f"Organization Azure OpenAI configuration is incomplete. Missing fields: {', '.join(missing_fields)}")
         
         # Initialize client if not already done
         if not self.org_azure_client:
+            logger.info("   Creating Organization Azure OpenAI client...")
             self.org_azure_client = create_org_azure_client(self.org_azure_config)
+            logger.info("   ✅ Client created")
         
         # Add system message if provided
         if system_message:
             messages = [SystemMessage(content=system_message)] + messages
         
+        logger.info(f"   Sending {len(messages)} messages to Azure OpenAI")
+        
         # Call organization's Azure OpenAI
         response = await self.org_azure_client.ainvoke(messages)
+        
+        logger.info("   ✅ Response received")
         
         return response
     
