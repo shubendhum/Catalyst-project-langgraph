@@ -27,6 +27,17 @@ const ChatInterface = () => {
     aws_region: 'us-east-1',
     aws_endpoint_url: '',
     bedrock_model_id: 'anthropic.claude-3-sonnet-20240229-v1:0',
+    // Organization Azure OpenAI (OAuth2)
+    org_azure_base_url: '',
+    org_azure_deployment: '',
+    org_azure_api_version: '2024-02-15-preview',
+    org_azure_subscription_key: '',
+    oauth_auth_url: '',
+    oauth_token_url: '',
+    oauth_client_id: '',
+    oauth_client_secret: '',
+    oauth_redirect_uri: 'http://localhost:8001/api/auth/oauth/callback',
+    oauth_scopes: '',
     emergent_key_available: false
   });
 
