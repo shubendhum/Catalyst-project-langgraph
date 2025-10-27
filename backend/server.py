@@ -952,21 +952,34 @@ async def get_llm_config():
     emergent_key = os.getenv("EMERGENT_LLM_KEY")
     
     if _llm_config is None:
-        # Initialize with Emergent LLM key if available
-        if emergent_key:
-            _llm_config = {
-                "provider": "emergent",
-                "model": "claude-3-7-sonnet-20250219",
-                "api_key": None,
-                "aws_config": None
-            }
-        else:
-            _llm_config = {
-                "provider": os.getenv("DEFAULT_LLM_PROVIDER", "emergent"),
-                "model": os.getenv("DEFAULT_LLM_MODEL", "claude-3-7-sonnet-20250219"),
-                "api_key": None,
-                "aws_config": None
-            }
+        # Try to load from database first
+        try:
+            stored_config = await db.config.find_one({"_id": "llm_config"})
+            if stored_config:
+                stored_config.pop("_id", None)
+                stored_config.pop("updated_at", None)
+                _llm_config = stored_config
+                logger.info("✅ Loaded LLM config from database")
+                logger.info(f"   Provider: {_llm_config.get('provider')}")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not load config from database: {e}")
+        
+        # If still None, initialize with defaults
+        if _llm_config is None:
+            if emergent_key:
+                _llm_config = {
+                    "provider": "emergent",
+                    "model": "claude-3-7-sonnet-20250219",
+                    "api_key": None,
+                    "aws_config": None
+                }
+            else:
+                _llm_config = {
+                    "provider": os.getenv("DEFAULT_LLM_PROVIDER", "emergent"),
+                    "model": os.getenv("DEFAULT_LLM_MODEL", "claude-3-7-sonnet-20250219"),
+                    "api_key": None,
+                    "aws_config": None
+                }
     
     # Transform backend format to frontend format
     safe_config = _llm_config.copy()
@@ -995,6 +1008,36 @@ async def get_llm_config():
         safe_config["anthropic_api_key"] = "***"
     else:
         safe_config["anthropic_api_key"] = ""
+    
+    # Handle Organization Azure OpenAI config
+    if safe_config.get("org_azure_config"):
+        org_config = safe_config.pop("org_azure_config")
+        safe_config["org_azure_base_url"] = org_config.get("base_url", "")
+        safe_config["org_azure_deployment"] = org_config.get("deployment", "")
+        safe_config["org_azure_api_version"] = org_config.get("api_version", "2024-02-15-preview")
+        safe_config["org_azure_subscription_key"] = "***" if org_config.get("subscription_key") else ""
+        
+        oauth_config = org_config.get("oauth_config", {})
+        safe_config["oauth_auth_url"] = oauth_config.get("auth_url", "")
+        safe_config["oauth_token_url"] = oauth_config.get("token_url", "")
+        safe_config["oauth_client_id"] = oauth_config.get("client_id", "")
+        safe_config["oauth_client_secret"] = "***" if oauth_config.get("client_secret") else ""
+        safe_config["oauth_redirect_uri"] = oauth_config.get("redirect_uri", "http://localhost:8001/api/auth/oauth/callback")
+        safe_config["oauth_scopes"] = oauth_config.get("scopes", "")
+        safe_config["oauth_authenticated"] = False  # Will be updated by OAuth status
+    else:
+        # Initialize empty Organization Azure OpenAI fields
+        safe_config["org_azure_base_url"] = ""
+        safe_config["org_azure_deployment"] = ""
+        safe_config["org_azure_api_version"] = "2024-02-15-preview"
+        safe_config["org_azure_subscription_key"] = ""
+        safe_config["oauth_auth_url"] = ""
+        safe_config["oauth_token_url"] = ""
+        safe_config["oauth_client_id"] = ""
+        safe_config["oauth_client_secret"] = ""
+        safe_config["oauth_redirect_uri"] = "http://localhost:8001/api/auth/oauth/callback"
+        safe_config["oauth_scopes"] = ""
+        safe_config["oauth_authenticated"] = False
     
     # Don't expose the internal api_key field
     if "api_key" in safe_config:
