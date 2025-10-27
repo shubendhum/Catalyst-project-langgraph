@@ -171,6 +171,88 @@ const ChatInterface = () => {
     }
   };
 
+  const startDeviceCodeFlow = async () => {
+    try {
+      setIsAuthenticating(true);
+      addSystemMessage('🔐 Starting device code authentication...');
+      
+      // Start device code flow
+      const response = await axios.post(`${BACKEND_URL}/api/auth/device/start`, {
+        device_code_url: llmConfig.oauth_token_url.replace('/token', '/devicecode'), // Azure specific
+        token_url: llmConfig.oauth_token_url,
+        client_id: llmConfig.oauth_client_id,
+        client_secret: llmConfig.oauth_client_secret,
+        scopes: llmConfig.oauth_scopes
+      });
+      
+      if (!response.data.success) {
+        addSystemMessage(`❌ Failed to start authentication: ${response.data.error}`);
+        setIsAuthenticating(false);
+        return;
+      }
+      
+      const { session_id, user_code, verification_uri, verification_uri_complete, interval } = response.data;
+      
+      // Store device code info
+      setDeviceCode({
+        session_id,
+        user_code,
+        verification_uri,
+        verification_uri_complete
+      });
+      
+      // Show instructions to user
+      addSystemMessage(`
+🔑 Authentication Required:
+
+1. Visit: ${verification_uri_complete || verification_uri}
+2. ${verification_uri_complete ? 'Complete' : `Enter code: ${user_code}`} the authentication
+3. Return here - we'll detect when you're done!
+
+This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
+      `.trim());
+      
+      // Start polling for authentication
+      const pollInterval = setInterval(async () => {
+        try {
+          const pollResponse = await axios.get(`${BACKEND_URL}/api/auth/device/poll?session_id=${session_id}`);
+          
+          if (pollResponse.data.status === 'authorized') {
+            clearInterval(pollInterval);
+            setIsAuthenticating(false);
+            setDeviceCode(null);
+            setLlmConfig({...llmConfig, oauth_authenticated: true});
+            addSystemMessage('✅ OAuth2 authentication successful!');
+          } else if (pollResponse.data.status === 'error') {
+            clearInterval(pollInterval);
+            setIsAuthenticating(false);
+            setDeviceCode(null);
+            addSystemMessage(`❌ Authentication failed: ${pollResponse.data.error}`);
+          }
+          // else status is 'pending', keep polling
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }, (interval || 5) * 1000); // Poll at the interval specified by Azure
+      
+      // Stop polling after 15 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (isAuthenticating) {
+          setIsAuthenticating(false);
+          setDeviceCode(null);
+          addSystemMessage('⏱️ Authentication timed out. Please try again.');
+        }
+      }, 900000); // 15 minutes
+      
+    } catch (error) {
+      console.error('Error starting device code flow:', error);
+      setIsAuthenticating(false);
+      setDeviceCode(null);
+      addSystemMessage('Error starting device code authentication.');
+    }
+  };
+
   const startOAuthFlow = async () => {
     try {
       setIsAuthenticating(true);
