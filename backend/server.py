@@ -666,7 +666,9 @@ async def get_backend_logs(minutes: int = 5, limit: int = 1000):
                                 "message": line,
                                 "timestamp": datetime.now(timezone.utc).isoformat()
                             })
-                logger.info(f"Read {len(lines)} lines from {log_file}")
+                    logger.info(f"Read {len(lines)} lines from {log_file}")
+                else:
+                    logger.warning(f"Failed to read {log_file}: return code {result.returncode}")
             except Exception as e:
                 logger.error(f"Error reading {log_file}: {str(e)}")
                 continue
