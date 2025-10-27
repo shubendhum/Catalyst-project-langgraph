@@ -176,14 +176,26 @@ const ChatInterface = () => {
       setIsAuthenticating(true);
       addSystemMessage('🔐 Starting device code authentication...');
       
+      // Calculate device code URL
+      const deviceCodeUrl = llmConfig.oauth_token_url.replace('/token', '/devicecode');
+      
+      console.log('Device Code Flow Request:', {
+        device_code_url: deviceCodeUrl,
+        token_url: llmConfig.oauth_token_url,
+        client_id: llmConfig.oauth_client_id,
+        scopes: llmConfig.oauth_scopes
+      });
+      
       // Start device code flow
       const response = await axios.post(`${BACKEND_URL}/api/auth/device/start`, {
-        device_code_url: llmConfig.oauth_token_url.replace('/token', '/devicecode'), // Azure specific
+        device_code_url: deviceCodeUrl,
         token_url: llmConfig.oauth_token_url,
         client_id: llmConfig.oauth_client_id,
         client_secret: llmConfig.oauth_client_secret,
         scopes: llmConfig.oauth_scopes
       });
+      
+      console.log('Device Code Flow Response:', response.data);
       
       if (!response.data.success) {
         addSystemMessage(`❌ Failed to start authentication: ${response.data.error}`);
