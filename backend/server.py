@@ -275,8 +275,13 @@ async def oauth_callback(code: str, state: str):
     from services.oauth2_service import get_oauth2_service
     
     try:
+        logger.info("🔐 OAuth2 callback received")
+        logger.info(f"   State: {state}")
+        logger.info(f"   Code: {code[:20]}...")
+        
         # Verify state
         if state not in oauth_states:
+            logger.error(f"❌ Invalid state parameter: {state}")
             return {"error": "Invalid state parameter"}
         
         oauth_service = get_oauth2_service()
@@ -291,6 +296,8 @@ async def oauth_callback(code: str, state: str):
         
         oauth_states[state]["authenticated"] = True
         oauth_states[state]["code"] = code
+        
+        logger.info(f"✅ OAuth2 callback processed successfully")
         
         # Return success page
         return """
@@ -311,7 +318,7 @@ async def oauth_callback(code: str, state: str):
         """
         
     except Exception as e:
-        logger.error(f"OAuth callback error: {e}")
+        logger.error(f"❌ OAuth callback error: {e}", exc_info=True)
         oauth_states[state]["authenticated"] = False
         oauth_states[state]["error"] = str(e)
         
