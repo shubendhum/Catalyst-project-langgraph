@@ -188,7 +188,12 @@ def create_org_azure_client(config: Dict) -> OrganizationAzureOpenAIClient:
     Factory function to create Organization Azure OpenAI client
     
     Args:
-        config: Configuration dict with all required fields
+        config: Configuration dict with required fields:
+               - base_url: API base URL
+               - deployment: Deployment name (already configured with model in Azure)
+               - api_version: API version
+               - subscription_key: Subscription key for API
+               - oauth_config: OAuth2 configuration
         
     Returns:
         OrganizationAzureOpenAIClient instance
@@ -198,6 +203,5 @@ def create_org_azure_client(config: Dict) -> OrganizationAzureOpenAIClient:
         deployment=config["deployment"],
         api_version=config["api_version"],
         subscription_key=config["subscription_key"],
-        oauth_config=config["oauth_config"],
-        model=config.get("model", "gpt-4")
+        oauth_config=config["oauth_config"]
     )
