@@ -95,10 +95,14 @@ class EventPublisher:
         """Save event to Postgres for audit trail"""
         try:
             import asyncpg
+            import json
             from config.environment import get_config
             
             postgres_url = get_config()["databases"]["postgres"]["url"]
             conn = await asyncpg.connect(postgres_url)
+            
+            # Convert payload dict to JSON string
+            payload_json = json.dumps(event.payload) if isinstance(event.payload, dict) else str(event.payload)
             
             await conn.execute("""
                 INSERT INTO agent_events (trace_id, task_id, actor, event_type, routing_key, payload, created_at)
@@ -109,7 +113,7 @@ class EventPublisher:
                 event.actor,
                 event.event_type,
                 event.to_routing_key(),
-                event.payload,
+                payload_json,  # Now a JSON string instead of dict
                 event.timestamp
             )
             
