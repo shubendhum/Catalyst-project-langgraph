@@ -136,6 +136,13 @@ class ExplorerScanCreate(BaseModel):
     repo_url: Optional[str] = None
     jira_project: Optional[str] = None
 
+class OAuthStartRequest(BaseModel):
+    """OAuth2 authorization flow start request"""
+    auth_url: str
+    client_id: str
+    redirect_uri: str
+    scopes: str
+
 # Routes
 @api_router.get("/")
 async def root():
