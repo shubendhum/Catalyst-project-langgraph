@@ -38,7 +38,7 @@ RUN yarn config set registry https://registry.npmjs.org/ && \
     yarn config list
 
 # Copy package files from frontend directory
-COPY package.json yarn.lock ./
+COPY frontend/package.json frontend/yarn.lock ./
 
 # Verify files are present
 RUN echo "Checking package files:" && \
