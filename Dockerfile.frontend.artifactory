@@ -63,25 +63,25 @@ RUN echo "================================================" && \
     echo "================================================" && \
     echo "Starting yarn install (this may take 2-3 minutes)..." && \
     echo "If this hangs, it's likely a network/Artifactory npm proxy issue" && \
-    timeout 600 yarn install \
+    yarn install \
     --network-timeout 600000 \
     --network-concurrency 1 \
-    --verbose 2>&1 | tee /tmp/yarn-install.log || \
-    (echo "YARN INSTALL FAILED OR TIMED OUT" && \
-     echo "Last 50 lines of output:" && \
-     tail -50 /tmp/yarn-install.log && \
-     exit 1) && \
+    --verbose 2>&1 | tee /tmp/yarn-install.log && \
     echo "================================================" && \
     echo "DIAGNOSTIC: Yarn install completed!" && \
     echo "End time: $(date)" && \
-    echo "Installed packages:" && \
-    ls -la node_modules/ | head -20 && \
-    echo "Total packages: $(ls node_modules/ | wc -l)" && \
-    echo "================================================" && \
-    echo "Checking node_modules directory:" && \
-    ls -la node_modules/ | head -20 && \
-    echo "Checking node_modules/.bin directory:" && \
-    ls -la node_modules/.bin/ | head -20
+    echo "Checking if node_modules was created:" && \
+    if [ -d node_modules ]; then \
+        echo "node_modules directory exists"; \
+        echo "Total packages: $(ls node_modules/ 2>/dev/null | wc -l)"; \
+        ls -la node_modules/ | head -20; \
+    else \
+        echo "ERROR: node_modules directory was NOT created!"; \
+        echo "Yarn install log:"; \
+        cat /tmp/yarn-install.log; \
+        exit 1; \
+    fi && \
+    echo "================================================"
 
 # Verify dependencies installed
 RUN echo "=== Verifying installed packages ===" && \
