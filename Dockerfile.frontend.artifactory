@@ -41,21 +41,23 @@ RUN yarn config set registry https://registry.npmjs.org/ && \
 COPY package.json ./
 COPY yarn.lock* ./
 
-# Verify package.json is present
-RUN echo "Checking package files:" && \
-    ls -la package.json && \
-    echo "Package.json content preview:" && \
-    head -20 package.json
-
 # Install dependencies with increased timeout
-# SSL verification disabled via config (strict-ssl false)
-# NOTE: Install production + dev dependencies (craco is in devDependencies)
-# Removed --frozen-lockfile to allow yarn to regenerate if needed
+# Works with or without yarn.lock
 RUN echo "Starting yarn install..." && \
-    yarn install \
-    --network-timeout 600000 \
-    --network-concurrency 1 \
-    --verbose && \
+    if [ -f yarn.lock ]; then \
+        echo "yarn.lock found - using frozen lockfile" && \
+        yarn install \
+        --frozen-lockfile \
+        --network-timeout 600000 \
+        --network-concurrency 1 \
+        --verbose; \
+    else \
+        echo "yarn.lock not found - generating new lockfile" && \
+        yarn install \
+        --network-timeout 600000 \
+        --network-concurrency 1 \
+        --verbose; \
+    fi && \
     echo "Yarn install completed successfully" && \
     echo "Checking node_modules directory:" && \
     ls -la node_modules/ | head -20 && \
