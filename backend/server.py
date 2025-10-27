@@ -824,13 +824,6 @@ class ConversationResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-class OAuthStartRequest(BaseModel):
-    """OAuth2 authorization flow start request"""
-    auth_url: str
-    client_id: str
-    redirect_uri: str
-    scopes: str
-
 # Initialize global chat interface and orchestrator
 # These will be initialized on first use
 _chat_interface = None
