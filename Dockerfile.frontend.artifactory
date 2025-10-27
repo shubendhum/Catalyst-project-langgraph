@@ -52,23 +52,31 @@ RUN echo "================================================" && \
     echo "================================================"
 
 # Install dependencies with increased timeout
-# Removed yarn.lock to avoid frozen-lockfile issues
+# Added timeout mechanism and better error handling
 RUN echo "================================================" && \
     echo "DIAGNOSTIC: Starting yarn install" && \
     echo "Current time: $(date)" && \
     echo "Network config:" && \
     yarn config list | grep registry && \
+    echo "Testing network connectivity:" && \
+    ping -c 3 registry.npmjs.org || echo "WARNING: Cannot ping npmjs.org" && \
     echo "================================================" && \
     echo "Starting yarn install (this may take 2-3 minutes)..." && \
-    yarn install \
+    echo "If this hangs, it's likely a network/Artifactory npm proxy issue" && \
+    timeout 600 yarn install \
     --network-timeout 600000 \
     --network-concurrency 1 \
-    --verbose 2>&1 | tee /tmp/yarn-install.log && \
+    --verbose 2>&1 | tee /tmp/yarn-install.log || \
+    (echo "YARN INSTALL FAILED OR TIMED OUT" && \
+     echo "Last 50 lines of output:" && \
+     tail -50 /tmp/yarn-install.log && \
+     exit 1) && \
     echo "================================================" && \
     echo "DIAGNOSTIC: Yarn install completed!" && \
     echo "End time: $(date)" && \
     echo "Installed packages:" && \
     ls -la node_modules/ | head -20 && \
+    echo "Total packages: $(ls node_modules/ | wc -l)" && \
     echo "================================================" && \
     echo "Checking node_modules directory:" && \
     ls -la node_modules/ | head -20 && \
