@@ -85,7 +85,11 @@ class OrganizationOAuth2Service:
         Get token using client credentials flow (server-to-server)
         """
         try:
-            async with httpx.AsyncClient() as client:
+            logger.info(f"🔐 OAuth2: Requesting token from {token_url}")
+            logger.info(f"   Client ID: {client_id[:10]}...")
+            logger.info(f"   Scopes: {scopes}")
+            
+            async with httpx.AsyncClient(verify=False) as client:  # Disable SSL verification
                 response = await client.post(
                     token_url,
                     data={
@@ -97,16 +101,20 @@ class OrganizationOAuth2Service:
                     headers={"Content-Type": "application/x-www-form-urlencoded"}
                 )
                 
+                logger.info(f"   Response status: {response.status_code}")
+                
                 if response.status_code == 200:
                     token_data = response.json()
                     logger.info("✅ Access token acquired via OAuth2")
+                    logger.info(f"   Expires in: {token_data.get('expires_in', 'unknown')}s")
                     return token_data
                 else:
-                    logger.error(f"OAuth2 token request failed: {response.status_code} - {response.text}")
+                    logger.error(f"❌ OAuth2 token request failed: {response.status_code}")
+                    logger.error(f"   Response: {response.text}")
                     return None
                     
         except Exception as e:
-            logger.error(f"OAuth2 flow failed: {e}")
+            logger.error(f"❌ OAuth2 flow failed: {e}", exc_info=True)
             return None
     
     async def get_authorization_url(
