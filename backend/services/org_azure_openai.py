@@ -94,7 +94,7 @@ class OrganizationAzureOpenAIClient:
         body = {
             "messages": openai_messages,
             "temperature": kwargs.get("temperature", 0.7),
-            "max_tokens": kwargs.get("max_tokens", 2000),
+            "max_completion_tokens": kwargs.get("max_tokens", 2000),  # Updated for newer Azure OpenAI API
             "stream": False
         }
         
