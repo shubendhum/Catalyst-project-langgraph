@@ -421,6 +421,118 @@ const ChatInterface = () => {
                 </>
               )}
 
+              {llmConfig.provider === 'org_azure' && (
+                <>
+                  <div style={{ padding: '12px', backgroundColor: '#eff6ff', border: '1px solid #3b82f6', borderRadius: '6px', marginBottom: '16px' }}>
+                    <strong style={{ color: '#1e40af' }}>Organization Azure OpenAI with OAuth2</strong>
+                    <p style={{ fontSize: '13px', color: '#1e40af', margin: '4px 0 0 0' }}>
+                      Automatic authentication via OAuth2. Token managed automatically.
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label>Base URL</Label>
+                    <Input 
+                      value={llmConfig.org_azure_base_url}
+                      onChange={(e) => setLlmConfig({...llmConfig, org_azure_base_url: e.target.value})}
+                      placeholder="https://api.macquarie.com"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Deployment Name</Label>
+                    <Input 
+                      value={llmConfig.org_azure_deployment}
+                      onChange={(e) => setLlmConfig({...llmConfig, org_azure_deployment: e.target.value})}
+                      placeholder="gpt-4 or gpt-35-turbo"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>API Version</Label>
+                    <Input 
+                      value={llmConfig.org_azure_api_version}
+                      onChange={(e) => setLlmConfig({...llmConfig, org_azure_api_version: e.target.value})}
+                      placeholder="2024-02-15-preview"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Subscription Key (Ocp-Apim-Subscription-Key)</Label>
+                    <Input 
+                      type="password"
+                      value={llmConfig.org_azure_subscription_key}
+                      onChange={(e) => setLlmConfig({...llmConfig, org_azure_subscription_key: e.target.value})}
+                      placeholder="Your subscription key"
+                    />
+                  </div>
+
+                  <hr style={{ margin: '16px 0', borderColor: '#e5e7eb' }} />
+
+                  <div style={{ marginBottom: '8px' }}>
+                    <strong style={{ fontSize: '14px', color: '#374151' }}>OAuth2 Configuration</strong>
+                  </div>
+
+                  <div>
+                    <Label>Authorization URL</Label>
+                    <Input 
+                      value={llmConfig.oauth_auth_url}
+                      onChange={(e) => setLlmConfig({...llmConfig, oauth_auth_url: e.target.value})}
+                      placeholder="https://login.microsoftonline.com/.../oauth2/v2.0/authorize"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Token URL</Label>
+                    <Input 
+                      value={llmConfig.oauth_token_url}
+                      onChange={(e) => setLlmConfig({...llmConfig, oauth_token_url: e.target.value})}
+                      placeholder="https://login.microsoftonline.com/.../oauth2/v2.0/token"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Client ID</Label>
+                    <Input 
+                      value={llmConfig.oauth_client_id}
+                      onChange={(e) => setLlmConfig({...llmConfig, oauth_client_id: e.target.value})}
+                      placeholder="Your OAuth2 client ID"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Client Secret</Label>
+                    <Input 
+                      type="password"
+                      value={llmConfig.oauth_client_secret}
+                      onChange={(e) => setLlmConfig({...llmConfig, oauth_client_secret: e.target.value})}
+                      placeholder="Your OAuth2 client secret"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Scopes (space-separated)</Label>
+                    <Input 
+                      value={llmConfig.oauth_scopes}
+                      onChange={(e) => setLlmConfig({...llmConfig, oauth_scopes: e.target.value})}
+                      placeholder="api://xxx/.default"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Redirect URI</Label>
+                    <Input 
+                      value={llmConfig.oauth_redirect_uri}
+                      onChange={(e) => setLlmConfig({...llmConfig, oauth_redirect_uri: e.target.value})}
+                      placeholder="http://localhost:8001/api/auth/oauth/callback"
+                    />
+                    <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                      Must match redirect URI configured in OAuth2 app
+                    </p>
+                  </div>
+                </>
+              )}
+
               <Button onClick={saveLLMConfig} className="btn-primary" style={{ marginTop: '8px' }}>
                 Save Configuration
               </Button>
