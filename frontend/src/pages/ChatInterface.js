@@ -719,9 +719,35 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
                               Authenticating...
                             </>
                           ) : (
-                            '🔐 Authenticate with Organization'
+                            '🔐 Start Device Code Authentication'
                           )}
                         </Button>
+                        
+                        {deviceCode && (
+                          <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#eff6ff', border: '1px solid #3b82f6', borderRadius: '6px' }}>
+                            <strong style={{ color: '#1e40af', display: 'block', marginBottom: '8px' }}>
+                              📋 Follow these steps:
+                            </strong>
+                            <ol style={{ margin: '0', paddingLeft: '20px', color: '#1e40af', fontSize: '13px' }}>
+                              <li style={{ marginBottom: '4px' }}>
+                                Visit: <a href={deviceCode.verification_uri_complete || deviceCode.verification_uri} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                                  {deviceCode.verification_uri}
+                                </a>
+                              </li>
+                              {!deviceCode.verification_uri_complete && (
+                                <li style={{ marginBottom: '4px' }}>
+                                  Enter code: <strong style={{ backgroundColor: '#dbeafe', padding: '2px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                                    {deviceCode.user_code}
+                                  </strong>
+                                </li>
+                              )}
+                              <li>Complete authentication and return here</li>
+                            </ol>
+                            <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px', marginBottom: '0' }}>
+                              ⏱️ We're automatically checking for completion...
+                            </p>
+                          </div>
+                        )}
                       </>
                     )}
                     {llmConfig.oauth_authenticated && (
