@@ -85,11 +85,13 @@ class OrganizationAzureOpenAIClient:
         # Prepare request
         headers = {
             "Authorization": f"Bearer {access_token}",
-            "Ocp-Apim-Subscription-Key": self.subscription_key,
+            "x-subscription-key": self.subscription_key,  # Changed from Ocp-Apim-Subscription-Key
             "x-correlation-id": correlation_id,
             "Accept": "application/json",
             "Content-Type": "application/json"
         }
+        
+        logger.info(f"🔑 Request headers: Authorization=Bearer *****, x-subscription-key=*****, x-correlation-id={correlation_id}")
         
         body = {
             "messages": openai_messages,
