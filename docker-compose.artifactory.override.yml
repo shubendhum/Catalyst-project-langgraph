@@ -1,0 +1,31 @@
+# Override file for local Docker Desktop
+# This removes any custom runtime requirements
+version: '3.8'
+
+services:
+  backend:
+    runtime: runc
+  
+  frontend:
+    runtime: runc
+  
+  mongodb:
+    runtime: runc
+  
+  postgres:
+    runtime: runc
+  
+  redis:
+    runtime: runc
+  
+  qdrant:
+    runtime: runc
+  
+  rabbitmq:
+    runtime: runc
+  
+  langfuse-db:
+    runtime: runc
+  
+  langfuse:
+    runtime: runc
