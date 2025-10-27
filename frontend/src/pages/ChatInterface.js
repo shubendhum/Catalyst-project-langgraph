@@ -170,6 +170,74 @@ const ChatInterface = () => {
     }
   };
 
+  const startOAuthFlow = async () => {
+    try {
+      setIsAuthenticating(true);
+      
+      // Get authorization URL from backend
+      const response = await axios.post(`${BACKEND_URL}/api/auth/oauth/start`, {
+        auth_url: llmConfig.oauth_auth_url,
+        client_id: llmConfig.oauth_client_id,
+        redirect_uri: llmConfig.oauth_redirect_uri,
+        scopes: llmConfig.oauth_scopes
+      });
+      
+      const authUrl = response.data.authorization_url;
+      const state = response.data.state;
+      
+      // Open auth URL in popup
+      const width = 600;
+      const height = 700;
+      const left = (window.screen.width - width) / 2;
+      const top = (window.screen.height - height) / 2;
+      
+      const authWindow = window.open(
+        authUrl,
+        'OAuth2 Authentication',
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+      
+      // Poll for auth completion
+      const checkAuth = setInterval(async () => {
+        try {
+          const statusResponse = await axios.get(`${BACKEND_URL}/api/auth/oauth/status?state=${state}`);
+          
+          if (statusResponse.data.authenticated) {
+            clearInterval(checkAuth);
+            setIsAuthenticating(false);
+            setLlmConfig({...llmConfig, oauth_authenticated: true});
+            addSystemMessage('✅ OAuth2 authentication successful!');
+            
+            if (authWindow && !authWindow.closed) {
+              authWindow.close();
+            }
+          } else if (statusResponse.data.error) {
+            clearInterval(checkAuth);
+            setIsAuthenticating(false);
+            addSystemMessage(`❌ OAuth2 authentication failed: ${statusResponse.data.error}`);
+            
+            if (authWindow && !authWindow.closed) {
+              authWindow.close();
+            }
+          }
+        } catch (err) {
+          // Continue polling
+        }
+      }, 1000);
+      
+      // Stop polling after 5 minutes
+      setTimeout(() => {
+        clearInterval(checkAuth);
+        setIsAuthenticating(false);
+      }, 300000);
+      
+    } catch (error) {
+      console.error('Error starting OAuth flow:', error);
+      setIsAuthenticating(false);
+      addSystemMessage('Error starting OAuth2 authentication.');
+    }
+  };
+
   const addSystemMessage = (content) => {
     setMessages(prev => [...prev, {
       role: 'system',
