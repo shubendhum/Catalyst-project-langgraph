@@ -143,6 +143,14 @@ class OAuthStartRequest(BaseModel):
     redirect_uri: str
     scopes: str
 
+class DeviceCodeStartRequest(BaseModel):
+    """OAuth2 device code flow start request"""
+    device_code_url: str
+    token_url: str
+    client_id: str
+    client_secret: str
+    scopes: str
+
 # Routes
 @api_router.get("/")
 async def root():
