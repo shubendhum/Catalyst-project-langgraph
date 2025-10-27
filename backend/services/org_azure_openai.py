@@ -95,7 +95,7 @@ class OrganizationAzureOpenAIClient:
         body = {
             "messages": openai_messages,
             "max_completion_tokens": kwargs.get("max_tokens", 2000),  # Updated for newer Azure OpenAI API
-            "stream": True  # Enable streaming for real-time responses
+            "stream": False  # Temporarily disable streaming to debug
         }
         
         logger.info(f"🔐 Calling Azure OpenAI (correlation: {correlation_id[:8]}...)")
