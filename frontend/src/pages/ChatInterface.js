@@ -261,7 +261,20 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
       console.error('Error starting device code flow:', error);
       setIsAuthenticating(false);
       setDeviceCode(null);
-      addSystemMessage('Error starting device code authentication.');
+      
+      let errorMessage = 'Error starting device code authentication.';
+      if (error.response) {
+        errorMessage += ` Server responded with: ${error.response.status} ${error.response.statusText}`;
+        if (error.response.data && error.response.data.error) {
+          errorMessage += ` - ${error.response.data.error}`;
+        }
+      } else if (error.request) {
+        errorMessage += ' No response from server.';
+      } else {
+        errorMessage += ` ${error.message}`;
+      }
+      
+      addSystemMessage(`❌ ${errorMessage}`);
     }
   };
 
