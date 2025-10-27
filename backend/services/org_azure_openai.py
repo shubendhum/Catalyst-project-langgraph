@@ -25,8 +25,7 @@ class OrganizationAzureOpenAIClient:
         deployment: str,
         api_version: str,
         subscription_key: str,
-        oauth_config: Dict,
-        model: str = "gpt-4"
+        oauth_config: Dict
     ):
         """
         Initialize organization's Azure OpenAI client
@@ -34,17 +33,16 @@ class OrganizationAzureOpenAIClient:
         Args:
             base_url: Base path (e.g., https://api.macquarie.com)
             deployment: Deployment name (e.g., gpt-4, gpt-35-turbo)
+                       This deployment is already configured with a model in Azure
             api_version: API version (e.g., 2024-02-15-preview)
-            subscription_key: Ocp-Apim-Subscription-Key
+            subscription_key: x-subscription-key header value
             oauth_config: OAuth2 configuration dict
-            model: Model name for compatibility
         """
         self.base_url = base_url.rstrip('/')
         self.deployment = deployment
         self.api_version = api_version
         self.subscription_key = subscription_key
         self.oauth_config = oauth_config
-        self.model = model
         
         self.oauth_service = get_oauth2_service()
         
