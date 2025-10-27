@@ -86,6 +86,10 @@ class UnifiedLLMClient:
             self.client_type = "org_azure"
             # Will be initialized lazily when needed
             self.org_azure_client = None
+            logger.info(f"🔐 Initialized Organization Azure OpenAI client (lazy init)")
+            logger.info(f"   Config present: {bool(org_azure_config)}")
+            if org_azure_config:
+                logger.info(f"   Config keys: {list(org_azure_config.keys())}")
         else:
             raise ValueError(f"Unsupported provider: {provider}")
     
