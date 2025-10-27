@@ -40,14 +40,36 @@ RUN yarn config set registry https://registry.npmjs.org/ && \
 # Copy package files from frontend directory
 COPY package.json ./
 
+# Diagnostic logging
+RUN echo "================================================" && \
+    echo "DIAGNOSTIC: Package files copied" && \
+    echo "================================================" && \
+    ls -la && \
+    echo "" && \
+    echo "Package.json content:" && \
+    cat package.json && \
+    echo "" && \
+    echo "================================================"
+
 # Install dependencies with increased timeout
 # Removed yarn.lock to avoid frozen-lockfile issues
-RUN echo "Starting yarn install..." && \
+RUN echo "================================================" && \
+    echo "DIAGNOSTIC: Starting yarn install" && \
+    echo "Current time: $(date)" && \
+    echo "Network config:" && \
+    yarn config list | grep registry && \
+    echo "================================================" && \
+    echo "Starting yarn install (this may take 2-3 minutes)..." && \
     yarn install \
     --network-timeout 600000 \
     --network-concurrency 1 \
-    --verbose && \
-    echo "Yarn install completed successfully" && \
+    --verbose 2>&1 | tee /tmp/yarn-install.log && \
+    echo "================================================" && \
+    echo "DIAGNOSTIC: Yarn install completed!" && \
+    echo "End time: $(date)" && \
+    echo "Installed packages:" && \
+    ls -la node_modules/ | head -20 && \
+    echo "================================================" && \
     echo "Checking node_modules directory:" && \
     ls -la node_modules/ | head -20 && \
     echo "Checking node_modules/.bin directory:" && \
