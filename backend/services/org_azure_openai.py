@@ -120,12 +120,14 @@ class OrganizationAzureOpenAIClient:
                     content = data["choices"][0]["message"]["content"]
                     
                     logger.info(f"✅ Response received (correlation: {correlation_id[:8]}...)")
+                    logger.info(f"   Response length: {len(content)} chars")
                     
                     return AIMessage(content=content)
                 
                 elif response.status_code == 401:
                     # Token expired or invalid
-                    logger.warning("Access token expired or invalid, refreshing...")
+                    logger.warning("⚠️ Access token expired or invalid (401), refreshing...")
+                    logger.warning(f"   Response: {response.text}")
                     
                     # Clear cache and retry
                     self.oauth_service.clear_cache()
@@ -135,7 +137,7 @@ class OrganizationAzureOpenAIClient:
                 
                 else:
                     error_msg = f"Azure OpenAI API error: {response.status_code} - {response.text}"
-                    logger.error(error_msg)
+                    logger.error(f"❌ {error_msg}")
                     raise Exception(error_msg)
                     
         except httpx.TimeoutException:
