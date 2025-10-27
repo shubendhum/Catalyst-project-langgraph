@@ -329,6 +329,7 @@ const ChatInterface = () => {
                     <SelectItem value="emergent">Emergent (Universal Key)</SelectItem>
                     <SelectItem value="anthropic">Anthropic Claude</SelectItem>
                     <SelectItem value="bedrock">AWS Bedrock</SelectItem>
+                    <SelectItem value="org_azure">Organization Azure OpenAI (OAuth2)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
