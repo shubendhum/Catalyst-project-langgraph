@@ -221,7 +221,9 @@ class OrganizationOAuth2Service:
         Refresh access token using refresh token
         """
         try:
-            async with httpx.AsyncClient() as client:
+            logger.info(f"🔄 OAuth2: Refreshing token for {user_id}")
+            
+            async with httpx.AsyncClient(verify=False) as client:  # Disable SSL verification
                 response = await client.post(
                     token_url,
                     data={
@@ -233,6 +235,8 @@ class OrganizationOAuth2Service:
                     headers={"Content-Type": "application/x-www-form-urlencoded"}
                 )
                 
+                logger.info(f"   Response status: {response.status_code}")
+                
                 if response.status_code == 200:
                     token_data = response.json()
                     
@@ -242,11 +246,12 @@ class OrganizationOAuth2Service:
                     logger.info(f"✅ Access token refreshed for {user_id}")
                     return token_data["access_token"]
                 else:
-                    logger.error(f"Token refresh failed: {response.status_code}")
+                    logger.error(f"❌ Token refresh failed: {response.status_code}")
+                    logger.error(f"   Response: {response.text}")
                     return None
                     
         except Exception as e:
-            logger.error(f"Token refresh error: {e}")
+            logger.error(f"❌ Token refresh error: {e}", exc_info=True)
             return None
     
     def _cache_token(self, user_id: str, token_data: Dict):
