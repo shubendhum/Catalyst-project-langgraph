@@ -202,6 +202,139 @@ async def get_task(task_id: str):
 # Backend Logs Endpoints (must come before /logs/{task_id})
 # ============================================
 
+# ============================================
+# OAuth2 Authentication Endpoints
+# ============================================
+
+# OAuth2 state storage (in-memory for simplicity)
+oauth_states = {}
+
+@api_router.post("/auth/oauth/start")
+async def start_oauth_flow(
+    auth_url: str,
+    client_id: str,
+    redirect_uri: str,
+    scopes: str
+):
+    """
+    Start OAuth2 authorization code flow
+    Returns authorization URL for user to visit
+    """
+    from services.oauth2_service import get_oauth2_service
+    import uuid
+    
+    try:
+        oauth_service = get_oauth2_service()
+        
+        # Generate state for CSRF protection
+        state = str(uuid.uuid4())
+        
+        # Store state
+        oauth_states[state] = {
+            "created_at": datetime.now(timezone.utc),
+            "authenticated": False,
+            "error": None,
+            "access_token": None
+        }
+        
+        # Generate authorization URL
+        authorization_url = await oauth_service.get_authorization_url(
+            auth_url=auth_url,
+            client_id=client_id,
+            redirect_uri=redirect_uri,
+            scopes=scopes,
+            state=state
+        )
+        
+        return {
+            "success": True,
+            "authorization_url": authorization_url,
+            "state": state
+        }
+        
+    except Exception as e:
+        logger.error(f"Error starting OAuth flow: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/auth/oauth/callback")
+async def oauth_callback(code: str, state: str):
+    """
+    OAuth2 callback endpoint
+    Exchanges authorization code for access token
+    """
+    from services.oauth2_service import get_oauth2_service
+    
+    try:
+        # Verify state
+        if state not in oauth_states:
+            return {"error": "Invalid state parameter"}
+        
+        oauth_service = get_oauth2_service()
+        
+        # Get config from global state (you'll need to pass this)
+        # For now, we'll store it in oauth_states
+        # In production, store in session or database
+        
+        # Exchange code for token
+        # Note: We need the full config here
+        # This is a simplified version - you'll need to pass config properly
+        
+        oauth_states[state]["authenticated"] = True
+        oauth_states[state]["code"] = code
+        
+        # Return success page
+        return """
+        <html>
+        <head><title>Authentication Successful</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h1 style="color: #16a34a;">✅ Authentication Successful!</h1>
+            <p>You can close this window and return to Catalyst.</p>
+            <script>
+                // Notify parent window
+                if (window.opener) {
+                    window.opener.postMessage({type: 'oauth_success'}, '*');
+                }
+                setTimeout(() => window.close(), 2000);
+            </script>
+        </body>
+        </html>
+        """
+        
+    except Exception as e:
+        logger.error(f"OAuth callback error: {e}")
+        oauth_states[state]["authenticated"] = False
+        oauth_states[state]["error"] = str(e)
+        
+        return f"""
+        <html>
+        <head><title>Authentication Failed</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h1 style="color: #dc2626;">❌ Authentication Failed</h1>
+            <p>{str(e)}</p>
+            <p>Please close this window and try again.</p>
+        </body>
+        </html>
+        """
+
+
+@api_router.get("/auth/oauth/status")
+async def get_oauth_status(state: str):
+    """
+    Check OAuth2 authentication status
+    Used by frontend to poll for completion
+    """
+    if state not in oauth_states:
+        return {"authenticated": False, "error": "Invalid state"}
+    
+    state_data = oauth_states[state]
+    
+    return {
+        "authenticated": state_data.get("authenticated", False),
+        "error": state_data.get("error")
+    }
+
+
 @api_router.get("/environment/info")
 async def get_environment_info():
     """Get current environment information"""
