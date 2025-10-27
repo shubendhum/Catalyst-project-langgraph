@@ -470,19 +470,35 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
   };
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#0f172a' }}>
-      {/* Header */}
+    <>
+      <ConversationSidebar 
+        currentConversationId={conversationId}
+        onSelectConversation={handleSelectConversation}
+        onNewConversation={startNewConversation}
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+      
       <div style={{ 
-        padding: '16px 24px', 
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
+        height: '100vh', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        background: '#0f172a',
+        marginLeft: isSidebarOpen ? '280px' : '0',
+        transition: 'margin-left 0.3s ease'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Bot size={32} style={{ color: '#63b3ed' }} />
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#fff' }}>Catalyst AI</h1>
+        {/* Header */}
+        <div style={{ 
+          padding: '16px 24px', 
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Bot size={32} style={{ color: '#63b3ed' }} />
+            <div>
+              <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#fff' }}>Catalyst AI</h1>
             <p style={{ fontSize: '12px', color: '#94a3b8' }}>Multi-Agent Development Platform</p>
           </div>
         </div>
