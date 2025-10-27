@@ -164,6 +164,16 @@ class UnifiedLLMClient:
         
         from services.org_azure_openai import create_org_azure_client
         
+        # Validate configuration
+        if not self.org_azure_config:
+            raise ValueError("Organization Azure OpenAI configuration is missing. Please configure it in LLM Settings.")
+        
+        required_fields = ["base_url", "deployment", "api_version", "subscription_key", "oauth_config"]
+        missing_fields = [field for field in required_fields if field not in self.org_azure_config]
+        
+        if missing_fields:
+            raise ValueError(f"Organization Azure OpenAI configuration is incomplete. Missing fields: {', '.join(missing_fields)}")
+        
         # Initialize client if not already done
         if not self.org_azure_client:
             self.org_azure_client = create_org_azure_client(self.org_azure_config)
