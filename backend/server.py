@@ -886,6 +886,8 @@ async def set_llm_config(config: LLMConfig):
     
     elif config_dict.get("provider") == "org_azure":
         # Handle Organization Azure OpenAI config
+        # Note: Azure OpenAI uses deployments, not models
+        # The deployment name is what matters, and it's already configured with a model in Azure
         org_azure_config = {
             "base_url": config_dict.pop("org_azure_base_url", ""),
             "deployment": config_dict.pop("org_azure_deployment", ""),
@@ -901,6 +903,7 @@ async def set_llm_config(config: LLMConfig):
             }
         }
         config_dict["org_azure_config"] = org_azure_config
+        # Don't set config_dict["model"] - deployment handles this
         logger.info(f"   Organization Azure OpenAI config saved")
         logger.info(f"      Base URL: {org_azure_config['base_url']}")
         logger.info(f"      Deployment: {org_azure_config['deployment']}")
