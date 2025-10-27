@@ -17,7 +17,6 @@ const ChatInterface = () => {
   const [activeTaskId, setActiveTaskId] = useState(null);
   const [websocket, setWebsocket] = useState(null);
   
-  // LLM Settings
   const [llmConfig, setLlmConfig] = useState({
     provider: 'emergent',
     model: 'claude-3-7-sonnet-20250219',
@@ -38,8 +37,11 @@ const ChatInterface = () => {
     oauth_client_secret: '',
     oauth_redirect_uri: 'http://localhost:8001/api/auth/oauth/callback',
     oauth_scopes: '',
-    emergent_key_available: false
+    emergent_key_available: false,
+    oauth_authenticated: false  // Track OAuth2 authentication status
   });
+
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const messagesEndRef = useRef(null);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
