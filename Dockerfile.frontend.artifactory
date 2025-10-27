@@ -39,25 +39,14 @@ RUN yarn config set registry https://registry.npmjs.org/ && \
 
 # Copy package files from frontend directory
 COPY package.json ./
-COPY yarn.lock* ./
 
 # Install dependencies with increased timeout
-# Works with or without yarn.lock
+# Removed yarn.lock to avoid frozen-lockfile issues
 RUN echo "Starting yarn install..." && \
-    if [ -f yarn.lock ]; then \
-        echo "yarn.lock found - using frozen lockfile" && \
-        yarn install \
-        --frozen-lockfile \
-        --network-timeout 600000 \
-        --network-concurrency 1 \
-        --verbose; \
-    else \
-        echo "yarn.lock not found - generating new lockfile" && \
-        yarn install \
-        --network-timeout 600000 \
-        --network-concurrency 1 \
-        --verbose; \
-    fi && \
+    yarn install \
+    --network-timeout 600000 \
+    --network-concurrency 1 \
+    --verbose && \
     echo "Yarn install completed successfully" && \
     echo "Checking node_modules directory:" && \
     ls -la node_modules/ | head -20 && \
