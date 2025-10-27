@@ -72,7 +72,7 @@ RUN echo "=== Verifying installed packages ===" && \
     fi
 
 # Copy source code
-COPY . ./
+COPY frontend/ ./
 
 # Build arguments for environment variables
 ARG REACT_APP_BACKEND_URL=http://localhost:8001
