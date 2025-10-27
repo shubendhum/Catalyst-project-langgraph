@@ -855,6 +855,9 @@ async def set_llm_config(config: LLMConfig):
     """Set LLM provider configuration"""
     global _llm_config, _chat_interface, _langgraph_orchestrator
     
+    logger.info("💾 Saving LLM configuration")
+    logger.info(f"   Provider: {config.provider}")
+    
     config_dict = config.model_dump()
     
     # Transform frontend config to backend format
@@ -873,11 +876,13 @@ async def set_llm_config(config: LLMConfig):
             config_dict["model"] = config_dict.pop("bedrock_model_id", config_dict["model"])
         
         config_dict["aws_config"] = aws_config
+        logger.info(f"   Bedrock config saved with region: {aws_config.get('region')}")
     
     elif config_dict.get("provider") == "anthropic":
         # Handle Anthropic API key
         if "anthropic_api_key" in config_dict:
             config_dict["api_key"] = config_dict.pop("anthropic_api_key", "")
+        logger.info(f"   Anthropic config saved")
     
     elif config_dict.get("provider") == "org_azure":
         # Handle Organization Azure OpenAI config
@@ -896,12 +901,25 @@ async def set_llm_config(config: LLMConfig):
             }
         }
         config_dict["org_azure_config"] = org_azure_config
+        logger.info(f"   Organization Azure OpenAI config saved")
+        logger.info(f"      Base URL: {org_azure_config['base_url']}")
+        logger.info(f"      Deployment: {org_azure_config['deployment']}")
+        logger.info(f"      API Version: {org_azure_config['api_version']}")
+        logger.info(f"      Subscription Key: {'*****' if org_azure_config['subscription_key'] else 'NOT SET'}")
+        logger.info(f"      OAuth Config:")
+        logger.info(f"         Auth URL: {org_azure_config['oauth_config']['auth_url']}")
+        logger.info(f"         Token URL: {org_azure_config['oauth_config']['token_url']}")
+        logger.info(f"         Client ID: {org_azure_config['oauth_config']['client_id'][:10]}...")
+        logger.info(f"         Scopes: {org_azure_config['oauth_config']['scopes']}")
     
     _llm_config = config_dict
     
     # Reset chat interface to use new config
     _chat_interface = None
     _langgraph_orchestrator = None
+    
+    logger.info("✅ LLM configuration saved successfully")
+    logger.info(f"   Config keys: {list(_llm_config.keys())}")
     
     return {"status": "success", "message": "LLM configuration updated", "config": _llm_config}
 
