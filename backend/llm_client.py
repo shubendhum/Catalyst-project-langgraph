@@ -3,6 +3,7 @@ Unified LLM client supporting Emergent LLM Key and custom provider keys
 """
 
 import os
+import logging
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -12,6 +13,8 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, System
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 class UnifiedLLMClient:
