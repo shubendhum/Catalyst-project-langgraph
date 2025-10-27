@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from '../components/ui/label';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import ConversationSidebar from '../components/ConversationSidebar';
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
@@ -16,6 +17,7 @@ const ChatInterface = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState(null);
   const [websocket, setWebsocket] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const [llmConfig, setLlmConfig] = useState({
     provider: 'emergent',
