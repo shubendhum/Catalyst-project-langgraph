@@ -919,6 +919,21 @@ async def set_llm_config(config: LLMConfig):
     
     _llm_config = config_dict
     
+    # Save to database for persistence
+    try:
+        config_dict["_id"] = "llm_config"  # Use fixed ID for upsert
+        config_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        await db.config.update_one(
+            {"_id": "llm_config"},
+            {"$set": config_dict},
+            upsert=True
+        )
+        logger.info("✅ LLM configuration saved to database")
+    except Exception as e:
+        logger.error(f"❌ Failed to save config to database: {e}")
+        # Continue anyway - at least it's in memory
+    
     # Reset chat interface to use new config
     _chat_interface = None
     _langgraph_orchestrator = None
