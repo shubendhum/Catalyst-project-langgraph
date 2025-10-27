@@ -244,6 +244,10 @@ def get_llm_client(config: Optional[Dict[str, Any]] = None) -> UnifiedLLMClient:
     aws_config = config.get("aws_config")
     org_azure_config = config.get("org_azure_config")
     
+    logger.info(f"🔧 Creating LLM client: provider={provider}, model={model}")
+    if org_azure_config:
+        logger.info(f"   Organization Azure OpenAI config present with keys: {list(org_azure_config.keys())}")
+    
     return UnifiedLLMClient(
         provider=provider,
         model=model,
