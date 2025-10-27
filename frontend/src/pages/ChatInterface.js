@@ -600,6 +600,46 @@ const ChatInterface = () => {
                       Must match redirect URI configured in OAuth2 app
                     </p>
                   </div>
+
+                  <hr style={{ margin: '16px 0', borderColor: '#e5e7eb' }} />
+
+                  <div style={{ padding: '12px', backgroundColor: llmConfig.oauth_authenticated ? '#f0fdf4' : '#fef3c7', border: `1px solid ${llmConfig.oauth_authenticated ? '#86efac' : '#fcd34d'}`, borderRadius: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '18px' }}>
+                        {llmConfig.oauth_authenticated ? '✅' : '🔐'}
+                      </span>
+                      <strong style={{ color: llmConfig.oauth_authenticated ? '#16a34a' : '#ca8a04' }}>
+                        {llmConfig.oauth_authenticated ? 'Authenticated' : 'Authentication Required'}
+                      </strong>
+                    </div>
+                    {!llmConfig.oauth_authenticated && (
+                      <>
+                        <p style={{ fontSize: '13px', color: '#92400e', marginBottom: '12px' }}>
+                          Click the button below to authenticate with your organization's credentials
+                        </p>
+                        <Button 
+                          onClick={startOAuthFlow}
+                          disabled={isAuthenticating || !llmConfig.oauth_auth_url || !llmConfig.oauth_client_id}
+                          className="btn-primary"
+                          style={{ width: '100%' }}
+                        >
+                          {isAuthenticating ? (
+                            <>
+                              <Loader2 size={16} className="animate-spin" style={{ marginRight: '8px' }} />
+                              Authenticating...
+                            </>
+                          ) : (
+                            '🔐 Authenticate with Organization'
+                          )}
+                        </Button>
+                      </>
+                    )}
+                    {llmConfig.oauth_authenticated && (
+                      <p style={{ fontSize: '13px', color: '#166534' }}>
+                        You're authenticated! Token will auto-refresh when needed.
+                      </p>
+                    )}
+                  </div>
                 </>
               )}
 
