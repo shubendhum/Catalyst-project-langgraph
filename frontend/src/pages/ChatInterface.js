@@ -516,6 +516,9 @@ const ChatInterface = () => {
                       onChange={(e) => setLlmConfig({...llmConfig, org_azure_deployment: e.target.value})}
                       placeholder="gpt-4 or gpt-35-turbo"
                     />
+                    <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                      The deployment name configured in Azure (not the model name)
+                    </p>
                   </div>
 
                   <div>
