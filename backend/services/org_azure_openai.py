@@ -111,15 +111,39 @@ class OrganizationAzureOpenAIClient:
                 )
                 
                 if response.status_code == 200:
-                    data = response.json()
-                    
-                    # Extract response
-                    content = data["choices"][0]["message"]["content"]
-                    
-                    logger.info(f"✅ Response received (correlation: {correlation_id[:8]}...)")
-                    logger.info(f"   Response length: {len(content)} chars")
-                    
-                    return AIMessage(content=content)
+                    # Handle streaming response
+                    if body.get("stream"):
+                        full_content = ""
+                        async for line in response.aiter_lines():
+                            if line.startswith("data: "):
+                                data_str = line[6:]  # Remove "data: " prefix
+                                
+                                if data_str == "[DONE]":
+                                    break
+                                
+                                try:
+                                    chunk_data = json.loads(data_str)
+                                    if "choices" in chunk_data and len(chunk_data["choices"]) > 0:
+                                        delta = chunk_data["choices"][0].get("delta", {})
+                                        content_chunk = delta.get("content", "")
+                                        if content_chunk:
+                                            full_content += content_chunk
+                                except json.JSONDecodeError:
+                                    continue
+                        
+                        logger.info(f"✅ Streaming response complete (correlation: {correlation_id[:8]}...)")
+                        logger.info(f"   Response length: {len(full_content)} chars")
+                        
+                        return AIMessage(content=full_content)
+                    else:
+                        # Non-streaming response
+                        data = response.json()
+                        content = data["choices"][0]["message"]["content"]
+                        
+                        logger.info(f"✅ Response received (correlation: {correlation_id[:8]}...)")
+                        logger.info(f"   Response length: {len(content)} chars")
+                        
+                        return AIMessage(content=content)
                 
                 elif response.status_code == 401:
                     # Token expired or invalid
