@@ -348,6 +348,150 @@ async def oauth_callback(code: str, state: str):
 async def get_oauth_status(state: str):
     """
     Check OAuth2 authentication status
+    """
+    if state not in oauth_states:
+        return {"error": "Invalid state"}
+    
+    state_data = oauth_states[state]
+    
+    # Clean up old states (older than 10 minutes)
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
+    oauth_states_to_delete = [
+        s for s, data in oauth_states.items()
+        if data["created_at"] < cutoff
+    ]
+    for s in oauth_states_to_delete:
+        del oauth_states[s]
+    
+    return {
+        "authenticated": state_data["authenticated"],
+        "error": state_data.get("error")
+    }
+
+
+# Device Code Flow Endpoints
+@api_router.post("/auth/device/start")
+async def start_device_code_flow(request: DeviceCodeStartRequest):
+    """
+    Start OAuth2 device code flow
+    Returns device code and verification URL for user
+    """
+    from services.oauth2_service import get_oauth2_service
+    import uuid
+    
+    try:
+        logger.info("🔐 Starting OAuth2 Device Code Flow")
+        logger.info(f"   Device Code URL: {request.device_code_url}")
+        logger.info(f"   Token URL: {request.token_url}")
+        logger.info(f"   Client ID: {request.client_id[:10]}...")
+        logger.info(f"   Scopes: {request.scopes}")
+        
+        oauth_service = get_oauth2_service()
+        
+        # Get device code
+        device_data = await oauth_service.get_device_code(
+            device_code_url=request.device_code_url,
+            client_id=request.client_id,
+            scopes=request.scopes
+        )
+        
+        if not device_data:
+            logger.error("❌ Failed to get device code")
+            return {"success": False, "error": "Failed to get device code"}
+        
+        # Generate session ID for polling
+        session_id = str(uuid.uuid4())
+        
+        # Store session data
+        oauth_states[session_id] = {
+            "created_at": datetime.now(timezone.utc),
+            "authenticated": False,
+            "error": None,
+            "access_token": None,
+            "device_code": device_data["device_code"],
+            "token_url": request.token_url,
+            "client_id": request.client_id,
+            "client_secret": request.client_secret,
+            "interval": device_data.get("interval", 5)
+        }
+        
+        logger.info(f"✅ Device code flow initiated")
+        logger.info(f"   Session ID: {session_id}")
+        logger.info(f"   User Code: {device_data['user_code']}")
+        
+        return {
+            "success": True,
+            "session_id": session_id,
+            "user_code": device_data["user_code"],
+            "verification_uri": device_data.get("verification_uri"),
+            "verification_uri_complete": device_data.get("verification_uri_complete"),
+            "expires_in": device_data.get("expires_in", 900),
+            "interval": device_data.get("interval", 5)
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error starting device code flow: {e}", exc_info=True)
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/auth/device/poll")
+async def poll_device_authentication(session_id: str):
+    """
+    Poll device code authentication status
+    Frontend should call this periodically until authenticated
+    """
+    from services.oauth2_service import get_oauth2_service
+    
+    try:
+        if session_id not in oauth_states:
+            return {"status": "error", "error": "Invalid session"}
+        
+        session_data = oauth_states[session_id]
+        
+        # Check if already authenticated
+        if session_data["authenticated"]:
+            return {
+                "status": "authorized",
+                "access_token": session_data["access_token"]
+            }
+        
+        # Check if error occurred
+        if session_data.get("error"):
+            return {
+                "status": "error",
+                "error": session_data["error"]
+            }
+        
+        # Poll for token
+        oauth_service = get_oauth2_service()
+        result = await oauth_service.poll_device_token(
+            token_url=session_data["token_url"],
+            client_id=session_data["client_id"],
+            client_secret=session_data["client_secret"],
+            device_code=session_data["device_code"],
+            user_id=session_id
+        )
+        
+        if result["status"] == "authorized":
+            # Store token
+            session_data["authenticated"] = True
+            session_data["access_token"] = result["access_token"]
+            logger.info(f"✅ Device authentication complete for session {session_id[:8]}...")
+        elif result["status"] == "error":
+            session_data["error"] = result["error"]
+            logger.error(f"❌ Device authentication failed: {result['error']}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"❌ Device polling error: {e}", exc_info=True)
+        return {"status": "error", "error": str(e)}
+
+
+@api_router.get("/auth/oauth/status")
+async def get_oauth_status_old(state: str):
+    """
+    Check OAuth2 authentication status
     Used by frontend to poll for completion
     """
     if state not in oauth_states:
