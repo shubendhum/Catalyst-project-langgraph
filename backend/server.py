@@ -1275,6 +1275,19 @@ async def delete_conversation(conversation_id: str):
     
     return {"status": "success", "message": "Conversation deleted"}
 
+@api_router.patch("/chat/conversations/{conversation_id}")
+async def update_conversation(conversation_id: str, title: str):
+    """Update conversation title"""
+    result = await db.conversations.update_one(
+        {"id": conversation_id},
+        {"$set": {"title": title, "updated_at": datetime.now(timezone.utc)}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    return {"status": "success", "message": "Conversation updated"}
+
 # Messages
 @api_router.post("/chat/send")
 async def send_message(request: SendMessageRequest):
