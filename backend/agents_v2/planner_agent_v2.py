@@ -6,7 +6,7 @@ Publishes: plan.created
 import logging
 import yaml
 from uuid import UUID
-from typing import Dict
+from typing import Dict, Optional
 
 from agents_v2.base_agent import EventDrivenAgent
 from agents.planner_agent import get_planner_agent
