@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 class InfrastructureTester:
-    def __init__(self, base_url="https://agentflow-21.preview.emergentagent.com"):
+    def __init__(self, base_url="https://agent-dev-hub-3.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0

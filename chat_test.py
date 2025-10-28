@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://agentflow-21.preview.emergentagent.com/api"
+BASE_URL = "https://agent-dev-hub-3.preview.emergentagent.com/api"
 
 def test_endpoint(name, method, endpoint, data=None, expected_status=200):
     """Test a single endpoint"""

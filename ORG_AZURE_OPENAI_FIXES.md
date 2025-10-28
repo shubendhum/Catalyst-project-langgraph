@@ -180,7 +180,7 @@ https://api.macquarie.com/openai/deployments/gpt-4/chat/completions?api-version=
    Endpoint: https://api.macquarie.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-15-preview
    Deployment: gpt-4
    Messages count: 2
-🔑 Request headers: Authorization=Bearer *****, x-subscription-key=*****, x-correlation-id=f47ac10b-58cc-4372-a567-0e02b2c3d479
+🔑 Request headers: Authorization=Bearer *****, x-subscription-key=*****, x-correlation-id=agent-dev-hub-3
 ✅ Response received (correlation: f47ac10b...)
    Response length: 245 chars
 ```
