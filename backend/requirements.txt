@@ -65,7 +65,7 @@ pyyaml>=6.0
 # ============================================
 # HTTP & Networking
 # ============================================
-requests==2.27.1  # Downgraded to fix HuggingFace SSL verification issues
+requests==2.32.3  # Version compatible with google-genai and langchain-community, SSL verification disabled separately
 websockets>=13.0
 
 # ============================================
