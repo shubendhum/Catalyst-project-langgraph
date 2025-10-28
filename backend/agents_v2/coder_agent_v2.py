@@ -6,7 +6,7 @@ Publishes: code.pr.opened
 import logging
 import os
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 from uuid import UUID
 
 from agents_v2.base_agent import EventDrivenAgent
