@@ -14,6 +14,9 @@ os.environ['CURL_CA_BUNDLE'] = ''
 os.environ['REQUESTS_CA_BUNDLE'] = ''
 os.environ['SSL_CERT_FILE'] = ''
 os.environ['PYTHONHTTPSVERIFY'] = '0'
+# HuggingFace specific SSL disabling
+os.environ['HUGGINGFACE_HUB_DISABLE_SSL_VERIFICATION'] = '1'
+os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
 
 from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import JSONResponse
