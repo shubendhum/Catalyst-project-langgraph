@@ -65,7 +65,7 @@ pyyaml>=6.0
 # ============================================
 # HTTP & Networking
 # ============================================
-requests>=2.31.0
+requests==2.27.1  # Downgraded to fix HuggingFace SSL verification issues
 websockets>=13.0
 
 # ============================================
