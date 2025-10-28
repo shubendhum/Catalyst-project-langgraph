@@ -21,6 +21,12 @@ ssl._create_default_https_context = ssl._create_unverified_context
 os.environ['CURL_CA_BUNDLE'] = ''
 os.environ['REQUESTS_CA_BUNDLE'] = ''
 os.environ['SSL_CERT_FILE'] = ''
+os.environ['HUGGINGFACE_HUB_DISABLE_SSL_VERIFICATION'] = '1'
+os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
+
+# Disable SSL warnings
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
