@@ -1,6 +1,7 @@
 import React from 'react';
 import { ThinkingBlock, ToolCall, FileOperation, AgentProgress, CodeBlock } from './ChatComponents';
 import { Bot, User } from 'lucide-react';
+import './MessageRenderer.css';
 
 const MessageRenderer = ({ message }) => {
   const { role, content, metadata } = message;
