@@ -958,74 +958,7 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
         )}
 
         {messages.map((message, index) => (
-          <div 
-            key={index}
-            style={{
-              display: 'flex',
-              gap: '12px',
-              alignItems: 'flex-start',
-              justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start'
-            }}
-          >
-            {message.role === 'assistant' && (
-              <div style={{ 
-                padding: '8px', 
-                background: 'rgba(99, 179, 237, 0.1)', 
-                borderRadius: '8px',
-                flexShrink: 0
-              }}>
-                <Bot size={20} style={{ color: '#63b3ed' }} />
-              </div>
-            )}
-            
-            {message.role === 'system' && (
-              <div style={{ 
-                padding: '8px', 
-                background: 'rgba(245, 158, 11, 0.1)', 
-                borderRadius: '8px',
-                flexShrink: 0
-              }}>
-                <Settings size={20} style={{ color: '#f59e0b' }} />
-              </div>
-            )}
-
-            <div 
-              style={{
-                maxWidth: '70%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                background: message.role === 'user' 
-                  ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
-                  : message.role === 'system'
-                  ? 'rgba(245, 158, 11, 0.1)'
-                  : 'rgba(255, 255, 255, 0.05)',
-                border: message.role !== 'user' ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
-                color: '#fff',
-                wordWrap: 'break-word'
-              }}
-            >
-              <p style={{ margin: 0, lineHeight: '1.6' }}>{message.content}</p>
-              <span style={{ 
-                fontSize: '11px', 
-                color: message.role === 'user' ? 'rgba(255,255,255,0.7)' : '#64748b',
-                display: 'block',
-                marginTop: '8px'
-              }}>
-                {new Date(message.timestamp).toLocaleTimeString()}
-              </span>
-            </div>
-
-            {message.role === 'user' && (
-              <div style={{ 
-                padding: '8px', 
-                background: 'rgba(59, 130, 246, 0.1)', 
-                borderRadius: '8px',
-                flexShrink: 0
-              }}>
-                <User size={20} style={{ color: '#3b82f6' }} />
-              </div>
-            )}
-          </div>
+          <MessageRenderer key={index} message={message} />
         ))}
 
         {isLoading && (
