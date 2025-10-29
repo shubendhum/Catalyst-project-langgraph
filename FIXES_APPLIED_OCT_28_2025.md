@@ -151,11 +151,11 @@ mongodb    RUNNING   pid 36
 
 ## Files Modified
 
-1. `/app/backend/agents_v2/coder_agent_v2.py` - Added Optional import
-2. `/app/Dockerfile.backend.artifactory` - **Build-time model download with requests downgrade/upgrade**
-3. `/app/backend/requirements.txt` - Set requests==2.32.5
-4. `/app/backend/server.py` - Added HuggingFace SSL env vars (fallback)
-5. `/app/backend/services/learning_service.py` - Enhanced SSL disabling (fallback)
+1. ✅ `/app/backend/agents_v2/coder_agent_v2.py` - Optional import
+2. ⭐ `/app/Dockerfile.backend.artifactory` - **Build-time model caching + huggingface-hub upgrade**
+3. `/app/backend/requirements.txt` - requests==2.32.5, huggingface-hub>=1.0.1
+4. `/app/backend/server.py` - SSL env vars (fallback)
+5. `/app/backend/services/learning_service.py` - SSL disabling (fallback)
 6. `/app/backend/.env` - Added HuggingFace SSL configuration (fallback)
 
 ---
