@@ -56,11 +56,6 @@ WORKDIR /app
 ENV PYTHONHTTPSVERIFY=0
 ENV PIP_TRUSTED_HOST="pypi.org files.pythonhosted.org pypi.python.org d33sy5i8bnduwe.cloudfront.net"
 
-# Set HuggingFace cache directory for catalyst user
-ENV HF_HOME=/home/catalyst/.cache/huggingface
-ENV TRANSFORMERS_CACHE=/home/catalyst/.cache/huggingface/transformers
-ENV SENTENCE_TRANSFORMERS_HOME=/home/catalyst/.cache/huggingface/sentence-transformers
-
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     curl \
@@ -73,16 +68,9 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code from backend directory
 COPY backend/ /app/
 
-# Create non-root user first
-RUN useradd -m -u 1000 catalyst
-
-# Copy HuggingFace model cache from builder to catalyst's home
-# Models were downloaded during build to avoid SSL issues at runtime
-COPY --from=builder /root/.cache/huggingface /home/catalyst/.cache/huggingface
-
-# Set permissions for all catalyst-owned directories
-RUN chown -R catalyst:catalyst /app && \
-    chown -R catalyst:catalyst /home/catalyst/.cache
+# Create non-root user and set permissions
+RUN useradd -m -u 1000 catalyst && \
+    chown -R catalyst:catalyst /app
 
 USER catalyst
 
