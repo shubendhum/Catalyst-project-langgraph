@@ -18,23 +18,31 @@ def detect_environment() -> EnvironmentType:
         "kubernetes" if running in K8s pod (Emergent platform)
     """
     
-    # Check for Docker socket (indicates Docker Desktop)
-    if os.path.exists("/var/run/docker.sock"):
+    # Priority 1: Check for explicit environment variable
+    explicit_env = os.getenv("ENVIRONMENT")
+    if explicit_env == "docker_desktop":
         return "docker_desktop"
+    if explicit_env == "kubernetes":
+        return "kubernetes"
     
-    # Check for Docker environment file
-    if os.path.exists("/.dockerenv"):
-        return "docker_desktop"
-    
-    # Check if running in K8s pod
+    # Priority 2: Check for K8s-specific files (most reliable)
     if os.path.exists("/var/run/secrets/kubernetes.io"):
         return "kubernetes"
     
-    # Check for supervisor (K8s indicator)
-    if os.path.exists("/etc/supervisor/conf.d"):
-        return "kubernetes"
+    # Priority 3: Check for Docker Compose environment variables (Docker Desktop indicator)
+    if os.getenv("COMPOSE_PROJECT_NAME"):
+        return "docker_desktop"
     
-    # Default to kubernetes for safety (simpler fallback)
+    # Priority 4: Check for Docker socket (indicates Docker Desktop)
+    if os.path.exists("/var/run/docker.sock"):
+        return "docker_desktop"
+    
+    # Priority 5: Check for Docker environment file
+    if os.path.exists("/.dockerenv"):
+        # If we have .dockerenv but not in K8s, assume Docker Desktop
+        return "docker_desktop"
+    
+    # Default to kubernetes for safety (Emergent platform)
     return "kubernetes"
 
 
