@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  backend:
+    # Fix health check for corporate proxy environments
+    healthcheck:
+      # Use Python instead of curl (bypasses SSL/proxy issues)
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8001/api/\")' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s  # Increased for corporate environments with slow network
+    
+    # Ensure backend binds to 0.0.0.0 (accessible from outside container)
+    command: ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001"]
