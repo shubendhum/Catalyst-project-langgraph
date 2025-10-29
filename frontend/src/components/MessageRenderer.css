@@ -1,0 +1,149 @@
+/* Message Renderer - Dark Theme */
+
+.message-container {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 16px 0;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-user {
+  justify-content: flex-end;
+}
+
+.message-assistant {
+  justify-content: flex-start;
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-assistant {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.avatar-user {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.avatar-icon {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.message-content-wrapper {
+  max-width: 75%;
+  flex: 1;
+}
+
+.message-bubble {
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.bubble-user {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: #ffffff;
+  margin-left: auto;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.bubble-assistant {
+  background: rgba(15, 23, 42, 0.6);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bubble-user .prose {
+  color: #ffffff !important;
+}
+
+.bubble-assistant .prose {
+  color: #e2e8f0 !important;
+}
+
+.prose {
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.prose strong {
+  font-weight: 700;
+  color: inherit;
+}
+
+.prose em {
+  font-style: italic;
+  color: inherit;
+}
+
+.prose code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.bubble-user .prose code {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fef3c7;
+  border-color: rgba(254, 243, 199, 0.3);
+}
+
+/* File operations within message */
+.message-bubble .file-op {
+  margin-top: 12px;
+}
+
+/* Agent progress below message */
+.agent-progress {
+  margin-top: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .message-content-wrapper {
+    max-width: 85%;
+  }
+  
+  .message-bubble {
+    padding: 12px 16px;
+  }
+  
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .avatar-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
