@@ -61,6 +61,11 @@ WORKDIR /app
 ENV PYTHONHTTPSVERIFY=0
 ENV PIP_TRUSTED_HOST="pypi.org files.pythonhosted.org pypi.python.org d33sy5i8bnduwe.cloudfront.net"
 
+# Set HuggingFace cache directory for catalyst user
+ENV HF_HOME=/home/catalyst/.cache/huggingface
+ENV TRANSFORMERS_CACHE=/home/catalyst/.cache/huggingface/transformers
+ENV SENTENCE_TRANSFORMERS_HOME=/home/catalyst/.cache/huggingface/sentence-transformers
+
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     curl \
