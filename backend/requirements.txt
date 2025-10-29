@@ -154,7 +154,7 @@ pika>=1.3.2
 sentence-transformers>=2.2.2
 
 # HuggingFace Libraries
-# Note: Installing with --no-deps for huggingface-hub to override version constraint
-tokenizers>=0.20.0
-transformers==4.37.2
-# huggingface-hub==1.0.1 installed separately with --no-deps (see Dockerfile)
+# Note: huggingface-hub 1.0.1 will be force-installed in Dockerfile with --no-deps
+tokenizers==0.15.2  # Compatible with transformers 4.37.2, has pre-built wheels
+transformers==4.37.2  # Stable version
+# huggingface-hub 1.0.1 installed separately (see Dockerfile)
