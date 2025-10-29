@@ -399,8 +399,45 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
     setMessages(prev => [...prev, {
       role: 'system',
       content,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      metadata: {}
     }]);
+  };
+
+  // Helper functions for metadata management
+  const updateMessageMetadata = (metadata) => {
+    setMessages(prev => {
+      const messages = [...prev];
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        messages[messages.length - 1] = {
+          ...lastMessage,
+          metadata: {
+            ...lastMessage.metadata,
+            ...metadata
+          }
+        };
+      }
+      return messages;
+    });
+  };
+
+  const getCurrentMessageMetadata = () => {
+    if (messages.length === 0) return null;
+    return messages[messages.length - 1].metadata || {};
+  };
+
+  const appendToCurrentMessage = (content) => {
+    setMessages(prev => {
+      const messages = [...prev];
+      if (messages.length > 0) {
+        messages[messages.length - 1] = {
+          ...messages[messages.length - 1],
+          content: messages[messages.length - 1].content + content
+        };
+      }
+      return messages;
+    });
   };
 
   const startNewConversation = async () => {
