@@ -239,7 +239,7 @@ class LearningService:
         
         tech_stack = tech_stack or []
         query_text = f"{task_description} {' '.join(tech_stack)}"
-        query_embedding = self._create_simple_embedding(query_text)
+        query_embedding = self._create_embedding(query_text)
         
         # Try Qdrant first
         if self.qdrant_client:
