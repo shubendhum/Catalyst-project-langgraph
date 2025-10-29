@@ -44,13 +44,10 @@ RUN pip install --no-cache-dir \
     --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ \
     -r requirements-langgraph.txt
 
-# Force install huggingface-hub 1.0.1 (overrides transformers dependency constraint)
-# transformers 4.37.2 officially requires huggingface-hub<1.0, but 1.0.1 works in practice
-RUN pip install --no-cache-dir huggingface-hub==1.0.1
-
 # HuggingFace Model Pre-download with SSL Workaround
+# Note: huggingface-hub 1.0.1 will be installed at runtime (see entrypoint script)
 # Strategy: Downgrade requests to 2.27.1 (better SSL handling in corporate proxies)
-#           Download HuggingFace models
+#           Download HuggingFace models with huggingface-hub 0.x
 #           Upgrade requests back to 2.32.5 (required by dependencies)
 RUN echo "Downloading HuggingFace models with requests 2.27.1 for SSL compatibility..." && \
     pip install --no-cache-dir requests==2.27.1 && \
