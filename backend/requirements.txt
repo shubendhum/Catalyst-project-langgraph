@@ -153,6 +153,7 @@ qdrant-client>=1.7.0
 pika>=1.3.2
 sentence-transformers>=2.2.2
 
-# HuggingFace Libraries
-transformers==4.37.2  # Specific version for stability and compatibility
-huggingface-hub>=1.0.1  # Latest version for better SSL handling and performance
+# HuggingFace Libraries - Compatible versions with pre-built wheels
+tokenizers==0.15.2  # Pre-built wheels available, compatible with transformers 4.37.2
+transformers==4.37.2  # Requested version for stability
+huggingface-hub>=0.20.0,<1.0  # Compatible with transformers 4.37.2
