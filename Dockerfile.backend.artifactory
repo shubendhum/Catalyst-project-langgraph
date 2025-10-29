@@ -82,8 +82,7 @@ COPY --from=builder /root/.cache/huggingface /home/catalyst/.cache/huggingface
 
 # Set permissions for all catalyst-owned directories
 RUN chown -R catalyst:catalyst /app && \
-    chown -R catalyst:catalyst /home/catalyst/.cache && \
-    chmod +x /app/docker-entrypoint.sh
+    chown -R catalyst:catalyst /home/catalyst/.cache
 
 USER catalyst
 
@@ -93,9 +92,6 @@ EXPOSE 8001
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8001/api/ || exit 1
-
-# Use entrypoint script for runtime setup
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Start application
 CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001"]
