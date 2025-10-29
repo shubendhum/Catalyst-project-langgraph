@@ -52,10 +52,13 @@ This approach:
 Added HuggingFace model pre-download step in builder stage:
 ```dockerfile
 # HuggingFace Model Pre-download with SSL Workaround
-# Strategy: Downgrade requests to 2.27.1 (better SSL handling in corporate proxies)
+# Strategy: Upgrade huggingface-hub to latest (1.0.1+)
+#           Downgrade requests to 2.27.1 (better SSL handling in corporate proxies)
 #           Download HuggingFace models
 #           Upgrade requests back to 2.32.5 (required by dependencies)
-RUN echo "Downloading HuggingFace models with requests 2.27.1..." && \
+RUN echo "Upgrading huggingface-hub to latest version..." && \
+    pip install --no-cache-dir --upgrade huggingface-hub && \
+    echo "Downloading HuggingFace models with requests 2.27.1..." && \
     pip install --no-cache-dir requests==2.27.1 && \
     python3 -c "import os; \
       os.environ['CURL_CA_BUNDLE'] = ''; \
