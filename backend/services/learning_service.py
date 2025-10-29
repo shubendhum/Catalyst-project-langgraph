@@ -2,6 +2,7 @@
 Learning Service
 Learns from past projects to improve future performance
 Uses Qdrant vector DB when available, falls back to in-memory storage
+Uses OpenAI embeddings for high-quality semantic understanding
 """
 
 import numpy as np
@@ -13,7 +14,6 @@ import logging
 import json
 
 # Disable SSL verification for corporate environments
-# This affects all HTTP libraries including requests, urllib3, and httpx
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -21,8 +21,6 @@ ssl._create_default_https_context = ssl._create_unverified_context
 os.environ['CURL_CA_BUNDLE'] = ''
 os.environ['REQUESTS_CA_BUNDLE'] = ''
 os.environ['SSL_CERT_FILE'] = ''
-os.environ['HUGGINGFACE_HUB_DISABLE_SSL_VERIFICATION'] = '1'
-os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
 
 # Disable SSL warnings
 import urllib3
@@ -39,13 +37,14 @@ except ImportError:
     QDRANT_AVAILABLE = False
     logger.warning("Qdrant not available, using in-memory vector storage")
 
-# Try to import proper embedding model
+# Try to import OpenAI for embeddings
 try:
-    from sentence_transformers import SentenceTransformer
-    EMBEDDINGS_AVAILABLE = True
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
 except ImportError:
-    EMBEDDINGS_AVAILABLE = False
-    logger.warning("Sentence Transformers not available, using simple embeddings")
+    OPENAI_AVAILABLE = False
+    logger.warning("OpenAI not available, embeddings disabled")
+
 
 
 class LearningService:
