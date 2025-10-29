@@ -2,14 +2,15 @@ version: '3.8'
 
 services:
   backend:
-    # Fix health check for corporate proxy environments
+    # Fix health check for EVENT-DRIVEN mode (Phase 4)
+    # Event-driven startup is slower: connects to RabbitMQ, Redis, Qdrant, initializes workers
     healthcheck:
       # Use Python instead of curl (bypasses SSL/proxy issues)
       test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8001/api/\")' || exit 1"]
       interval: 30s
-      timeout: 10s
+      timeout: 15s
       retries: 5
-      start_period: 120s  # Increased for corporate environments with slow network
+      start_period: 180s  # EVENT-DRIVEN mode needs 3 minutes (workers, RabbitMQ, Redis, Qdrant)
     
     # Ensure backend binds to 0.0.0.0 (accessible from outside container)
     command: ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001"]
