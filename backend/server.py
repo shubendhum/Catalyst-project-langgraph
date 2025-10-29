@@ -17,6 +17,9 @@ os.environ['PYTHONHTTPSVERIFY'] = '0'
 # HuggingFace specific SSL disabling
 os.environ['HUGGINGFACE_HUB_DISABLE_SSL_VERIFICATION'] = '1'
 os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
+# Disable transformers version check for huggingface-hub 1.0 compatibility
+os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = '1'
+os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
 
 from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import JSONResponse
