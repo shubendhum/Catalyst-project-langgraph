@@ -298,6 +298,8 @@ volumes:
     driver: local
   langfuse_db_data:
     driver: local
+  langfuse_clickhouse_data:
+    driver: local
   mongodb_data:
     driver: local
   mongodb_config:
