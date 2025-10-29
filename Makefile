@@ -99,9 +99,9 @@ install-backend: ## Install backend Python dependencies
 	. venv/bin/activate && \
 	$(PIP) install --upgrade pip && \
 	$(PIP) install -r requirements.txt && \
-	$(PIP) install -r requirements-langgraph.txt && \
-	$(PIP) install emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
+	$(PIP) install -r requirements-langgraph.txt
 	@echo "$(GREEN)✓ Backend dependencies installed$(NC)"
+	@echo "$(YELLOW)Note: emergentintegrations skipped for local dev (only needed in Docker/K8s)$(NC)"
 
 install-frontend: ## Install frontend Node dependencies
 	@echo "$(BLUE)Installing frontend dependencies...$(NC)"
