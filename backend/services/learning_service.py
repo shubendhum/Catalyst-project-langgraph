@@ -58,6 +58,10 @@ class LearningService:
         self.qdrant_client = None
         self.collection_name = "catalyst_learning"
         
+        # OpenAI embeddings configuration
+        self.embedding_dim = 1536  # OpenAI text-embedding-3-small dimension
+        self.openai_client = None
+        
         if QDRANT_AVAILABLE:
             try:
                 self.qdrant_client = QdrantClient(url=qdrant_url, timeout=5.0)
@@ -66,48 +70,37 @@ class LearningService:
                 if not any(c.name == self.collection_name for c in collections):
                     self.qdrant_client.create_collection(
                         collection_name=self.collection_name,
-                        vectors_config=VectorParams(size=384, distance=Distance.COSINE)
+                        vectors_config=VectorParams(size=self.embedding_dim, distance=Distance.COSINE)
                     )
                 logger.info(f"✅ Connected to Qdrant at {qdrant_url}")
             except Exception as e:
                 logger.warning(f"Failed to connect to Qdrant: {e}. Using in-memory storage.")
                 self.qdrant_client = None
         
-        # Load embedding model if available
-        self.embedding_model = None
-        if EMBEDDINGS_AVAILABLE:
+        # Initialize OpenAI client for embeddings
+        if OPENAI_AVAILABLE:
             try:
-                # Disable SSL verification for HuggingFace downloads in corporate environments
-                import ssl
-                ssl._create_default_https_context = ssl._create_unverified_context
-                
-                # Also disable SSL for huggingface_hub specifically
-                try:
-                    from huggingface_hub import utils
-                    utils.http.configure_http_backend(verify=False)
-                except:
-                    pass  # If huggingface_hub doesn't have this method, that's okay
-                
-                logger.info("🔐 SSL verification disabled for HuggingFace downloads")
-                
-                self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-                self.embedding_dim = 384
-                logger.info("✅ Loaded sentence-transformers embedding model")
+                # Get API key from environment (Emergent LLM Key or OpenAI key)
+                api_key = os.getenv("EMERGENT_LLM_KEY") or os.getenv("OPENAI_API_KEY")
+                if api_key:
+                    self.openai_client = OpenAI(api_key=api_key)
+                    logger.info("✅ OpenAI embeddings initialized (using Emergent LLM Key)")
+                else:
+                    logger.warning("No API key found for OpenAI embeddings")
             except Exception as e:
-                logger.warning(f"Failed to load embedding model: {e}")
-        else:
-            self.embedding_dim = 128  # Fallback dimension
+                logger.warning(f"Failed to initialize OpenAI client: {e}")
         
         # In-memory storage as fallback
         self.patterns = []
         self.pattern_embeddings = []
     
-    def _create_simple_embedding(self, text: str) -> np.ndarray:
+    def _create_embedding(self, text: str) -> np.ndarray:
         """
-        Create embedding from text
-        Uses sentence-transformers if available, otherwise simple hashing
+        Create embedding from text using OpenAI API
+        Falls back to simple hashing if OpenAI not available
         """
-        # Use proper embedding model if available
+        # Use OpenAI embeddings if available
+        if self.openai_client:
         if self.embedding_model:
             try:
                 embedding = self.embedding_model.encode(text, convert_to_numpy=True)
