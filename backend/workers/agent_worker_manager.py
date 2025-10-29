@@ -69,11 +69,13 @@ class AgentWorkerManager:
     
     async def _run_agent_worker(self, agent):
         """
-        Run agent worker (blocking - listens to queue)
+        Run agent worker in a separate thread to avoid blocking asyncio
         """
         try:
-            # This blocks and listens to the queue
-            agent.start_listening()
+            # Run the blocking RabbitMQ consumer in a thread pool
+            # This prevents blocking the main asyncio event loop (which handles HTTP requests)
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, agent.start_listening)
         except Exception as e:
             logger.error(f"Agent worker {agent.agent_name} failed: {e}")
     
