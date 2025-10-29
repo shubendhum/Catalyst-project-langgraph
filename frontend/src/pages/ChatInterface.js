@@ -75,17 +75,63 @@ const ChatInterface = () => {
 
     ws.onmessage = (event) => {
       try {
-        const logData = JSON.parse(event.data);
+        const data = JSON.parse(event.data);
         
-        // Check if this is a completion message
-        if (logData.message && logData.message.includes('completed successfully')) {
+        // Enhanced message parsing for detailed UI
+        if (data.type === 'agent_update') {
+          // Update agent progress in the last assistant message
+          updateMessageMetadata({
+            agent_progress: {
+              ...data.agent_progress
+            }
+          });
+        } else if (data.type === 'thinking') {
+          // Add thinking content to current message
+          appendToCurrentMessage(`<thinking>${data.content}</thinking>`);
+        } else if (data.type === 'tool_call') {
+          // Add tool call to metadata
+          updateMessageMetadata({
+            tool_calls: [...(getCurrentMessageMetadata()?.tool_calls || []), {
+              name: data.tool_name,
+              arguments: data.arguments
+            }]
+          });
+        } else if (data.type === 'file_operation') {
+          // Add file operation to metadata
+          updateMessageMetadata({
+            file_operations: [...(getCurrentMessageMetadata()?.file_operations || []), {
+              operation: data.operation,
+              path: data.file_path,
+              status: data.status || 'success'
+            }]
+          });
+        } else if (data.type === 'completion') {
+          // Task completed
           setActiveTaskId(null);
           setIsLoading(false);
-          addSystemMessage(`✅ ${logData.agent_name}: ${logData.message}`);
-        } else {
-          // Add agent log as system message with formatting
-          const agentMessage = `🤖 **${logData.agent_name}**: ${logData.message}`;
-          addSystemMessage(agentMessage);
+          addSystemMessage(`✅ Task completed successfully!`);
+        } else if (data.agent_name && data.message) {
+          // Legacy format - agent log message
+          const formattedMessage = `🤖 **${data.agent_name}**: ${data.message}`;
+          
+          // Check if this includes file operations
+          const filePathMatch = data.message.match(/(?:viewing|editing|creating|saving)\s+[`']?([^\s`']+)[`']?/i);
+          if (filePathMatch) {
+            const operation = data.message.toLowerCase().includes('viewing') ? 'view' :
+                            data.message.toLowerCase().includes('editing') ? 'edit' :
+                            data.message.toLowerCase().includes('creating') ? 'create' :
+                            data.message.toLowerCase().includes('saving') ? 'save' : 'file';
+            
+            updateMessageMetadata({
+              file_operations: [...(getCurrentMessageMetadata()?.file_operations || []), {
+                operation,
+                path: filePathMatch[1],
+                status: 'success'
+              }]
+            });
+          }
+          
+          addSystemMessage(formattedMessage);
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
