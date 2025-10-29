@@ -70,20 +70,18 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy HuggingFace model cache from builder (models downloaded during build)
-# HuggingFace stores models in /root/.cache/huggingface by default in builder stage
-COPY --from=builder /root/.cache/huggingface /root/.cache/huggingface
-
 # Copy application code from backend directory
 COPY backend/ /app/
 
-# Copy HuggingFace model cache from builder
+# Create non-root user first
+RUN useradd -m -u 1000 catalyst
+
+# Copy HuggingFace model cache from builder to catalyst's home
 # Models were downloaded during build to avoid SSL issues at runtime
 COPY --from=builder /root/.cache/huggingface /home/catalyst/.cache/huggingface
 
-# Create non-root user and set permissions
-RUN useradd -m -u 1000 catalyst && \
-    chown -R catalyst:catalyst /app && \
+# Set permissions for all catalyst-owned directories
+RUN chown -R catalyst:catalyst /app && \
     chown -R catalyst:catalyst /home/catalyst/.cache
 
 USER catalyst
