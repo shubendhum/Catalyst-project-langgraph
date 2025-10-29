@@ -261,7 +261,7 @@
 .agent-header {
   display: flex;
   align-items: center;
-  justify-between;
+  justify-content: space-between;
   margin-bottom: 8px;
 }
 
