@@ -99,7 +99,23 @@ class EventConsumer:
                     )
                     
                     # Call user callback
-                    callback(event)
+                    # Handle both sync and async callbacks
+                    import asyncio
+                    import inspect
+                    
+                    if inspect.iscoroutinefunction(callback):
+                        # Async callback - run in event loop
+                        try:
+                            loop = asyncio.get_event_loop()
+                        except RuntimeError:
+                            # No event loop in current thread, create new one
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                        
+                        loop.run_until_complete(callback(event))
+                    else:
+                        # Sync callback
+                        callback(event)
                     
                     # Acknowledge message
                     ch.basic_ack(delivery_tag=method.delivery_tag)
