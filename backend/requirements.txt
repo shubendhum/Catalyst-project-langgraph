@@ -151,9 +151,7 @@ apscheduler>=3.10.0
 redis>=5.0.0
 qdrant-client>=1.7.0
 pika>=1.3.2
-sentence-transformers>=2.2.2
+# sentence-transformers removed - using OpenAI embeddings instead
 
-# HuggingFace Libraries - Latest versions
-tokenizers==0.22.1  # Latest version with pre-built wheels
-transformers==4.57.1  # Latest stable version
-# huggingface-hub 1.0.1 force-installed in Dockerfile
+# HuggingFace Libraries - REMOVED (replaced with OpenAI embeddings)
+# tokenizers, transformers, huggingface-hub no longer needed
