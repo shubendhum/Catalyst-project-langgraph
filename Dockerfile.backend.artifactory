@@ -29,10 +29,12 @@ RUN pip config set global.index-url https://pypi.org/simple && \
     pip config set global.trusted-host files.pythonhosted.org && \
     pip config set global.trusted-host d33sy5i8bnduwe.cloudfront.net
 
+# Upgrade pip to latest version FIRST for better dependency resolution
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
 # Install Python dependencies with SSL verification disabled
 # Install requirements.txt from public PyPI
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org && \
-    pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 # Install requirements-langgraph.txt with extra index for emergentintegrations
 RUN pip install --no-cache-dir \
