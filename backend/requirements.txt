@@ -153,9 +153,8 @@ qdrant-client>=1.7.0
 pika>=1.3.2
 sentence-transformers>=2.2.2
 
-# HuggingFace Libraries - Latest versions (huggingface-hub 1.0+ forced)
-# Note: transformers 4.x officially requires huggingface-hub<1.0, but 1.0.1 works in practice
-# transformers 5.0 (coming soon) will officially support huggingface-hub 1.0+
-tokenizers>=0.20.0  # Latest with pre-built wheels
-transformers==4.37.2  # Stable version (works with huggingface-hub 1.0.1 despite dependency warning)
-huggingface-hub==1.0.1  # Latest version - better SSL handling, improved performance
+# HuggingFace Libraries
+# Note: Installing with --no-deps for huggingface-hub to override version constraint
+tokenizers>=0.20.0
+transformers==4.37.2
+# huggingface-hub==1.0.1 installed separately with --no-deps (see Dockerfile)
