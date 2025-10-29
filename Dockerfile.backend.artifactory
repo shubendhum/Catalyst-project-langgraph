@@ -77,9 +77,14 @@ COPY --from=builder /root/.cache/huggingface /root/.cache/huggingface
 # Copy application code from backend directory
 COPY backend/ /app/
 
-# Create non-root user
+# Copy HuggingFace model cache from builder
+# Models were downloaded during build to avoid SSL issues at runtime
+COPY --from=builder /root/.cache/huggingface /home/catalyst/.cache/huggingface
+
+# Create non-root user and set permissions
 RUN useradd -m -u 1000 catalyst && \
-    chown -R catalyst:catalyst /app
+    chown -R catalyst:catalyst /app && \
+    chown -R catalyst:catalyst /home/catalyst/.cache
 
 USER catalyst
 
