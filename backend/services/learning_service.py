@@ -154,7 +154,7 @@ class LearningService:
         
         # Create embedding
         embedding_text = f"{task_description} {' '.join(tech_stack)}"
-        embedding = self._create_simple_embedding(embedding_text)
+        embedding = self._create_embedding(embedding_text)
         
         # Store in Qdrant if available
         if self.qdrant_client:
