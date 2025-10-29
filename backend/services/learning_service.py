@@ -103,21 +103,26 @@ class LearningService:
         if self.openai_client:
         if self.embedding_model:
             try:
-                embedding = self.embedding_model.encode(text, convert_to_numpy=True)
+                response = self.openai_client.embeddings.create(
+                    model="text-embedding-3-small",
+                    input=text
+                )
+                embedding = np.array(response.data[0].embedding)
                 return embedding
             except Exception as e:
-                logger.error(f"Error creating embedding: {e}")
+                logger.warning(f"OpenAI embedding failed: {e}. Using fallback.")
         
         # Fallback to simple embedding
         # Normalize text
         text = text.lower().strip()
         
         # Use simple character-based hashing for embedding
-        # This is a placeholder - real implementation would use proper embeddings
         embedding = np.zeros(self.embedding_dim)
         
-        for i, char in enumerate(text[:self.embedding_dim]):
-            embedding[i % self.embedding_dim] += ord(char) / 1000.0
+        # Simple hash-based embedding (fallback)
+        for i, char in enumerate(text[:min(len(text), 100)]):
+            idx = (ord(char) * (i + 1)) % self.embedding_dim
+            embedding[idx] += 1.0 / (i + 1)
         
         # Normalize
         norm = np.linalg.norm(embedding)
