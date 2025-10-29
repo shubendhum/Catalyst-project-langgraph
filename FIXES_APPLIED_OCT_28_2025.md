@@ -49,6 +49,25 @@ This approach:
 
 #### 1. Updated `Dockerfile.backend.artifactory`
 
+**Step 1: Upgrade pip, setuptools, and wheel first**
+```dockerfile
+# Upgrade pip to latest version FIRST for better dependency resolution
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+```
+
+**Step 2: Install dependencies**
+```dockerfile
+# Install requirements.txt from public PyPI
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install requirements-langgraph.txt with extra index
+RUN pip install --no-cache-dir \
+    --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ \
+    -r requirements-langgraph.txt
+```
+
+**Step 3: HuggingFace model pre-download**
+
 Added HuggingFace model pre-download step in builder stage:
 ```dockerfile
 # HuggingFace Model Pre-download with SSL Workaround
