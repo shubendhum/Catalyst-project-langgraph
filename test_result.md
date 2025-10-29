@@ -544,3 +544,24 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+  - agent: "main"
+    message: "IMPROVED SOLUTION APPLIED (per user suggestion): Implemented build-time HuggingFace model caching in Dockerfile.backend.artifactory using downgrade-download-upgrade strategy: (1) During Docker build, downgrade requests to 2.27.1, (2) Download sentence-transformers model with SSL disabled, (3) Upgrade requests back to 2.32.5 for runtime. This eliminates all runtime SSL issues and provides instant model loading. Models are cached in /home/catalyst/.cache/huggingface and copied from builder stage to runtime stage. Added HF_HOME, TRANSFORMERS_CACHE, and SENTENCE_TRANSFORMERS_HOME environment variables. Ready for Docker build testing."
+
+  - task: "Build-Time HuggingFace Model Caching"
+    implemented: true
+    working: "NA"
+    file: "/app/Dockerfile.backend.artifactory"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "IMPLEMENTED: Added build-time model download to Dockerfile.backend.artifactory. Strategy: (1) Install requirements with requests==2.32.5, (2) Downgrade to requests==2.27.1 for better SSL handling, (3) Download SentenceTransformer('all-MiniLM-L6-v2') with SSL disabled during build, (4) Upgrade back to requests==2.32.5, (5) Copy model cache from builder stage to runtime stage at /home/catalyst/.cache/huggingface. Added HF_HOME environment variables. This eliminates runtime SSL issues and provides instant startup. User needs to rebuild Docker image and test in local Docker Desktop with corporate proxy."
+
+test_plan:
+  current_focus:
+    - "Build-Time HuggingFace Model Caching"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
