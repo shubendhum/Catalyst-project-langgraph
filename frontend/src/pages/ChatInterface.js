@@ -8,6 +8,7 @@ import { Label } from '../components/ui/label';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ConversationSidebar from '../components/ConversationSidebar';
+import MessageRenderer from '../components/MessageRenderer';
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
