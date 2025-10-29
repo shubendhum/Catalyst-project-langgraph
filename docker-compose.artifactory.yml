@@ -81,6 +81,9 @@ services:
       - CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
       - PREVIEW_DOMAIN=localhost
       - TRAEFIK_ENABLED=false
+      # Environment Detection - Force Docker Desktop mode
+      - ENVIRONMENT=docker_desktop
+      - ORCHESTRATION_MODE=event_driven
       # LLM Observability
       - LANGFUSE_PUBLIC_KEY=
       - LANGFUSE_SECRET_KEY=
