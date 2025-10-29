@@ -101,7 +101,6 @@ class LearningService:
         """
         # Use OpenAI embeddings if available
         if self.openai_client:
-        if self.embedding_model:
             try:
                 response = self.openai_client.embeddings.create(
                     model="text-embedding-3-small",
