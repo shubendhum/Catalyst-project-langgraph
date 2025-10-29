@@ -46,7 +46,9 @@ RUN pip install --no-cache-dir \
 # Strategy: Downgrade requests to 2.27.1 (better SSL handling in corporate proxies)
 #           Download HuggingFace models
 #           Upgrade requests back to 2.32.5 (required by dependencies)
-RUN echo "Downloading HuggingFace models with requests 2.27.1 for SSL compatibility..." && \
+RUN echo "Upgrading huggingface-hub to latest version..." && \
+    pip install --no-cache-dir --upgrade huggingface-hub && \
+    echo "Downloading HuggingFace models with requests 2.27.1 for SSL compatibility..." && \
     pip install --no-cache-dir requests==2.27.1 && \
     python3 -c "import os; os.environ['CURL_CA_BUNDLE'] = ''; os.environ['REQUESTS_CA_BUNDLE'] = ''; os.environ['SSL_CERT_FILE'] = ''; os.environ['HUGGINGFACE_HUB_DISABLE_SSL_VERIFICATION'] = '1'; os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'; import ssl; ssl._create_default_https_context = ssl._create_unverified_context; from sentence_transformers import SentenceTransformer; print('Downloading all-MiniLM-L6-v2...'); model = SentenceTransformer('all-MiniLM-L6-v2'); print('Model cached successfully!')" && \
     pip install --no-cache-dir requests==2.32.5 && \
