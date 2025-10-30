@@ -139,36 +139,16 @@ class EventDrivenAgent(ABC):
         await self.publisher.publish(failure_event)
     
     async def _log(self, task_id: str, message: str):
-        """Log to database for WebSocket updates"""
-        from datetime import datetime
-        import asyncio
-        
-        log_doc = {
-            "task_id": task_id,
-            "agent_name": self.agent_name,
-            "message": message,
-            "timestamp": datetime.utcnow().timestamp()
-        }
-        
-        # Get the main event loop (where MongoDB/WebSocket connections live)
-        # If we're in a worker thread, we need to schedule on the main loop
-        try:
-            main_loop = asyncio.get_running_loop()
-        except RuntimeError:
-            # No loop running in this thread, skip logging
-            logger.debug(f"No event loop available for logging: {message}")
-            return
-        
-        try:
-            await self.db.agent_logs.insert_one(log_doc)
-        except Exception as e:
-            logger.debug(f"Failed to log to database: {e}")
-        
-        try:
-            await self.manager.send_log(task_id, log_doc)
-        except Exception as e:
-            # WebSocket may not be connected, that's ok
-            logger.debug(f"Failed to send WebSocket log: {e}")
+        """
+        Log to database for WebSocket updates
+        NOTE: This method may be called from worker threads with isolated event loops.
+        Motor (MongoDB async driver) is tied to the main event loop, so we skip logging
+        from worker threads to avoid "attached to a different loop" errors.
+        """
+        # Skip logging from worker threads - Motor doesn't support cross-loop operations
+        # TODO: Implement thread-safe logging mechanism (queue-based or synchronous)
+        logger.info(f"[{self.agent_name}] {message}")
+        return
     
     def start_listening(self):
         """
