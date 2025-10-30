@@ -1,10 +1,12 @@
 """
 Event Consumer for RabbitMQ
-Handles consuming events from message queues
+Handles consuming events from message queues with automatic reconnection
 """
 import pika
+import pika.exceptions
 import logging
 import asyncio
+import time
 from typing import Callable, List, Optional
 from config.environment import should_use_events, get_config
 from events.schemas import AgentEvent
@@ -14,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class EventConsumer:
     """
-    Consumes agent events from RabbitMQ
+    Consumes agent events from RabbitMQ with automatic reconnection
     Falls back to no-op if events not enabled (K8s environment)
     """
     
@@ -27,45 +29,55 @@ class EventConsumer:
         self.agent_name = agent_name
         self.routing_keys = routing_keys
         self.enabled = should_use_events()
+        self.rabbitmq_url = rabbitmq_url or (get_config()["event_streaming"]["url"] if self.enabled else None)
         self.connection = None
         self.channel = None
         self.consumer_tag = None
+        self.queue_name = f"{agent_name}-queue"
         
         if self.enabled:
-            try:
-                rabbitmq_url = rabbitmq_url or get_config()["event_streaming"]["url"]
-                self.connection = pika.BlockingConnection(
-                    pika.URLParameters(rabbitmq_url)
-                )
-                self.channel = self.connection.channel()
-                
-                # Declare queue
-                self.queue_name = f"{agent_name}-queue"
-                self.channel.queue_declare(
-                    queue=self.queue_name,
-                    durable=True,
-                    arguments={
-                        'x-message-ttl': 3600000,  # 1 hour
-                        'x-max-length': 10000
-                    }
-                )
-                
-                # Bind to routing keys
-                for routing_key in self.routing_keys:
-                    self.channel.queue_bind(
-                        exchange='catalyst.events',
-                        queue=self.queue_name,
-                        routing_key=routing_key
-                    )
-                    logger.info(f"📥 {agent_name} bound to {routing_key}")
-                
-                logger.info(f"✅ EventConsumer initialized for {agent_name}")
-                
-            except Exception as e:
-                logger.warning(f"Failed to connect to RabbitMQ: {e}. Consumer disabled.")
-                self.enabled = False
+            self._connect()
         else:
             logger.info(f"✅ EventConsumer for {agent_name} (no-op mode for K8s)")
+    
+    def _connect(self):
+        """Establish connection to RabbitMQ"""
+        try:
+            if self.connection and not self.connection.is_closed:
+                return  # Already connected
+            
+            self.connection = pika.BlockingConnection(
+                pika.URLParameters(self.rabbitmq_url)
+            )
+            self.channel = self.connection.channel()
+            
+            # Declare queue (idempotent)
+            self.channel.queue_declare(
+                queue=self.queue_name,
+                durable=True,
+                arguments={
+                    'x-message-ttl': 3600000,  # 1 hour
+                    'x-max-length': 10000
+                }
+            )
+            
+            # Bind to routing keys
+            for routing_key in self.routing_keys:
+                self.channel.queue_bind(
+                    exchange='catalyst.events',
+                    queue=self.queue_name,
+                    routing_key=routing_key
+                )
+                logger.info(f"📥 {self.agent_name} bound to {routing_key}")
+            
+            logger.info(f"✅ EventConsumer connected for {self.agent_name}")
+            
+        except Exception as e:
+            logger.warning(f"Failed to connect to RabbitMQ: {e}")
+            self.connection = None
+            self.channel = None
+            raise
+    
     
     def start_consuming(
         self, 
