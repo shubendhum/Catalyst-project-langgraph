@@ -567,7 +567,7 @@ backend:
   - task: "Fix Docker Desktop Agent Task Pickup - RabbitMQ Infrastructure Initialization"
     implemented: true
     working: "NA"
-    file: "/app/backend/init_rabbitmq.py, /app/backend/server.py, /app/docker-compose.artifactory.yml, /app/backend/events/publisher.py"
+    file: "/app/backend/init_rabbitmq.py, /app/backend/server.py, /app/docker-compose.artifactory.yml, /app/backend/events/publisher.py, /app/backend/events/consumer.py"
     stuck_count: 0
     priority: "critical"
     needs_retesting: true
@@ -575,6 +575,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "ROOT CAUSE FIXED: Agents weren't picking up tasks because RabbitMQ infrastructure (exchanges, queues, bindings) was never initialized. The rabbitmq-init.sh script was mounted to /docker-entrypoint-initdb.d/ which is a PostgreSQL/MongoDB convention that RabbitMQ doesn't support. FIXES APPLIED: (1) Created init_rabbitmq.py with init_rabbitmq() function that creates catalyst.events exchange (topic), 8 agent queues (planner-queue, architect-queue, coder-queue, tester-queue, reviewer-queue, deployer-queue, explorer-queue, orchestrator-queue) with proper routing key bindings, and failed-events DLQ. Uses exponential backoff retry (max 10 attempts). (2) Updated server.py startup_event() to call init_rabbitmq() BEFORE starting agent workers in Docker Desktop mode. (3) Changed docker-compose.artifactory.yml backend depends_on for rabbitmq from 'service_started' to 'service_healthy' to ensure RabbitMQ is fully ready. (4) Fixed events/publisher.py to make Postgres event logging best-effort (fire-and-forget with asyncio.create_task) to prevent publish failures. All fixes validated against architecture review. Ready for Docker rebuild and testing."
+      - working: "NA"
+        agent: "main"
+        comment: "CONNECTION RESILIENCE ADDED: Fixed pika.adapters 'connection reset by peer' errors reported by user in Docker Desktop. Enhanced both EventPublisher and EventConsumer with automatic reconnection logic. PUBLISHER FIXES: (1) Added _connect() and _ensure_connection() methods to check connection health before each publish. (2) Added 3-retry logic with exponential backoff (0.5s, 1s, 1.5s) for publish failures. (3) Handles AMQPConnectionError, StreamLostError, ConnectionClosedByBroker, ConnectionResetError explicitly. (4) Tests connection with process_data_events() heartbeat. (5) Added reset_event_publisher() to clear stale singleton. CONSUMER FIXES: (1) Wrapped start_consuming() in infinite reconnection loop. (2) Catches connection errors and auto-reconnects after 5s delay. (3) Handles unexpected errors with 10s reconnect delay. (4) Improved close() to handle partial shutdown states. Both publisher and consumer now resilient to network issues, container restarts, and RabbitMQ service disruptions. Ready for Docker Desktop testing."
 
 test_plan:
   current_focus:
