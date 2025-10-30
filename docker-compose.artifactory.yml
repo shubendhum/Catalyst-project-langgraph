@@ -105,7 +105,7 @@ services:
       qdrant:
         condition: service_started
       rabbitmq:
-        condition: service_started
+        condition: service_healthy  # Changed from service_started - ensure RabbitMQ is ready
       # traefik:
       #   condition: service_started  # Optional - only if Traefik enabled
     networks:
