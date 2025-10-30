@@ -179,6 +179,22 @@ class DeviceCodeStartRequest(BaseModel):
 async def root():
     return {"message": "Catalyst AI Platform API", "version": "1.0.0"}
 
+@api_router.get("/health")
+async def health_check():
+    """
+    Comprehensive system health check endpoint
+    Returns detailed status of all services
+    """
+    health_checker = get_health_checker()
+    health_status = await health_checker.check_all_services(
+        mongo_client=client,
+        postgres_url=os.getenv("POSTGRES_URL") if get_config()['databases']['postgres']['enabled'] else None,
+        redis_url=os.getenv("REDIS_URL"),
+        qdrant_url=os.getenv("QDRANT_URL"),
+        rabbitmq_url=os.getenv("RABBITMQ_URL") if is_docker_desktop() else None
+    )
+    return health_status
+
 # Projects
 @api_router.post("/projects", response_model=Project)
 async def create_project(project: ProjectCreate):
