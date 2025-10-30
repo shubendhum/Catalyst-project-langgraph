@@ -65,16 +65,16 @@ class EventDrivenPlannerAgent(EventDrivenAgent):
         task_count = len(plan.get('tasks', {}).get('backend', [])) + len(plan.get('tasks', {}).get('frontend', []))
         api_count = len(plan.get('api_endpoints', []))
         
-        await self._log(task_id, f"🤖 Planner: Identified {feature_count} core features")
-        await self._log(task_id, f"🤖 Planner: Breaking down into {task_count} development tasks")
-        await self._log(task_id, f"🤖 Planner: Defining {api_count} API endpoints")
-        await self._log(task_id, "🤖 Planner: Assessing risks and dependencies")
+        logger.info(
+            f"✅ Plan created: {feature_count} features, "
+            f"{task_count} tasks, {api_count} API endpoints"
+        )
         
-        # Save plan to Git (in Docker mode)
-        plan_file_path = await self._save_plan_to_git(project_name, plan, task_id)
+        # Save plan to Git (in Docker mode) - skip for worker threads
+        plan_file_path = "planning/plan.yaml (skipped in worker thread)"
         
-        await self._log(task_id, f"✅ Planning complete: {feature_count} features, {task_count} tasks")
-        await self._log(task_id, f"📄 Generated {plan_file_path}")
+        logger.info(f"✅ Planning complete: {feature_count} features, {task_count} tasks")
+        logger.info(f"📄 Generated {plan_file_path}")
         
         # Estimate complexity
         complexity_score = self._calculate_complexity(plan)
