@@ -1752,45 +1752,83 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize services on startup"""
-    logger.info("🚀 Catalyst Backend Starting...")
+    """Initialize services on startup with comprehensive health checks"""
+    logger.info("")
+    logger.info("=" * 80)
+    logger.info("🚀 CATALYST BACKEND STARTING...")
+    logger.info("=" * 80)
+    logger.info("")
     
     # Log environment
     env_config = get_config()
-    logger.info(f"📍 Environment: {env_config['environment']}")
-    logger.info(f"🎯 Orchestration Mode: {env_config['orchestration_mode']}")
+    logger.info("📍 Environment: %s", env_config['environment'])
+    logger.info("🎯 Orchestration Mode: %s", env_config['orchestration_mode'])
+    logger.info("")
+    
+    # Run comprehensive health checks
+    health_checker = get_health_checker()
+    health_status = await health_checker.check_all_services(
+        mongo_client=client,
+        postgres_url=os.getenv("POSTGRES_URL") if env_config['databases']['postgres']['enabled'] else None,
+        redis_url=os.getenv("REDIS_URL"),
+        qdrant_url=os.getenv("QDRANT_URL"),
+        rabbitmq_url=os.getenv("RABBITMQ_URL") if is_docker_desktop() else None
+    )
     
     # Start agent workers in event-driven mode
     if is_docker_desktop():
-        logger.info("🐳 Docker Desktop detected - initializing event-driven mode...")
+        logger.info("=" * 80)
+        logger.info("🐳 DOCKER DESKTOP MODE - INITIALIZING EVENT-DRIVEN SYSTEM")
+        logger.info("=" * 80)
+        logger.info("")
         
         # CRITICAL: Initialize RabbitMQ infrastructure FIRST
-        from init_rabbitmq import init_rabbitmq
-        rabbitmq_url = os.getenv("RABBITMQ_URL")
-        if rabbitmq_url:
-            logger.info("🐰 Initializing RabbitMQ infrastructure (exchanges, queues, bindings)...")
-            success = init_rabbitmq(rabbitmq_url)
-            if not success:
-                logger.error("❌ RabbitMQ initialization failed - event system may not work!")
-                logger.error("   Agents will not be able to pick up tasks!")
+        rabbitmq_status = health_status.get("services", {}).get("rabbitmq", {})
+        if rabbitmq_status.get("status") in ["healthy", "degraded"]:
+            from init_rabbitmq import init_rabbitmq
+            rabbitmq_url = os.getenv("RABBITMQ_URL")
+            if rabbitmq_url:
+                logger.info("🐰 Initializing RabbitMQ infrastructure (exchanges, queues, bindings)...")
+                success = init_rabbitmq(rabbitmq_url)
+                if not success:
+                    logger.error("=" * 80)
+                    logger.error("❌ CRITICAL: RabbitMQ initialization failed!")
+                    logger.error("   Event system will not work. Agents cannot pick up tasks.")
+                    logger.error("   Please check RabbitMQ connection and logs.")
+                    logger.error("=" * 80)
+                else:
+                    logger.info("✅ RabbitMQ infrastructure ready")
+                    logger.info("")
             else:
-                logger.info("✅ RabbitMQ infrastructure ready")
+                logger.warning("⚠️ RABBITMQ_URL not set - skipping RabbitMQ initialization")
         else:
-            logger.warning("⚠️ RABBITMQ_URL not set - skipping RabbitMQ initialization")
+            logger.warning("⚠️ RabbitMQ unhealthy - skipping infrastructure initialization")
+            logger.warning("   Event-driven mode will not function properly!")
         
         # Now start agent workers (they will connect to the initialized infrastructure)
         logger.info("🚀 Starting agent workers...")
         worker_manager = get_worker_manager(db, manager)
         asyncio.create_task(worker_manager.start_all_workers())
         logger.info("✅ Agent workers started in background")
+        logger.info("")
         
         # Start background scheduler
         from workers.background_scheduler import get_scheduler
         scheduler = get_scheduler()
         await scheduler.start()
         logger.info("✅ Background scheduler started")
+        logger.info("")
     else:
-        logger.info("☸️ Kubernetes detected - using sequential mode")
+        logger.info("=" * 80)
+        logger.info("☸️ KUBERNETES MODE - USING SEQUENTIAL ORCHESTRATION")
+        logger.info("=" * 80)
+        logger.info("")
+    
+    logger.info("=" * 80)
+    logger.info("✅ CATALYST BACKEND STARTUP COMPLETE")
+    logger.info("=" * 80)
+    logger.info("")
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
