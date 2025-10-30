@@ -96,14 +96,14 @@ test-api: ## Test backend API endpoints
 	@echo "$(BLUE)Testing backend API...$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Health Check:$(NC)"
-	@curl -s https://agent-dev-hub-3.preview.emergentagent.com/api/ | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))" 2>/dev/null || echo "$(RED)Backend not responding$(NC)"
+	@curl -s https://agent-system-repair.preview.emergentagent.com/api/ | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))" 2>/dev/null || echo "$(RED)Backend not responding$(NC)"
 	@echo ""
 	@echo "$(YELLOW)LLM Config:$(NC)"
-	@curl -s https://agent-dev-hub-3.preview.emergentagent.com/api/chat/config | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))" 2>/dev/null || echo "$(RED)API not responding$(NC)"
+	@curl -s https://agent-system-repair.preview.emergentagent.com/api/chat/config | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))" 2>/dev/null || echo "$(RED)API not responding$(NC)"
 
 test-chat: ## Test chat endpoint
 	@echo "$(BLUE)Testing chat endpoint...$(NC)"
-	@curl -s -X POST https://agent-dev-hub-3.preview.emergentagent.com/api/chat/send \
+	@curl -s -X POST https://agent-system-repair.preview.emergentagent.com/api/chat/send \
 		-H "Content-Type: application/json" \
 		-d '{"message": "Hello, test message"}' | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))"
 
@@ -111,10 +111,10 @@ test-logs: ## Test logs endpoints
 	@echo "$(BLUE)Testing logs endpoints...$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Backend Logs (last 1 min):$(NC)"
-	@curl -s "https://agent-dev-hub-3.preview.emergentagent.com/api/logs/backend?minutes=1" | python3 -c "import sys, json; d=json.load(sys.stdin); print(f\"Found {d.get('count', 0)} logs\")"
+	@curl -s "https://agent-system-repair.preview.emergentagent.com/api/logs/backend?minutes=1" | python3 -c "import sys, json; d=json.load(sys.stdin); print(f\"Found {d.get('count', 0)} logs\")"
 	@echo ""
 	@echo "$(YELLOW)Cost Stats:$(NC)"
-	@curl -s "https://agent-dev-hub-3.preview.emergentagent.com/api/logs/cost-stats" | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))"
+	@curl -s "https://agent-system-repair.preview.emergentagent.com/api/logs/cost-stats" | python3 -c "import sys, json; print(json.dumps(json.load(sys.stdin), indent=2))"
 
 ##@ Generated Projects
 
@@ -150,9 +150,9 @@ check-services: ## Check if all services are running and healthy
 	@echo "$(BLUE)Service Health Check:$(NC)"
 	@echo ""
 	@echo -n "Backend:  "
-	@curl -s https://agent-dev-hub-3.preview.emergentagent.com/api/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+	@curl -s https://agent-system-repair.preview.emergentagent.com/api/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
 	@echo -n "Frontend: "
-	@curl -s https://agent-dev-hub-3.preview.emergentagent.com/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
+	@curl -s https://agent-system-repair.preview.emergentagent.com/ > /dev/null 2>&1 && echo "$(GREEN)✅ Healthy$(NC)" || echo "$(RED)❌ Unhealthy$(NC)"
 	@echo -n "MongoDB:  "
 	@sudo supervisorctl status mongodb | grep -q RUNNING && echo "$(GREEN)✅ Running$(NC)" || echo "$(RED)❌ Not Running$(NC)"
 
@@ -167,9 +167,9 @@ info: ## Show environment information
 	@sudo supervisorctl status
 	@echo ""
 	@echo "$(YELLOW)URLs:$(NC)"
-	@echo "  Frontend:  https://agent-dev-hub-3.preview.emergentagent.com"
-	@echo "  Backend:   https://agent-dev-hub-3.preview.emergentagent.com/api"
-	@echo "  API Docs:  https://agent-dev-hub-3.preview.emergentagent.com/docs"
+	@echo "  Frontend:  https://agent-system-repair.preview.emergentagent.com"
+	@echo "  Backend:   https://agent-system-repair.preview.emergentagent.com/api"
+	@echo "  API Docs:  https://agent-system-repair.preview.emergentagent.com/docs"
 	@echo ""
 	@echo "$(YELLOW)Logs:$(NC)"
 	@echo "  Backend Out: /var/log/supervisor/backend.out.log"
@@ -186,7 +186,7 @@ watch-cost: ## Watch cost statistics in real-time
 		clear; \
 		echo "$(BLUE)Cost Statistics - $$(date)$(NC)"; \
 		echo ""; \
-		curl -s "https://agent-dev-hub-3.preview.emergentagent.com/api/logs/cost-stats" | python3 -c "import sys, json; d=json.load(sys.stdin); gs=d.get('global_stats',{}); print(f\"Total Tasks: {gs.get('total_tasks',0)}\"); print(f\"Total LLM Calls: {gs.get('total_llm_calls',0)}\"); print(f\"Cache Hit Rate: {gs.get('cache_hit_rate',0):.1f}%\"); print(f\"Total Cost: \$${gs.get('total_cost',0):.4f}\"); print(f\"Avg Cost/Task: \$${gs.get('average_cost_per_task',0):.4f}\")"; \
+		curl -s "https://agent-system-repair.preview.emergentagent.com/api/logs/cost-stats" | python3 -c "import sys, json; d=json.load(sys.stdin); gs=d.get('global_stats',{}); print(f\"Total Tasks: {gs.get('total_tasks',0)}\"); print(f\"Total LLM Calls: {gs.get('total_llm_calls',0)}\"); print(f\"Cache Hit Rate: {gs.get('cache_hit_rate',0):.1f}%\"); print(f\"Total Cost: \$${gs.get('total_cost',0):.4f}\"); print(f\"Avg Cost/Task: \$${gs.get('average_cost_per_task',0):.4f}\")"; \
 		sleep 5; \
 	done
 
