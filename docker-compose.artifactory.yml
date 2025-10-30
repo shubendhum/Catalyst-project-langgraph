@@ -111,11 +111,11 @@ services:
     networks:
       - catalyst-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/api/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 90s  # Increased to allow for RabbitMQ init
 
   # Frontend Application
   frontend:
