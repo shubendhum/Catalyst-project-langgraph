@@ -16,7 +16,6 @@ from events import (
     ArchitectureProposedPayload,
     create_architecture_proposed_event
 )
-from services.postgres_service import update_task_status
 
 logger = logging.getLogger(__name__)
 
