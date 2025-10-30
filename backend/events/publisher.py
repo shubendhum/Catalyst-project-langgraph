@@ -72,7 +72,7 @@ class EventPublisher:
     
     async def publish(self, event: AgentEvent) -> bool:
         """
-        Publish an event to RabbitMQ
+        Publish an event to RabbitMQ with automatic reconnection
         
         Args:
             event: AgentEvent to publish
@@ -85,44 +85,65 @@ class EventPublisher:
             logger.debug(f"Event (no-op): {event.event_type} from {event.actor}")
             return True
         
-        try:
-            routing_key = event.to_routing_key()
-            message = event.to_json()
-            
-            self.channel.basic_publish(
-                exchange='catalyst.events',
-                routing_key=routing_key,
-                body=message,
-                properties=pika.BasicProperties(
-                    delivery_mode=2,  # Persistent message
-                    content_type='application/json',
-                    headers={
-                        'trace_id': str(event.trace_id),
-                        'task_id': str(event.task_id),
-                        'actor': event.actor,
-                        'event_type': event.event_type
-                    }
-                )
-            )
-            
-            logger.info(f"📤 Published event: {routing_key} (trace: {event.trace_id})")
-            
-            # Try to save to Postgres for audit (best effort, don't block on failure)
+        # Retry publish with reconnection on failure
+        max_retries = 3
+        for attempt in range(max_retries):
             try:
-                if get_config()["databases"]["postgres"]["enabled"]:
-                    # Fire-and-forget: create task but don't await
-                    import asyncio
-                    asyncio.create_task(self._save_to_postgres(event))
-            except Exception as pg_error:
-                # Log but don't fail the publish operation
-                logger.debug(f"Postgres event audit skipped: {pg_error}")
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to publish event {event.event_type}: {e}")
-            return False
-    
+                # Ensure connection is alive
+                self._ensure_connection()
+                
+                routing_key = event.to_routing_key()
+                message = event.to_json()
+                
+                self.channel.basic_publish(
+                    exchange='catalyst.events',
+                    routing_key=routing_key,
+                    body=message,
+                    properties=pika.BasicProperties(
+                        delivery_mode=2,  # Persistent message
+                        content_type='application/json',
+                        headers={
+                            'trace_id': str(event.trace_id),
+                            'task_id': str(event.task_id),
+                            'actor': event.actor,
+                            'event_type': event.event_type
+                        }
+                    )
+                )
+                
+                logger.info(f"📤 Published event: {routing_key} (trace: {event.trace_id})")
+                
+                # Try to save to Postgres for audit (best effort, don't block on failure)
+                try:
+                    if get_config()["databases"]["postgres"]["enabled"]:
+                        # Fire-and-forget: create task but don't await
+                        import asyncio
+                        asyncio.create_task(self._save_to_postgres(event))
+                except Exception as pg_error:
+                    # Log but don't fail the publish operation
+                    logger.debug(f"Postgres event audit skipped: {pg_error}")
+                
+                return True
+                
+            except (pika.exceptions.AMQPConnectionError,
+                    pika.exceptions.StreamLostError, 
+                    pika.exceptions.ConnectionClosedByBroker,
+                    ConnectionResetError) as e:
+                logger.warning(f"Publish attempt {attempt + 1}/{max_retries} failed: {e}")
+                self.close()  # Force close stale connection
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(0.5 * (attempt + 1))  # Backoff: 0.5s, 1s, 1.5s
+                    continue
+                else:
+                    logger.error(f"Failed to publish event {event.event_type} after {max_retries} attempts")
+                    return False
+                    
+            except Exception as e:
+                logger.error(f"Unexpected error publishing event {event.event_type}: {e}")
+                return False
+        
+        return False
     async def _save_to_postgres(self, event: AgentEvent):
         """Save event to Postgres for audit trail"""
         try:
