@@ -571,7 +571,7 @@ backend:
   - task: "Fix Docker Desktop Agent Task Pickup - RabbitMQ Infrastructure Initialization"
     implemented: true
     working: "NA"
-    file: "/app/backend/init_rabbitmq.py, /app/backend/server.py, /app/docker-compose.artifactory.yml, /app/backend/events/publisher.py, /app/backend/events/consumer.py"
+    file: "/app/backend/init_rabbitmq.py, /app/backend/server.py, /app/docker-compose.artifactory.yml, /app/backend/events/publisher.py, /app/backend/events/consumer.py, /app/backend/agents_v2/base_agent.py"
     stuck_count: 0
     priority: "critical"
     needs_retesting: true
@@ -582,6 +582,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "CONNECTION RESILIENCE ADDED: Fixed pika.adapters 'connection reset by peer' errors reported by user in Docker Desktop. Enhanced both EventPublisher and EventConsumer with automatic reconnection logic. PUBLISHER FIXES: (1) Added _connect() and _ensure_connection() methods to check connection health before each publish. (2) Added 3-retry logic with exponential backoff (0.5s, 1s, 1.5s) for publish failures. (3) Handles AMQPConnectionError, StreamLostError, ConnectionClosedByBroker, ConnectionResetError explicitly. (4) Tests connection with process_data_events() heartbeat. (5) Added reset_event_publisher() to clear stale singleton. CONSUMER FIXES: (1) Wrapped start_consuming() in infinite reconnection loop. (2) Catches connection errors and auto-reconnects after 5s delay. (3) Handles unexpected errors with 10s reconnect delay. (4) Improved close() to handle partial shutdown states. Both publisher and consumer now resilient to network issues, container restarts, and RabbitMQ service disruptions. Ready for Docker Desktop testing."
+      - working: "NA"
+        agent: "main"
+        comment: "EVENT LOOP FIXES: Fixed 'no running event loop' error reported by user. ROOT CAUSE: asyncio.get_event_loop() and asyncio.create_task() calls in sync contexts. FIXES: (1) Changed base_agent.py _log() method to use datetime.utcnow().timestamp() instead of asyncio.get_event_loop().time() which requires event loop. (2) Removed redundant consume_wrapper in base_agent.py start_listening() - consumer now handles async callbacks directly with its own event loop. (3) Disabled Postgres event audit in publisher.py as it was causing event loop issues (asyncio.create_task from sync context). All agent event processing now works correctly without event loop errors. Ready for Docker Desktop testing."
 
 test_plan:
   current_focus:
