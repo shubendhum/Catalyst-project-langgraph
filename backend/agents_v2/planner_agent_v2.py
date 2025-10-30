@@ -153,7 +153,7 @@ class EventDrivenPlannerAgent(EventDrivenAgent):
             os.system(f"cd {repo_path} && git add planning/")
             os.system(f"cd {repo_path} && git commit -m 'feat(planning): Add development plan\n\n- {plan.get('features', []).__len__()} features defined'")
             
-            return f"planning/plan.yaml"
+            return "planning/plan.yaml"
             
         except Exception as e:
             logger.error(f"Failed to save plan to Git: {e}")
