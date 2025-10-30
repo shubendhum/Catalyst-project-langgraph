@@ -123,16 +123,22 @@ class EventConsumer:
                         import inspect
                         
                         if inspect.iscoroutinefunction(callback):
-                            # Async callback - run in event loop
-                            # Always create a new event loop for worker threads
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
+                            # Async callback - we're in a worker thread, but callback needs main loop
+                            # Since Motor and WebSocket are bound to main loop, we can't use a new loop
+                            # Instead, just run it synchronously in a new loop (isolated execution)
                             
+                            # Create isolated event loop for this worker thread
                             try:
-                                loop.run_until_complete(callback(event))
-                            finally:
-                                # Clean up the loop
-                                loop.close()
+                                loop = asyncio.new_event_loop()
+                                asyncio.set_event_loop(loop)
+                                
+                                try:
+                                    loop.run_until_complete(callback(event))
+                                finally:
+                                    # Clean up the loop
+                                    loop.close()
+                            except Exception as callback_error:
+                                logger.error(f"Error in async callback: {callback_error}", exc_info=True)
                         else:
                             # Sync callback
                             callback(event)
@@ -141,7 +147,7 @@ class EventConsumer:
                         ch.basic_ack(delivery_tag=method.delivery_tag)
                         
                     except Exception as e:
-                        logger.error(f"Error processing event: {e}")
+                        logger.error(f"Error processing event: {e}", exc_info=True)
                         # Negative acknowledge - will retry or go to DLQ
                         ch.basic_nack(
                             delivery_tag=method.delivery_tag,
