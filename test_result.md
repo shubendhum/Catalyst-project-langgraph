@@ -544,8 +544,12 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+agent_communication:
   - agent: "main"
     message: "IMPROVED SOLUTION APPLIED (per user suggestion): Implemented build-time HuggingFace model caching in Dockerfile.backend.artifactory using downgrade-download-upgrade strategy: (1) During Docker build, downgrade requests to 2.27.1, (2) Download sentence-transformers model with SSL disabled, (3) Upgrade requests back to 2.32.5 for runtime. This eliminates all runtime SSL issues and provides instant model loading. Models are cached in /home/catalyst/.cache/huggingface and copied from builder stage to runtime stage. Added HF_HOME, TRANSFORMERS_CACHE, and SENTENCE_TRANSFORMERS_HOME environment variables. Ready for Docker build testing."
+  - agent: "main"
+    message: "🔴 CRITICAL FIXES APPLIED - Docker Desktop Agent Task Pickup: After comprehensive architecture review, identified and fixed ROOT CAUSE why agents weren't picking up tasks. (1) Created /app/backend/init_rabbitmq.py to initialize RabbitMQ infrastructure (exchanges, queues, bindings) on backend startup - the rabbitmq-init.sh script was never executing because /docker-entrypoint-initdb.d/ is not a valid location for RabbitMQ containers. (2) Updated server.py startup to call init_rabbitmq() BEFORE starting agent workers, ensuring infrastructure exists before agents try to connect. (3) Changed docker-compose.artifactory.yml RabbitMQ dependency from service_started to service_healthy to ensure RabbitMQ is fully ready. (4) Fixed Postgres event logging in publisher.py to be best-effort/fire-and-forget to prevent publish failures. (5) Created comprehensive DOCKER_DESKTOP_ARCHITECTURE_REVIEW.md documenting all findings, root cause analysis, and fixes. Agents should now successfully pick up and process tasks in Docker Desktop."
 
   - task: "Build-Time HuggingFace Model Caching"
     implemented: true
@@ -559,9 +563,24 @@ test_plan:
         agent: "main"
         comment: "IMPLEMENTED: Added build-time model download to Dockerfile.backend.artifactory. Strategy: (1) Install requirements with requests==2.32.5, (2) Downgrade to requests==2.27.1 for better SSL handling, (3) Download SentenceTransformer('all-MiniLM-L6-v2') with SSL disabled during build, (4) Upgrade back to requests==2.32.5, (5) Copy model cache from builder stage to runtime stage at /home/catalyst/.cache/huggingface. Added HF_HOME environment variables. This eliminates runtime SSL issues and provides instant startup. User needs to rebuild Docker image and test in local Docker Desktop with corporate proxy."
 
+backend:
+  - task: "Fix Docker Desktop Agent Task Pickup - RabbitMQ Infrastructure Initialization"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/init_rabbitmq.py, /app/backend/server.py, /app/docker-compose.artifactory.yml, /app/backend/events/publisher.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "ROOT CAUSE FIXED: Agents weren't picking up tasks because RabbitMQ infrastructure (exchanges, queues, bindings) was never initialized. The rabbitmq-init.sh script was mounted to /docker-entrypoint-initdb.d/ which is a PostgreSQL/MongoDB convention that RabbitMQ doesn't support. FIXES APPLIED: (1) Created init_rabbitmq.py with init_rabbitmq() function that creates catalyst.events exchange (topic), 8 agent queues (planner-queue, architect-queue, coder-queue, tester-queue, reviewer-queue, deployer-queue, explorer-queue, orchestrator-queue) with proper routing key bindings, and failed-events DLQ. Uses exponential backoff retry (max 10 attempts). (2) Updated server.py startup_event() to call init_rabbitmq() BEFORE starting agent workers in Docker Desktop mode. (3) Changed docker-compose.artifactory.yml backend depends_on for rabbitmq from 'service_started' to 'service_healthy' to ensure RabbitMQ is fully ready. (4) Fixed events/publisher.py to make Postgres event logging best-effort (fire-and-forget with asyncio.create_task) to prevent publish failures. All fixes validated against architecture review. Ready for Docker rebuild and testing."
+
 test_plan:
   current_focus:
+    - "Fix Docker Desktop Agent Task Pickup - RabbitMQ Infrastructure Initialization"
     - "Build-Time HuggingFace Model Caching"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
