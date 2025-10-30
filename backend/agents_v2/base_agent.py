@@ -81,24 +81,44 @@ class EventDrivenAgent(ABC):
             )
             
             # Log to database for WebSocket updates
-            await self._log(str(event.task_id), f"🤖 {self.agent_name}: Starting processing...")
+            try:
+                await self._log(str(event.task_id), f"🤖 {self.agent_name}: Starting processing...")
+            except Exception as log_error:
+                logger.error(f"Error in _log (start): {log_error}")
             
             # Process event (agent-specific logic)
-            result_event = await self.process_event(event)
+            try:
+                result_event = await self.process_event(event)
+            except Exception as process_error:
+                logger.error(f"Error in process_event: {process_error}")
+                raise
             
             # Publish result event
             if result_event:
-                await self.publisher.publish(result_event)
-                logger.info(f"✅ {self.agent_name} completed. Published: {result_event.event_type}")
+                try:
+                    await self.publisher.publish(result_event)
+                    logger.info(f"✅ {self.agent_name} completed. Published: {result_event.event_type}")
+                except Exception as publish_error:
+                    logger.error(f"Error in publisher.publish: {publish_error}")
+                    raise
             
-            await self._log(str(event.task_id), f"✅ {self.agent_name}: Processing complete")
+            try:
+                await self._log(str(event.task_id), f"✅ {self.agent_name}: Processing complete")
+            except Exception as log_error:
+                logger.error(f"Error in _log (complete): {log_error}")
             
         except Exception as e:
-            logger.error(f"❌ {self.agent_name} failed: {e}")
-            await self._log(str(event.task_id), f"❌ {self.agent_name}: Error - {str(e)}")
+            logger.error(f"❌ {self.agent_name} failed: {e}", exc_info=True)
+            try:
+                await self._log(str(event.task_id), f"❌ {self.agent_name}: Error - {str(e)}")
+            except Exception as log_error:
+                logger.error(f"Error in _log (error): {log_error}")
             
             # Publish failure event
-            await self._publish_failure_event(event, str(e))
+            try:
+                await self._publish_failure_event(event, str(e))
+            except Exception as failure_error:
+                logger.error(f"Error publishing failure event: {failure_error}")
     
     async def _publish_failure_event(self, original_event: AgentEvent, error: str):
         """Publish failure event"""
