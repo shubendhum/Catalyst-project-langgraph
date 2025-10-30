@@ -1761,7 +1761,24 @@ async def startup_event():
     
     # Start agent workers in event-driven mode
     if is_docker_desktop():
-        logger.info("🐳 Docker Desktop detected - starting agent workers...")
+        logger.info("🐳 Docker Desktop detected - initializing event-driven mode...")
+        
+        # CRITICAL: Initialize RabbitMQ infrastructure FIRST
+        from init_rabbitmq import init_rabbitmq
+        rabbitmq_url = os.getenv("RABBITMQ_URL")
+        if rabbitmq_url:
+            logger.info("🐰 Initializing RabbitMQ infrastructure (exchanges, queues, bindings)...")
+            success = init_rabbitmq(rabbitmq_url)
+            if not success:
+                logger.error("❌ RabbitMQ initialization failed - event system may not work!")
+                logger.error("   Agents will not be able to pick up tasks!")
+            else:
+                logger.info("✅ RabbitMQ infrastructure ready")
+        else:
+            logger.warning("⚠️ RABBITMQ_URL not set - skipping RabbitMQ initialization")
+        
+        # Now start agent workers (they will connect to the initialized infrastructure)
+        logger.info("🚀 Starting agent workers...")
         worker_manager = get_worker_manager(db, manager)
         asyncio.create_task(worker_manager.start_all_workers())
         logger.info("✅ Agent workers started in background")
