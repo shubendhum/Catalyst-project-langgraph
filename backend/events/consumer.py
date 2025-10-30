@@ -85,7 +85,7 @@ class EventConsumer:
         prefetch_count: int = 1
     ):
         """
-        Start consuming events from queue
+        Start consuming events from queue with automatic reconnection
         
         Args:
             callback: Function to call with each event
@@ -95,64 +95,91 @@ class EventConsumer:
             logger.info(f"{self.agent_name} consumer not started (K8s mode)")
             return
         
-        try:
-            # Set QoS
-            self.channel.basic_qos(prefetch_count=prefetch_count)
-            
-            # Wrapper for callback
-            def on_message(ch, method, properties, body):
-                try:
-                    # Parse event
-                    event = AgentEvent.from_json(body.decode('utf-8'))
-                    
-                    logger.info(
-                        f"📨 {self.agent_name} received: {event.event_type} "
-                        f"(trace: {event.trace_id})"
-                    )
-                    
-                    # Call user callback
-                    # Handle both sync and async callbacks
-                    import asyncio
-                    import inspect
-                    
-                    if inspect.iscoroutinefunction(callback):
-                        # Async callback - run in event loop
-                        # Always create a new event loop for worker threads
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
+        # Consume loop with reconnection logic
+        while True:
+            try:
+                # Ensure connection is alive
+                if not self.connection or self.connection.is_closed:
+                    logger.info(f"🔄 {self.agent_name} reconnecting to RabbitMQ...")
+                    self._connect()
+                
+                # Set QoS
+                self.channel.basic_qos(prefetch_count=prefetch_count)
+                
+                # Wrapper for callback
+                def on_message(ch, method, properties, body):
+                    try:
+                        # Parse event
+                        event = AgentEvent.from_json(body.decode('utf-8'))
                         
-                        try:
-                            loop.run_until_complete(callback(event))
-                        finally:
-                            # Clean up the loop
-                            loop.close()
-                    else:
-                        # Sync callback
-                        callback(event)
-                    
-                    # Acknowledge message
-                    ch.basic_ack(delivery_tag=method.delivery_tag)
-                    
-                except Exception as e:
-                    logger.error(f"Error processing event: {e}")
-                    # Negative acknowledge - will retry or go to DLQ
-                    ch.basic_nack(
-                        delivery_tag=method.delivery_tag,
-                        requeue=False  # Don't requeue, let it go to DLQ
-                    )
-            
-            # Start consuming
-            self.consumer_tag = self.channel.basic_consume(
-                queue=self.queue_name,
-                on_message_callback=on_message,
-                auto_ack=False
-            )
-            
-            logger.info(f"🎧 {self.agent_name} listening on {self.queue_name}...")
-            self.channel.start_consuming()
-            
-        except Exception as e:
-            logger.error(f"Error in {self.agent_name} consumer: {e}")
+                        logger.info(
+                            f"📨 {self.agent_name} received: {event.event_type} "
+                            f"(trace: {event.trace_id})"
+                        )
+                        
+                        # Call user callback
+                        # Handle both sync and async callbacks
+                        import asyncio
+                        import inspect
+                        
+                        if inspect.iscoroutinefunction(callback):
+                            # Async callback - run in event loop
+                            # Always create a new event loop for worker threads
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            
+                            try:
+                                loop.run_until_complete(callback(event))
+                            finally:
+                                # Clean up the loop
+                                loop.close()
+                        else:
+                            # Sync callback
+                            callback(event)
+                        
+                        # Acknowledge message
+                        ch.basic_ack(delivery_tag=method.delivery_tag)
+                        
+                    except Exception as e:
+                        logger.error(f"Error processing event: {e}")
+                        # Negative acknowledge - will retry or go to DLQ
+                        ch.basic_nack(
+                            delivery_tag=method.delivery_tag,
+                            requeue=False  # Don't requeue, let it go to DLQ
+                        )
+                
+                # Start consuming
+                self.consumer_tag = self.channel.basic_consume(
+                    queue=self.queue_name,
+                    on_message_callback=on_message,
+                    auto_ack=False
+                )
+                
+                logger.info(f"🎧 {self.agent_name} listening on {self.queue_name}...")
+                self.channel.start_consuming()
+                
+            except (pika.exceptions.AMQPConnectionError,
+                    pika.exceptions.StreamLostError,
+                    pika.exceptions.ConnectionClosedByBroker,
+                    ConnectionResetError) as e:
+                logger.warning(f"❌ {self.agent_name} connection lost: {e}")
+                logger.info(f"🔄 {self.agent_name} will reconnect in 5 seconds...")
+                self.close()
+                time.sleep(5)  # Wait before reconnecting
+                continue
+                
+            except KeyboardInterrupt:
+                logger.info(f"🛑 {self.agent_name} stopped by user")
+                self.close()
+                break
+                
+            except Exception as e:
+                logger.error(f"❌ {self.agent_name} unexpected error: {e}")
+                logger.info(f"🔄 {self.agent_name} will reconnect in 10 seconds...")
+                self.close()
+                time.sleep(10)
+                continue
+    
     
     async def start_consuming_async(
         self,
