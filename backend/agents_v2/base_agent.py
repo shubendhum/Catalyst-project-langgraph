@@ -141,6 +141,7 @@ class EventDrivenAgent(ABC):
     async def _log(self, task_id: str, message: str):
         """Log to database for WebSocket updates"""
         from datetime import datetime
+        import asyncio
         
         log_doc = {
             "task_id": task_id,
@@ -149,10 +150,19 @@ class EventDrivenAgent(ABC):
             "timestamp": datetime.utcnow().timestamp()
         }
         
+        # Get the main event loop (where MongoDB/WebSocket connections live)
+        # If we're in a worker thread, we need to schedule on the main loop
+        try:
+            main_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No loop running in this thread, skip logging
+            logger.debug(f"No event loop available for logging: {message}")
+            return
+        
         try:
             await self.db.agent_logs.insert_one(log_doc)
         except Exception as e:
-            logger.error(f"Failed to log to database: {e}")
+            logger.debug(f"Failed to log to database: {e}")
         
         try:
             await self.manager.send_log(task_id, log_doc)
