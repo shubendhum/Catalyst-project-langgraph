@@ -36,27 +36,29 @@ class EventDrivenPlannerAgent(EventDrivenAgent):
         """
         Process task.initiated event
         Create development plan and publish plan.created event
+        NOTE: Running in worker thread with isolated event loop - avoid Motor operations
         """
         
         # Extract data from event
         task_id = str(event.task_id)
         project_id = event.payload.get("project_id")
-        user_requirements = event.payload.get("user_requirements")
+        user_requirements = event.payload.get("user_requirements", event.payload.get("message", ""))
         
-        await self._log(task_id, "📋 Planner: Analyzing your requirements...")
+        logger.info(f"📋 Planner: Analyzing requirements for task {task_id}")
         
-        # Update task status in Postgres
-        await update_task_status(task_id, "planning", "planner")
+        # Skip database/async operations that don't work in worker threads
+        # Use simple project name
+        project_name = f"Project-{project_id[:8]}"
         
-        # Get project name from database
-        project = await self.db.projects.find_one({"id": project_id})
-        project_name = project.get("name", f"Project-{project_id[:8]}") if project else f"Project-{project_id[:8]}"
-        
-        # Use existing planner logic
-        plan = await self.planner.create_plan(
-            user_requirements=user_requirements,
-            project_name=project_name
-        )
+        # Use existing planner logic (this is LLM call which creates its own async context)
+        try:
+            plan = await self.planner.create_plan(
+                user_requirements=user_requirements,
+                project_name=project_name
+            )
+        except Exception as plan_error:
+            logger.error(f"Failed to create plan: {plan_error}", exc_info=True)
+            raise
         
         # Log detailed progress
         feature_count = len(plan.get('features', []))
