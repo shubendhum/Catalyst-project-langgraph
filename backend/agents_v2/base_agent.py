@@ -151,9 +151,14 @@ class EventDrivenAgent(ABC):
         
         try:
             await self.db.agent_logs.insert_one(log_doc)
+        except Exception as e:
+            logger.error(f"Failed to log to database: {e}")
+        
+        try:
             await self.manager.send_log(task_id, log_doc)
         except Exception as e:
-            logger.error(f"Failed to log: {e}")
+            # WebSocket may not be connected, that's ok
+            logger.debug(f"Failed to send WebSocket log: {e}")
     
     def start_listening(self):
         """
