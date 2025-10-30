@@ -204,15 +204,28 @@ class EventConsumer:
     
     def stop_consuming(self):
         """Stop consuming events"""
-        if self.channel and self.consumer_tag:
-            self.channel.basic_cancel(self.consumer_tag)
-            logger.info(f"🛑 {self.agent_name} stopped consuming")
+        try:
+            if self.channel and self.consumer_tag:
+                self.channel.basic_cancel(self.consumer_tag)
+                logger.info(f"🛑 {self.agent_name} stopped consuming")
+        except Exception as e:
+            logger.debug(f"Error stopping consumer: {e}")
     
     def close(self):
         """Close connection"""
-        if self.connection and not self.connection.is_closed:
-            self.connection.close()
-            logger.info(f"EventConsumer for {self.agent_name} connection closed")
+        try:
+            self.stop_consuming()
+            if self.channel and not self.channel.is_closed:
+                self.channel.close()
+            if self.connection and not self.connection.is_closed:
+                self.connection.close()
+            logger.debug(f"EventConsumer for {self.agent_name} connection closed")
+        except Exception as e:
+            logger.debug(f"Error closing EventConsumer connection: {e}")
+        finally:
+            self.connection = None
+            self.channel = None
+            self.consumer_tag = None
     
     def __del__(self):
         """Cleanup on deletion"""
