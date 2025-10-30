@@ -81,9 +81,15 @@ class EventPublisher:
             
             logger.info(f"📤 Published event: {routing_key} (trace: {event.trace_id})")
             
-            # Also save to Postgres for audit (if enabled)
-            if get_config()["databases"]["postgres"]["enabled"]:
-                await self._save_to_postgres(event)
+            # Try to save to Postgres for audit (best effort, don't block on failure)
+            try:
+                if get_config()["databases"]["postgres"]["enabled"]:
+                    # Fire-and-forget: create task but don't await
+                    import asyncio
+                    asyncio.create_task(self._save_to_postgres(event))
+            except Exception as pg_error:
+                # Log but don't fail the publish operation
+                logger.debug(f"Postgres event audit skipped: {pg_error}")
             
             return True
             
