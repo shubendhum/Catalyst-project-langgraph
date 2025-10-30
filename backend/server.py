@@ -57,6 +57,7 @@ from orchestrator.dual_mode_orchestrator import get_dual_mode_orchestrator
 from llm_client import get_llm_client
 from config.environment import get_config, is_docker_desktop
 from workers import get_worker_manager
+from observability import get_health_checker
 
 # Phase 4 Services
 from services.context_manager import get_context_manager
