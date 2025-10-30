@@ -3,6 +3,7 @@ Event Publisher for RabbitMQ
 Handles publishing events to the message broker
 """
 import pika
+import pika.exceptions
 import logging
 from typing import Optional
 from config.environment import should_use_events, get_config
@@ -13,36 +14,61 @@ logger = logging.getLogger(__name__)
 
 class EventPublisher:
     """
-    Publishes agent events to RabbitMQ
+    Publishes agent events to RabbitMQ with automatic reconnection
     Falls back to no-op if events not enabled (K8s environment)
     """
     
     def __init__(self, rabbitmq_url: Optional[str] = None):
         self.enabled = should_use_events()
+        self.rabbitmq_url = rabbitmq_url or (get_config()["event_streaming"]["url"] if self.enabled else None)
         self.connection = None
         self.channel = None
         
         if self.enabled:
-            try:
-                rabbitmq_url = rabbitmq_url or get_config()["event_streaming"]["url"]
-                self.connection = pika.BlockingConnection(
-                    pika.URLParameters(rabbitmq_url)
-                )
-                self.channel = self.connection.channel()
-                
-                # Declare exchange (idempotent)
-                self.channel.exchange_declare(
-                    exchange='catalyst.events',
-                    exchange_type='topic',
-                    durable=True
-                )
-                
-                logger.info("✅ EventPublisher initialized (RabbitMQ)")
-            except Exception as e:
-                logger.warning(f"Failed to connect to RabbitMQ: {e}. Events disabled.")
-                self.enabled = False
+            self._connect()
         else:
             logger.info("✅ EventPublisher initialized (no-op mode for K8s)")
+    
+    def _connect(self):
+        """Establish connection to RabbitMQ"""
+        try:
+            if self.connection and not self.connection.is_closed:
+                return  # Already connected
+            
+            self.connection = pika.BlockingConnection(
+                pika.URLParameters(self.rabbitmq_url)
+            )
+            self.channel = self.connection.channel()
+            
+            # Declare exchange (idempotent)
+            self.channel.exchange_declare(
+                exchange='catalyst.events',
+                exchange_type='topic',
+                durable=True
+            )
+            
+            logger.info("✅ EventPublisher connected to RabbitMQ")
+        except Exception as e:
+            logger.warning(f"Failed to connect to RabbitMQ: {e}")
+            self.connection = None
+            self.channel = None
+            raise
+    
+    def _ensure_connection(self):
+        """Ensure connection is alive, reconnect if needed"""
+        try:
+            if not self.connection or self.connection.is_closed:
+                logger.info("Reconnecting to RabbitMQ...")
+                self._connect()
+            # Test connection with heartbeat
+            self.connection.process_data_events(time_limit=0)
+        except (pika.exceptions.AMQPConnectionError, 
+                pika.exceptions.StreamLostError,
+                pika.exceptions.ConnectionClosedByBroker,
+                Exception) as e:
+            logger.warning(f"Connection check failed, reconnecting: {e}")
+            self.close()
+            self._connect()
     
     async def publish(self, event: AgentEvent) -> bool:
         """
