@@ -177,9 +177,17 @@ class EventPublisher:
     
     def close(self):
         """Close connection"""
-        if self.connection and not self.connection.is_closed:
-            self.connection.close()
-            logger.info("EventPublisher connection closed")
+        try:
+            if self.channel and not self.channel.is_closed:
+                self.channel.close()
+            if self.connection and not self.connection.is_closed:
+                self.connection.close()
+            logger.debug("EventPublisher connection closed")
+        except Exception as e:
+            logger.debug(f"Error closing EventPublisher connection: {e}")
+        finally:
+            self.connection = None
+            self.channel = None
     
     def __del__(self):
         """Cleanup on deletion"""
@@ -196,3 +204,11 @@ def get_event_publisher() -> EventPublisher:
     if _publisher is None:
         _publisher = EventPublisher()
     return _publisher
+
+
+def reset_event_publisher():
+    """Reset singleton (useful for testing or reconnection)"""
+    global _publisher
+    if _publisher:
+        _publisher.close()
+    _publisher = None
