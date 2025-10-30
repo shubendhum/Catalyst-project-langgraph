@@ -120,11 +120,13 @@ class EventDrivenAgent(ABC):
     
     async def _log(self, task_id: str, message: str):
         """Log to database for WebSocket updates"""
+        from datetime import datetime
+        
         log_doc = {
             "task_id": task_id,
             "agent_name": self.agent_name,
             "message": message,
-            "timestamp": asyncio.get_event_loop().time()
+            "timestamp": datetime.utcnow().timestamp()
         }
         
         try:
