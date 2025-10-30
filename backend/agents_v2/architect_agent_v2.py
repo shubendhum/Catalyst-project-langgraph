@@ -9,6 +9,7 @@ import json
 from typing import Dict, Optional
 
 from agents_v2.base_agent import EventDrivenAgent
+from agents_v2.worker_utils import safe_update_task_status
 from agents.architect_agent import get_architect_agent
 from events import (
     AgentEvent,
