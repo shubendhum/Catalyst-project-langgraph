@@ -150,13 +150,9 @@ class EventDrivenAgent(ABC):
         
         logger.info(f"🎧 {self.agent_name} starting event listener...")
         
-        # Start consuming in background
-        def consume_wrapper(event: AgentEvent):
-            """Sync wrapper for async handle_event"""
-            asyncio.create_task(self.handle_event(event))
-        
+        # Consumer handles async callbacks directly (creates event loop in worker thread)
         try:
-            self.consumer.start_consuming(consume_wrapper)
+            self.consumer.start_consuming(self.handle_event)
         except KeyboardInterrupt:
             logger.info(f"🛑 {self.agent_name} stopped listening")
             self.consumer.close()
