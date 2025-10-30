@@ -105,14 +105,15 @@ class EventConsumer:
                     
                     if inspect.iscoroutinefunction(callback):
                         # Async callback - run in event loop
-                        try:
-                            loop = asyncio.get_event_loop()
-                        except RuntimeError:
-                            # No event loop in current thread, create new one
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
+                        # Always create a new event loop for worker threads
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
                         
-                        loop.run_until_complete(callback(event))
+                        try:
+                            loop.run_until_complete(callback(event))
+                        finally:
+                            # Clean up the loop
+                            loop.close()
                     else:
                         # Sync callback
                         callback(event)
