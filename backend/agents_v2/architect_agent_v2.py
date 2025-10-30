@@ -43,7 +43,7 @@ class EventDrivenArchitectAgent(EventDrivenAgent):
         await self._log(task_id, "🏗️ Architect: Analyzing plan requirements...")
         
         # Update task status
-        await update_task_status(task_id, "architecting", "architect")
+        await safe_update_task_status(task_id, "architecting", "architect")
         
         # Load plan from Git
         plan = await self._load_plan_from_git(plan_ref, task_id)
