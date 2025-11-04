@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import ProjectView from './pages/ProjectView';
 import BackendLogs from './pages/BackendLogs';
 import CostVisualization from './components/CostVisualization';
+import Status from './pages/Status';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/project/:id" element={<ProjectView />} />
           <Route path="/logs" element={<BackendLogs />} />
           <Route path="/costs" element={<CostVisualization />} />
+          <Route path="/status" element={<Status />} />
         </Routes>
       </BrowserRouter>
     </div>
