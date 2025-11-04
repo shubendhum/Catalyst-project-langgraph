@@ -59,6 +59,7 @@ from config.environment import get_config, is_docker_desktop
 from workers import get_worker_manager
 from observability import get_health_checker
 from routers.health import router as health_router
+from routers.search import router as search_router
 
 # Phase 4 Services
 from services.context_manager import get_context_manager
