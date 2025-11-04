@@ -1,0 +1,131 @@
+# Docker Compose Healthcheck Configuration
+# Add these healthcheck sections to your docker-compose.artifactory.yml
+
+# ============================================
+# Backend Service Healthcheck
+# ============================================
+backend:
+  # ... existing configuration ...
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://localhost:8001/api/health"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 90s  # Allow time for RabbitMQ init and worker startup
+
+# ============================================
+# Frontend Service Healthcheck
+# ============================================
+frontend:
+  # ... existing configuration ...
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://localhost:3000/"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
+
+# ============================================
+# Redis Service Healthcheck
+# ============================================
+redis:
+  # ... existing configuration ...
+  healthcheck:
+    test: ["CMD", "redis-cli", "ping"]
+    interval: 10s
+    timeout: 3s
+    retries: 3
+    start_period: 10s
+
+# ============================================
+# Qdrant Service Healthcheck
+# ============================================
+qdrant:
+  # ... existing configuration ...
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://localhost:6333/readyz"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
+
+# ============================================
+# MongoDB Service Healthcheck (if not already present)
+# ============================================
+mongodb:
+  # ... existing configuration ...
+  healthcheck:
+    test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+    interval: 10s
+    timeout: 5s
+    retries: 3
+    start_period: 20s
+
+# ============================================
+# RabbitMQ Service Healthcheck (if not already present)
+# ============================================
+rabbitmq:
+  # ... existing configuration ...
+  healthcheck:
+    test: ["CMD", "rabbitmq-diagnostics", "ping"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+
+# ============================================
+# PostgreSQL Service Healthcheck (if not already present)
+# ============================================
+postgres:
+  # ... existing configuration ...
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U catalyst"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 20s
+
+# ============================================
+# Healthcheck Best Practices
+# ============================================
+# 
+# 1. start_period: Grace period before checks begin
+#    - Backend: 90s (needs RabbitMQ, agents to start)
+#    - Frontend: 30s (needs build/compile)
+#    - Databases: 20-30s (data loading)
+#    - Lightweight services: 10s
+#
+# 2. interval: Time between checks
+#    - Critical services: 10s (fast detection)
+#    - Normal services: 30s (balance between detection and load)
+#
+# 3. timeout: Max time for check command
+#    - Fast checks (ping): 3-5s
+#    - HTTP checks: 5-10s
+#    - Complex checks: 10-15s
+#
+# 4. retries: Consecutive failures before unhealthy
+#    - Standard: 3 retries
+#    - Flaky services: 5 retries
+#
+# ============================================
+# Service Dependencies with Healthchecks
+# ============================================
+#
+# Use depends_on with condition: service_healthy to ensure
+# services start in correct order and are ready:
+#
+backend:
+  depends_on:
+    postgres:
+      condition: service_healthy
+    mongodb:
+      condition: service_healthy
+    redis:
+      condition: service_started  # Or service_healthy if critical
+    qdrant:
+      condition: service_started  # Or service_healthy if critical
+    rabbitmq:
+      condition: service_healthy  # Critical for event-driven mode
+#
+# ============================================
