@@ -91,6 +91,14 @@ const BackendLogs = () => {
             <BarChart3 className="w-5 h-5" />
             <span>Cost Dashboard</span>
           </Link>
+          <span className="text-gray-400">/</span>
+          <Link 
+            to="/status" 
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <span className="w-5 h-5 flex items-center justify-center">🔍</span>
+            <span>Status</span>
+          </Link>
         </div>
 
         {/* Header */}
