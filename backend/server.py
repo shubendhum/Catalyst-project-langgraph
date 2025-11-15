@@ -1759,6 +1759,206 @@ async def export_analytics(
         return {"success": False, "error": str(e)}
 
 
+# ============================================
+# Sandbox Execution Endpoints
+# ============================================
+
+class SandboxRunRequest(BaseModel):
+    """Request model for sandbox execution"""
+    command: str = Field(..., description="Command to execute in sandbox")
+    files: Optional[Dict[str, str]] = Field(None, description="Files to create in workspace {filename: content}")
+    working_dir: str = Field("/workspace", description="Working directory inside container")
+    timeout: Optional[int] = Field(None, description="Execution timeout in seconds (default: 300)")
+    env_vars: Optional[Dict[str, str]] = Field(None, description="Environment variables")
+    requirements: Optional[List[str]] = Field(None, description="Python packages to install")
+
+
+class SandboxRunResponse(BaseModel):
+    """Response model for sandbox execution"""
+    success: bool = Field(..., description="Whether execution succeeded")
+    stdout: str = Field(..., description="Standard output")
+    stderr: str = Field(..., description="Standard error output")
+    exit_code: int = Field(..., description="Process exit code")
+    duration: float = Field(..., description="Execution duration in seconds")
+    container_id: Optional[str] = Field(None, description="Container ID")
+    timestamp: str = Field(..., description="Execution timestamp")
+    error: Optional[str] = Field(None, description="Error message if failed")
+
+
+@api_router.post("/sandbox/run", response_model=SandboxRunResponse)
+async def run_sandbox_command(request: SandboxRunRequest):
+    """
+    Execute a command in an isolated sandbox container
+    
+    This endpoint provides isolated code execution in ephemeral Docker containers.
+    Perfect for running tests, linters, or any untrusted code safely.
+    
+    Example:
+        ```json
+        {
+            "command": "pytest -v",
+            "files": {
+                "test_example.py": "def test_hello():\n    assert True"
+            },
+            "timeout": 60
+        }
+        ```
+    
+    Returns:
+        Execution results including stdout, stderr, exit code, and duration
+    """
+    from services.sandbox import get_sandbox_service
+    
+    try:
+        sandbox = get_sandbox_service()
+        result = await sandbox.run_command(
+            command=request.command,
+            files=request.files,
+            working_dir=request.working_dir,
+            timeout=request.timeout,
+            env_vars=request.env_vars,
+            requirements=request.requirements
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Sandbox execution error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/sandbox/test/python")
+async def run_python_tests_sandbox(
+    test_files: Dict[str, str],
+    source_files: Optional[Dict[str, str]] = None,
+    requirements: Optional[List[str]] = None,
+    pytest_args: str = "-v --tb=short"
+):
+    """
+    Run Python tests in sandbox using pytest
+    
+    Example:
+        ```json
+        {
+            "test_files": {
+                "test_math.py": "def test_add():\n    assert 1+1==2"
+            },
+            "source_files": {
+                "math_utils.py": "def add(a, b):\n    return a + b"
+            },
+            "requirements": ["pytest", "pytest-cov"]
+        }
+        ```
+    """
+    from services.sandbox import get_sandbox_service
+    
+    try:
+        sandbox = get_sandbox_service()
+        result = await sandbox.run_python_tests(
+            test_files=test_files,
+            source_files=source_files,
+            requirements=requirements,
+            pytest_args=pytest_args
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Python test execution error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/sandbox/test/javascript")
+async def run_javascript_tests_sandbox(
+    test_files: Dict[str, str],
+    source_files: Optional[Dict[str, str]] = None,
+    package_json: Optional[str] = None,
+    test_command: str = "npm test"
+):
+    """
+    Run JavaScript tests in sandbox using npm/jest
+    
+    Example:
+        ```json
+        {
+            "test_files": {
+                "math.test.js": "test('adds 1 + 2 to equal 3', () => { expect(1+2).toBe(3); });"
+            },
+            "package_json": "{\"scripts\": {\"test\": \"jest\"}}"
+        }
+        ```
+    """
+    from services.sandbox import get_sandbox_service
+    
+    try:
+        sandbox = get_sandbox_service()
+        result = await sandbox.run_javascript_tests(
+            test_files=test_files,
+            source_files=source_files,
+            package_json=package_json,
+            test_command=test_command
+        )
+        return result
+    except Exception as e:
+        logger.error(f"JavaScript test execution error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/sandbox/lint")
+async def run_linter_sandbox(
+    files: Dict[str, str],
+    linter: str = "flake8",
+    linter_args: str = ""
+):
+    """
+    Run linter on code files in sandbox
+    
+    Supported linters: flake8, pylint, eslint, black, mypy, bandit
+    
+    Example:
+        ```json
+        {
+            "files": {
+                "example.py": "print( 'hello' )"
+            },
+            "linter": "flake8",
+            "linter_args": "--max-line-length=120"
+        }
+        ```
+    """
+    from services.sandbox import get_sandbox_service
+    
+    try:
+        sandbox = get_sandbox_service()
+        result = await sandbox.run_linter(
+            files=files,
+            linter=linter,
+            linter_args=linter_args
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Linter execution error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/sandbox/status")
+async def get_sandbox_status():
+    """
+    Get sandbox service status and health
+    
+    Returns information about Docker connectivity, image status, and configuration
+    """
+    from services.sandbox import get_sandbox_service
+    
+    try:
+        sandbox = get_sandbox_service()
+        status = sandbox.get_status()
+        return {"success": True, **status}
+    except Exception as e:
+        logger.error(f"Sandbox status error: {e}")
+        return {
+            "success": False,
+            "status": "error",
+            "error": str(e)
+        }
+
+
 app.include_router(api_router)
 app.include_router(health_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
