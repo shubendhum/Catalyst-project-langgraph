@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RunEvent } from '../../../contexts/RunContext';
+import { RunEvent } from '../../../contexts/RunContext.tsx';
 
 interface EventsTabProps {
   run: {
