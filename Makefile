@@ -271,6 +271,31 @@ test-api: ## Test backend API endpoints
 	@echo "LLM Config:"
 	@curl -s http://localhost:8001/api/chat/config | python3 -m json.tool || echo "$(RED)API not responding$(NC)"
 
+##@ Evaluations
+
+eval: ## Run LLM evaluations against live API
+	@echo "$(BLUE)Running LLM evaluations...$(NC)"
+	@cd backend && python -m evals.run
+	@echo "$(GREEN)✓ Evaluations complete$(NC)"
+	@echo "$(BLUE)Report: evals/report.json$(NC)"
+
+eval-summary: ## Show evaluation summary from last run
+	@echo "$(BLUE)Evaluation Summary:$(NC)"
+	@cd backend && python -m evals.run --summary
+
+eval-category: ## Run evals for specific category (use CATEGORY=code_generation)
+	@if [ -z "$(CATEGORY)" ]; then \
+		echo "$(RED)Error: Please specify CATEGORY=<category>$(NC)"; \
+		echo "$(YELLOW)Available: code_generation, bug_fix, architecture, testing, refactoring, security, optimization$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Running evaluations for category: $(CATEGORY)$(NC)"
+	@cd backend && python -m evals.run --category $(CATEGORY)
+
+eval-promptfoo: ## Run promptfoo evaluations (requires promptfoo npm package)
+	@echo "$(BLUE)Running promptfoo evaluations...$(NC)"
+	@cd evals && npx promptfoo@latest eval || echo "$(YELLOW)promptfoo not installed. Run: npm install -g promptfoo$(NC)"
+
 ##@ Docker Commands (Main Interface)
 
 docker: docker-up ## Alias for docker-up
