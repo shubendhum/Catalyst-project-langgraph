@@ -3,6 +3,7 @@ Event-Driven Tester Agent
 Consumes: code.pr.opened
 Publishes: test.results
 """
+import json
 import logging
 import os
 import subprocess
