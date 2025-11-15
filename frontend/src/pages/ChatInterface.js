@@ -83,6 +83,88 @@ const ChatInterface = () => {
       try {
         const data = JSON.parse(event.data);
         
+        // Update Run Inspector context
+        if (taskId) {
+          const timestamp = new Date().toISOString();
+          const eventId = `${taskId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          
+          // Add event to run context
+          if (data.type === 'agent_update') {
+            addRunEvent(taskId, {
+              id: eventId,
+              timestamp,
+              type: data.agent_progress?.status === 'started' ? 'agent_started' : 'agent_finished',
+              agent: data.agent_progress?.agent_name,
+              description: data.agent_progress?.message || 'Agent update',
+              details: data.agent_progress
+            });
+            
+            // Update stage
+            if (data.agent_progress?.agent_name) {
+              const stageName = getStageNameFromAgent(data.agent_progress.agent_name);
+              updateRunStage(taskId, stageName, {
+                status: data.agent_progress.status === 'started' ? 'running' : 'success',
+                startTime: data.agent_progress.status === 'started' ? timestamp : undefined,
+                endTime: data.agent_progress.status === 'finished' ? timestamp : undefined
+              });
+            }
+          } else if (data.type === 'thinking') {
+            addRunEvent(taskId, {
+              id: eventId,
+              timestamp,
+              type: 'thinking',
+              description: data.content?.substring(0, 100) + '...',
+              details: { content: data.content }
+            });
+          } else if (data.type === 'tool_call') {
+            addRunEvent(taskId, {
+              id: eventId,
+              timestamp,
+              type: 'tool_call',
+              tool: data.tool_name,
+              description: `Called tool: ${data.tool_name}`,
+              details: { arguments: data.arguments }
+            });
+          } else if (data.type === 'file_operation') {
+            addRunEvent(taskId, {
+              id: eventId,
+              timestamp,
+              type: 'file_operation',
+              description: `${data.operation} ${data.file_path}`,
+              details: data
+            });
+            
+            // Add to files list
+            addRunFile(taskId, {
+              path: data.file_path,
+              operation: data.operation,
+              timestamp,
+              content: data.content,
+              previousContent: data.previous_content
+            });
+          } else if (data.type === 'test_run') {
+            updateRunTest(taskId, {
+              id: data.test_id || eventId,
+              command: data.command,
+              status: data.status,
+              exitCode: data.exit_code,
+              stdout: data.stdout,
+              stderr: data.stderr,
+              duration: data.duration,
+              timestamp
+            });
+          } else if (data.agent_name && data.message) {
+            // Legacy format
+            addRunLog(taskId, {
+              id: eventId,
+              timestamp,
+              level: 'INFO',
+              message: data.message,
+              agent: data.agent_name
+            });
+          }
+        }
+        
         // Enhanced message parsing for detailed UI
         if (data.type === 'agent_update') {
           // Update agent progress in the last assistant message
@@ -115,6 +197,12 @@ const ChatInterface = () => {
           // Task completed
           setActiveTaskId(null);
           setIsLoading(false);
+          if (taskId) {
+            updateRunMetadata(taskId, {
+              status: 'succeeded',
+              endTime: new Date().toISOString()
+            });
+          }
           addSystemMessage(`✅ Task completed successfully!`);
         } else if (data.agent_name && data.message) {
           // Legacy format - agent log message
