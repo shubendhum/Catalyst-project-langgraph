@@ -60,8 +60,13 @@ from config.environment import get_config, is_docker_desktop
 from workers import get_worker_manager
 from observability import get_health_checker
 from routers.health import router as health_router
+from routers.health_enhanced import router as health_enhanced_router
 from routers.search import router as search_router
 from routers.config import router as config_router
+
+# Import middleware
+from middleware.request_id import RequestIDMiddleware
+from middleware.security import SecurityHeadersMiddleware
 
 # Phase 4 Services
 from services.context_manager import get_context_manager
