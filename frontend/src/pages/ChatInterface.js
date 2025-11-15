@@ -21,6 +21,10 @@ const ChatInterface = () => {
   const [activeTaskId, setActiveTaskId] = useState(null);
   const [websocket, setWebsocket] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+  
+  // Run context for inspector
+  const { selectRun, initializeRun, addRunEvent, addRunFile, updateRunTest, addRunLog, updateRunStage, updateRunMetadata } = useRun();
   
   const [llmConfig, setLlmConfig] = useState({
     provider: 'emergent',
