@@ -268,6 +268,221 @@ async def get_task(task_id: str):
         task['created_at'] = datetime.fromisoformat(task['created_at'])
     return task
 
+
+# ============================================
+# Run Inspector API Endpoints
+# ============================================
+
+@api_router.get("/runs/{run_id}/files")
+async def get_run_files(run_id: str):
+    """Get all files modified during a run"""
+    try:
+        # Get file operations from agent logs or events
+        # For now, we'll check agent_logs collection
+        logs = await db.agent_logs.find({
+            "task_id": run_id,
+            "message": {"$regex": "file|editing|creating|saving", "$options": "i"}
+        }, {"_id": 0}).to_list(1000)
+        
+        # Also check if we have a files collection for this run
+        files_data = await db.run_files.find({"run_id": run_id}, {"_id": 0}).to_list(1000)
+        
+        # Parse file operations from logs if no direct file data
+        files = []
+        if files_data:
+            files = files_data
+        else:
+            # Extract file info from logs
+            for log in logs:
+                message = log.get("message", "")
+                # Simple parsing - in production, this would be more sophisticated
+                if "creating" in message.lower():
+                    operation = "create"
+                elif "editing" in message.lower() or "modifying" in message.lower():
+                    operation = "modify"
+                elif "deleting" in message.lower():
+                    operation = "delete"
+                else:
+                    continue
+                
+                # Try to extract file path
+                import re
+                path_match = re.search(r'[`\'"](.*?)[`\'"]', message)
+                if path_match:
+                    files.append({
+                        "path": path_match.group(1),
+                        "operation": operation,
+                        "timestamp": log.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                    })
+        
+        return {"success": True, "files": files, "count": len(files)}
+    except Exception as e:
+        logger.error(f"Error fetching run files: {e}")
+        return {"success": False, "error": str(e), "files": []}
+
+@api_router.get("/runs/{run_id}/files/{path:path}")
+async def get_run_file_content(run_id: str, path: str):
+    """Get content and previous version of a specific file"""
+    try:
+        # Look up file content from run_files collection
+        file_data = await db.run_files.find_one(
+            {"run_id": run_id, "path": f"/{path}"},
+            {"_id": 0}
+        )
+        
+        if not file_data:
+            return {"success": False, "error": "File not found"}
+        
+        return {
+            "success": True,
+            "path": file_data.get("path"),
+            "content": file_data.get("content"),
+            "previousContent": file_data.get("previous_content"),
+            "operation": file_data.get("operation"),
+            "timestamp": file_data.get("timestamp"),
+            "size": len(file_data.get("content", ""))
+        }
+    except Exception as e:
+        logger.error(f"Error fetching file content: {e}")
+        return {"success": False, "error": str(e)}
+
+@api_router.get("/runs/{run_id}/tests")
+async def get_run_tests(run_id: str):
+    """Get test execution results for a run"""
+    try:
+        # Check for test results in sandbox_results collection
+        test_results = await db.sandbox_results.find(
+            {"task_id": run_id},
+            {"_id": 0}
+        ).to_list(100)
+        
+        tests = []
+        for result in test_results:
+            tests.append({
+                "id": result.get("id", str(uuid.uuid4())),
+                "command": result.get("command", ""),
+                "status": "passed" if result.get("exit_code") == 0 else "failed",
+                "exitCode": result.get("exit_code"),
+                "stdout": result.get("stdout", ""),
+                "stderr": result.get("stderr", ""),
+                "duration": result.get("execution_time"),
+                "timestamp": result.get("timestamp", datetime.now(timezone.utc).isoformat()),
+            })
+        
+        return {"success": True, "tests": tests, "count": len(tests)}
+    except Exception as e:
+        logger.error(f"Error fetching run tests: {e}")
+        return {"success": False, "error": str(e), "tests": []}
+
+@api_router.get("/runs/{run_id}/logs")
+async def get_run_logs(run_id: str, level: Optional[str] = None, limit: int = 1000):
+    """Get logs filtered by run ID"""
+    try:
+        # Build query
+        query = {"task_id": run_id}
+        
+        if level and level != "all":
+            query["level"] = level
+        
+        # Get logs from agent_logs collection
+        logs = await db.agent_logs.find(query, {"_id": 0}).sort("timestamp", -1).limit(limit).to_list(limit)
+        
+        # Format logs
+        formatted_logs = []
+        for log in logs:
+            formatted_logs.append({
+                "id": log.get("id", str(uuid.uuid4())),
+                "timestamp": log.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                "level": log.get("level", "INFO"),
+                "message": log.get("message", ""),
+                "agent": log.get("agent_name"),
+                "tool": log.get("tool"),
+                "details": log.get("details")
+            })
+        
+        return {"success": True, "logs": formatted_logs, "count": len(formatted_logs)}
+    except Exception as e:
+        logger.error(f"Error fetching run logs: {e}")
+        return {"success": False, "error": str(e), "logs": []}
+
+@api_router.get("/runs/{run_id}/events")
+async def get_run_events(run_id: str):
+    """Get event timeline for a run"""
+    try:
+        # Get events from agent_logs and parse into timeline
+        logs = await db.agent_logs.find(
+            {"task_id": run_id},
+            {"_id": 0}
+        ).sort("timestamp", 1).to_list(1000)
+        
+        events = []
+        for log in logs:
+            message = log.get("message", "")
+            agent_name = log.get("agent_name", "")
+            
+            # Determine event type from message
+            event_type = "thinking"
+            if "started" in message.lower():
+                event_type = "agent_started"
+            elif "finished" in message.lower() or "completed" in message.lower():
+                event_type = "agent_finished"
+            elif "error" in message.lower():
+                event_type = "error"
+            elif "file" in message.lower():
+                event_type = "file_operation"
+            elif "test" in message.lower():
+                event_type = "test_run"
+            elif "tool" in message.lower() or "calling" in message.lower():
+                event_type = "tool_call"
+            
+            events.append({
+                "id": log.get("id", str(uuid.uuid4())),
+                "timestamp": log.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                "type": event_type,
+                "agent": agent_name,
+                "tool": log.get("tool"),
+                "description": message,
+                "details": log.get("details")
+            })
+        
+        return {"success": True, "events": events, "count": len(events)}
+    except Exception as e:
+        logger.error(f"Error fetching run events: {e}")
+        return {"success": False, "error": str(e), "events": []}
+
+@api_router.post("/runs/{run_id}/rerun")
+async def rerun_task(run_id: str, prompt: Optional[str] = None):
+    """Re-run a task with same or modified inputs"""
+    try:
+        # Get original task
+        original_task = await db.tasks.find_one({"id": run_id}, {"_id": 0})
+        if not original_task:
+            return {"success": False, "error": "Original run not found"}
+        
+        # Create new task with same or modified prompt
+        new_task = Task(
+            project_id=original_task.get("project_id"),
+            prompt=prompt or original_task.get("prompt"),
+        )
+        
+        doc = new_task.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        await db.tasks.insert_one(doc)
+        
+        # Start task execution in background
+        asyncio.create_task(execute_task(new_task.id, new_task.prompt, new_task.project_id))
+        
+        return {
+            "success": True,
+            "message": "Task re-run started",
+            "new_task_id": new_task.id,
+            "original_task_id": run_id
+        }
+    except Exception as e:
+        logger.error(f"Error re-running task: {e}")
+        return {"success": False, "error": str(e)}
+
+
 # ============================================
 # Backend Logs Endpoints (must come before /logs/{task_id})
 # ============================================
