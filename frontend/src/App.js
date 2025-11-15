@@ -6,8 +6,8 @@ import Dashboard from './pages/Dashboard';
 import ProjectView from './pages/ProjectView';
 import BackendLogs from './pages/BackendLogs';
 import CostVisualization from './components/CostVisualization';
-import Status from './pages/Status';
-import { RunProvider } from './contexts/RunContext';
+import Status from './pages/Status.tsx';
+import { RunProvider } from './contexts/RunContext.tsx';
 
 function App() {
   return (
