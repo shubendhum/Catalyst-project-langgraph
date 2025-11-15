@@ -147,7 +147,7 @@ class SandboxService:
             else:
                 full_command = f"cd {working_dir} && {command}"
             
-            logger.info(f"🚀 Starting sandbox container...")
+            logger.info("🚀 Starting sandbox container...")
             logger.info(f"   Command: {command}")
             logger.info(f"   Timeout: {timeout}s")
             logger.info(f"   Memory: {self.memory_limit}")
@@ -180,7 +180,7 @@ class SandboxService:
             try:
                 result = container.wait(timeout=timeout)
                 exit_code = result.get("StatusCode", -1)
-            except Exception as timeout_error:
+            except Exception:
                 logger.error(f"⏱️ Container execution timeout after {timeout}s")
                 container.kill()
                 raise SandboxExecutionError(f"Execution timeout after {timeout}s")
