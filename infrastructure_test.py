@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 class InfrastructureTester:
-    def __init__(self, base_url="https://agent-system-repair.preview.emergentagent.com"):
+    def __init__(self, base_url="https://dev-sandbox-90.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0

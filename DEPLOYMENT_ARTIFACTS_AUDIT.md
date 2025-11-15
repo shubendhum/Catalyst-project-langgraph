@@ -149,7 +149,7 @@ make -f Makefile.local list-projects # ✅ Works
 **Status:** ✅ **ACCURATE**
 
 **Configuration:**
-- ✅ REACT_APP_BACKEND_URL=https://agent-system-repair.preview.emergentagent.com
+- ✅ REACT_APP_BACKEND_URL=https://dev-sandbox-90.preview.emergentagent.com
 - ✅ WDS_SOCKET_PORT=443 (for K8s websocket)
 
 ### Example Files
