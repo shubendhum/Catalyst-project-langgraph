@@ -1059,15 +1059,23 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
         </div>
       </div>
 
-      {/* Messages Area */}
+      {/* Main Content Area - Messages + Run Inspector */}
       <div style={{ 
-        flex: 1, 
-        overflowY: 'auto', 
-        padding: '24px',
+        flex: 1,
         display: 'flex',
-        flexDirection: 'column',
-        gap: '16px'
+        overflow: 'hidden'
       }}>
+        {/* Messages Area */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          transition: 'margin-right 0.3s ease',
+          marginRight: isInspectorOpen ? '0' : '0'
+        }}>
         {messages.length === 0 && (
           <div style={{ 
             flex: 1, 
