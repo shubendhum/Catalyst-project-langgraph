@@ -1,0 +1,94 @@
+# LLM Evaluations Configuration
+# Tests prompts and outputs against gold standard tasks
+
+description: Catalyst Agent LLM Evaluations
+
+providers:
+  - id: catalyst-api
+    label: Current Catalyst API
+    config:
+      type: http
+      url: http://localhost:8001/api/chat/send
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        message: "{{ prompt }}"
+        conversation_id: "eval-{{ timestamp }}"
+      responseParser: json.response
+
+  - id: baseline-gpt4
+    label: Baseline GPT-4
+    config:
+      type: openai:gpt-4
+      temperature: 0.7
+      max_tokens: 4096
+
+prompts:
+  - label: Code Generation
+    raw: |
+      Create a {{task_type}} with the following requirements:
+      {{requirements}}
+      
+      Provide complete, production-ready code with error handling.
+
+  - label: Bug Fix
+    raw: |
+      Fix the following bug in this code:
+      
+      Code:
+      {{code}}
+      
+      Bug Description:
+      {{bug_description}}
+      
+      Provide the corrected code with explanation.
+
+  - label: Architecture Design
+    raw: |
+      Design a system architecture for:
+      {{system_description}}
+      
+      Requirements:
+      {{requirements}}
+      
+      Provide detailed architecture with components and data flow.
+
+tests:
+  # Load test cases from gold directory
+  - vars:
+      task_type: REST API
+      requirements: User authentication with JWT, CRUD operations for todos
+    assert:
+      - type: contains
+        value: "FastAPI"
+      - type: contains
+        value: "authentication"
+      - type: javascript
+        value: output.includes('async def') || output.includes('class')
+
+  - vars:
+      code: |
+        def calculate_total(items):
+            total = 0
+            for item in items:
+                total += item.price
+            return total
+      bug_description: "Function crashes when items list is empty"
+    assert:
+      - type: contains
+        value: "if not items"
+      - type: contains
+        value: "return 0"
+
+defaultTest:
+  options:
+    transformVars:
+      timestamp: Date.now()
+  assert:
+    - type: latency
+      threshold: 5000  # 5 seconds max
+    - type: cost
+      threshold: 0.10  # $0.10 max per eval
+
+outputPath: ./evals/promptfoo-results.json
