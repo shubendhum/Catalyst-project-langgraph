@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useRun } from '../../contexts/RunContext';
-import OverviewTab from './tabs/OverviewTab';
-import FilesTab from './tabs/FilesTab';
-import TestsTab from './tabs/TestsTab';
-import LogsTab from './tabs/LogsTab';
-import EventsTab from './tabs/EventsTab';
+import { useRun } from '../../contexts/RunContext.tsx';
+import OverviewTab from './tabs/OverviewTab.tsx';
+import FilesTab from './tabs/FilesTab.tsx';
+import TestsTab from './tabs/TestsTab.tsx';
+import LogsTab from './tabs/LogsTab.tsx';
+import EventsTab from './tabs/EventsTab.tsx';
 
 type TabType = 'overview' | 'files' | 'tests' | 'logs' | 'events';
 
