@@ -1134,6 +1134,20 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Run Inspector Panel */}
+      {isInspectorOpen && (
+        <div style={{
+          width: '500px',
+          height: '100%',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+          transition: 'width 0.3s ease',
+          flexShrink: 0
+        }}>
+          <RunInspector />
+        </div>
+      )}
+    </div>
+
       {/* Input Area */}
       <div style={{ 
         padding: '16px 24px', 
