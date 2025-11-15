@@ -128,51 +128,63 @@ class EventDrivenTesterAgent(EventDrivenAgent):
         task_id: str
     ) -> Dict:
         """
-        Run tests in ephemeral Docker environment
+        Run tests in ephemeral Docker environment using sandbox service
         """
+        from services.sandbox import get_sandbox_service
+        
         try:
-            await self._log(task_id, "🐳 Spinning up test containers...")
+            await self._log(task_id, "🐳 Starting sandboxed test execution...")
             
-            # Create test compose file
-            test_compose = self._generate_test_compose(project_name, repo_path, task_id)
-            test_compose_path = f"/app/artifacts/{task_id}/test-compose.yml"
+            sandbox = get_sandbox_service()
             
-            os.makedirs(os.path.dirname(test_compose_path), exist_ok=True)
-            with open(test_compose_path, 'w') as f:
-                f.write(test_compose)
+            # Load code files from repository
+            backend_files = self._load_files_from_path(f"{repo_path}/backend")
+            frontend_files = self._load_files_from_path(f"{repo_path}/frontend")
             
-            await self._log(task_id, "✅ Test environment ready")
+            await self._log(task_id, f"📁 Loaded {len(backend_files)} backend files, {len(frontend_files)} frontend files")
             
             # Run backend tests
-            await self._log(task_id, "🤖 Tester: Running backend unit tests...")
-            backend_result = await self._run_backend_tests(test_compose_path, task_id)
+            await self._log(task_id, "🧪 Running backend tests...")
+            backend_result = await self._run_backend_tests_sandbox(
+                sandbox, backend_files, task_id
+            )
             
             # Run frontend tests
-            await self._log(task_id, "🤖 Tester: Running frontend tests...")
-            frontend_result = await self._run_frontend_tests(test_compose_path, task_id)
-            
-            # Cleanup
-            await self._cleanup_test_environment(test_compose_path)
+            await self._log(task_id, "🧪 Running frontend tests...")
+            frontend_result = await self._run_frontend_tests_sandbox(
+                sandbox, frontend_files, task_id
+            )
             
             # Aggregate results
+            total_tests = backend_result["total"] + frontend_result["total"]
+            passed_tests = backend_result["passed_count"] + frontend_result["passed_count"]
+            failed_tests = backend_result["failed_count"] + frontend_result["failed_count"]
+            
+            overall_status = "passed" if failed_tests == 0 and total_tests > 0 else "failed"
+            avg_coverage = (backend_result["coverage"] + frontend_result["coverage"]) / 2
+            
+            await self._log(task_id, f"✅ Tests completed: {passed_tests}/{total_tests} passed, {int(avg_coverage * 100)}% coverage")
+            
             return {
-                "overall_status": "passed" if backend_result["passed"] and frontend_result["passed"] else "failed",
-                "total_tests": backend_result["total"] + frontend_result["total"],
-                "passed": backend_result["passed_count"] + frontend_result["passed_count"],
-                "failed": backend_result["failed_count"] + frontend_result["failed_count"],
-                "coverage": (backend_result["coverage"] + frontend_result["coverage"]) / 2,
+                "overall_status": overall_status,
+                "total_tests": total_tests,
+                "passed": passed_tests,
+                "failed": failed_tests,
+                "coverage": avg_coverage,
                 "duration": backend_result["duration"] + frontend_result["duration"]
             }
             
         except Exception as e:
             logger.error(f"Error running tests in Docker: {e}")
+            await self._log(task_id, f"❌ Test execution failed: {str(e)}")
             return {
                 "overall_status": "failed",
                 "total_tests": 0,
                 "passed": 0,
                 "failed": 0,
                 "coverage": 0.0,
-                "error": str(e)
+                "error": str(e),
+                "duration": 0
             }
     
     def _generate_test_compose(self, project_name: str, repo_path: str, task_id: str) -> str:
