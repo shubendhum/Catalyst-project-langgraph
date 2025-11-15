@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { RunLog } from '../../../contexts/RunContext';
+import { RunLog } from '../../../contexts/RunContext.tsx';
 
 interface LogsTabProps {
   run: {
