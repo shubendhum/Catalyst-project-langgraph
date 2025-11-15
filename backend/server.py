@@ -1762,6 +1762,7 @@ async def export_analytics(
 app.include_router(api_router)
 app.include_router(health_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
+app.include_router(config_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
