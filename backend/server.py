@@ -60,6 +60,7 @@ from workers import get_worker_manager
 from observability import get_health_checker
 from routers.health import router as health_router
 from routers.search import router as search_router
+from routers.config import router as config_router
 
 # Phase 4 Services
 from services.context_manager import get_context_manager
