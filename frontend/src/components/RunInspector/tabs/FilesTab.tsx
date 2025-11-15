@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { RunFile } from '../../../contexts/RunContext';
+import ReactDiffViewer from 'react-diff-viewer-continued';
+import { ChevronRight, ChevronDown, File, Folder, FolderOpen } from 'lucide-react';
 
 interface FilesTabProps {
   run: {
@@ -7,159 +9,202 @@ interface FilesTabProps {
   };
 }
 
+interface FileTreeNode {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  children?: FileTreeNode[];
+  file?: RunFile;
+}
+
 const FilesTab: React.FC<FilesTabProps> = ({ run }) => {
   const [selectedFile, setSelectedFile] = useState<RunFile | null>(null);
-  const [viewMode, setViewMode] = useState<'tree' | 'list'>('tree');
+  const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set(['/']));
 
-  // Build file tree structure
-  const buildFileTree = (files: RunFile[]) => {
-    const tree: any = {};
+  // Build file tree from flat file list
+  const fileTree = useMemo(() => {
+    const root: FileTreeNode = { name: '/', path: '/', type: 'directory', children: [] };
     
-    files.forEach(file => {
-      const parts = file.path.split('/');
-      let current = tree;
+    run.files.forEach(file => {
+      const parts = file.path.split('/').filter(Boolean);
+      let current = root;
       
       parts.forEach((part, index) => {
-        if (!current[part]) {
-          current[part] = index === parts.length - 1 ? file : {};
+        const isLast = index === parts.length - 1;
+        const path = '/' + parts.slice(0, index + 1).join('/');
+        
+        if (!current.children) current.children = [];
+        
+        let node = current.children.find(n => n.name === part);
+        
+        if (!node) {
+          node = {
+            name: part,
+            path: path,
+            type: isLast ? 'file' : 'directory',
+            children: isLast ? undefined : [],
+            file: isLast ? file : undefined
+          };
+          current.children.push(node);
         }
-        current = current[part];
+        
+        if (!isLast) {
+          current = node;
+        }
       });
     });
     
-    return tree;
-  };
+    return root;
+  }, [run.files]);
 
-  const fileTree = buildFileTree(run.files);
-
-  const renderTree = (node: any, path: string = '') => {
-    return Object.entries(node).map(([key, value]) => {
-      const currentPath = path ? `${path}/${key}` : key;
-      const isFile = value && (value as RunFile).path;
-      
-      if (isFile) {
-        const file = value as RunFile;
-        return (
-          <div
-            key={file.path}
-            onClick={() => setSelectedFile(file)}
-            className={`file-item cursor-pointer px-3 py-2 hover:bg-gray-100 rounded ${
-              selectedFile?.path === file.path ? 'bg-blue-50' : ''
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <FileIcon operation={file.operation} />
-              <span className="text-sm text-gray-900">{key}</span>
-              <span className={`text-xs px-1.5 py-0.5 rounded ${getOperationBadgeClass(file.operation)}`}>
-                {file.operation}
-              </span>
-            </div>
-          </div>
-        );
+  const toggleDirectory = (path: string) => {
+    setExpandedDirs(prev => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
       } else {
-        return (
-          <details key={currentPath} open>
-            <summary className="cursor-pointer px-3 py-2 hover:bg-gray-50 rounded text-sm font-medium text-gray-700">
-              📁 {key}
-            </summary>
-            <div className="ml-4">
-              {renderTree(value, currentPath)}
-            </div>
-          </details>
-        );
+        next.add(path);
       }
+      return next;
     });
   };
 
-  return (
-    <div className="files-tab flex h-full">
-      {/* File Tree */}
-      <div className="file-tree w-1/3 border-r border-gray-200 overflow-y-auto p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">Files ({run.files.length})</h3>
-          <button
-            onClick={() => setViewMode(viewMode === 'tree' ? 'list' : 'tree')}
-            className="text-xs text-gray-500 hover:text-gray-700"
-          >
-            {viewMode === 'tree' ? 'List' : 'Tree'}
-          </button>
+  const renderFileTree = (node: FileTreeNode, depth: number = 0): React.ReactNode => {
+    if (node.type === 'file' && node.file) {
+      return (
+        <div
+          key={node.path}
+          className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-100 rounded transition-colors ${
+            selectedFile?.path === node.file.path ? 'bg-blue-50 border-l-2 border-blue-500' : ''
+          }`}
+          style={{ paddingLeft: `${depth * 16 + 8}px` }}
+          onClick={() => setSelectedFile(node.file!)}
+        >
+          <File size={16} className="text-gray-600 flex-shrink-0" />
+          <span className="text-sm text-gray-900 truncate">{node.name}</span>
+          <span className={`ml-auto text-xs px-2 py-0.5 rounded ${getOperationBadge(node.file.operation)}`}>
+            {node.file.operation}
+          </span>
         </div>
-        
-        {run.files.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 text-sm">
-            <p>No files modified yet</p>
-          </div>
-        ) : viewMode === 'tree' ? (
-          <div className="space-y-1">{renderTree(fileTree)}</div>
-        ) : (
-          <div className="space-y-1">
-            {run.files.map(file => (
-              <div
-                key={file.path}
-                onClick={() => setSelectedFile(file)}
-                className={`file-item cursor-pointer px-3 py-2 hover:bg-gray-100 rounded ${
-                  selectedFile?.path === file.path ? 'bg-blue-50' : ''
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <FileIcon operation={file.operation} />
-                  <span className="text-sm text-gray-900 truncate">{file.path}</span>
-                </div>
-              </div>
-            ))}
+      );
+    }
+
+    const isExpanded = expandedDirs.has(node.path);
+
+    return (
+      <div key={node.path}>
+        <div
+          className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-50 rounded transition-colors"
+          style={{ paddingLeft: `${depth * 16 + 8}px` }}
+          onClick={() => toggleDirectory(node.path)}
+        >
+          {isExpanded ? (
+            <ChevronDown size={16} className="text-gray-400 flex-shrink-0" />
+          ) : (
+            <ChevronRight size={16} className="text-gray-400 flex-shrink-0" />
+          )}
+          {isExpanded ? (
+            <FolderOpen size={16} className="text-blue-500 flex-shrink-0" />
+          ) : (
+            <Folder size={16} className="text-blue-500 flex-shrink-0" />
+          )}
+          <span className="text-sm font-medium text-gray-900">{node.name}</span>
+        </div>
+        {isExpanded && node.children && (
+          <div>
+            {node.children
+              .sort((a, b) => {
+                if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
+                return a.name.localeCompare(b.name);
+              })
+              .map(child => renderFileTree(child, depth + 1))}
           </div>
         )}
       </div>
+    );
+  };
 
-      {/* File Content / Diff Viewer */}
-      <div className="file-content flex-1 overflow-y-auto p-4">
+  if (run.files.length === 0) {
+    return (
+      <div className="files-tab p-6 flex items-center justify-center h-full">
+        <div className="text-center text-gray-500">
+          <File size={48} className="mx-auto mb-2 text-gray-400" />
+          <p className="text-sm">No files modified in this run</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="files-tab flex h-full">
+      {/* File Tree Sidebar */}
+      <div className="w-64 border-r border-gray-200 overflow-y-auto bg-gray-50">
+        <div className="p-3 border-b border-gray-200 bg-white">
+          <h4 className="text-sm font-semibold text-gray-900">Files ({run.files.length})</h4>
+        </div>
+        <div className="p-2">
+          {fileTree.children && renderFileTree(fileTree, 0)}
+        </div>
+      </div>
+
+      {/* Diff Viewer */}
+      <div className="flex-1 overflow-y-auto bg-white">
         {selectedFile ? (
-          <div>
-            <div className="mb-4">
-              <h3 className="text-sm font-semibold text-gray-900">{selectedFile.path}</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                {new Date(selectedFile.timestamp).toLocaleString()} · {selectedFile.operation}
-              </p>
-            </div>
-
-            {selectedFile.previousContent && selectedFile.content ? (
-              /* Show diff */
-              <div className="diff-viewer">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-xs font-medium text-gray-700 mb-2">Before</h4>
-                    <pre className="bg-red-50 p-4 rounded text-xs overflow-x-auto">
-                      <code>{selectedFile.previousContent}</code>
-                    </pre>
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-medium text-gray-700 mb-2">After</h4>
-                    <pre className="bg-green-50 p-4 rounded text-xs overflow-x-auto">
-                      <code>{selectedFile.content}</code>
-                    </pre>
-                  </div>
+          <div className="h-full flex flex-col">
+            <div className="p-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">{selectedFile.path}</h4>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(selectedFile.timestamp).toLocaleString()} • {getOperationLabel(selectedFile.operation)}
+                  </p>
                 </div>
+                {selectedFile.size && (
+                  <span className="text-xs text-gray-500">{formatBytes(selectedFile.size)}</span>
+                )}
               </div>
-            ) : selectedFile.content ? (
-              /* Show final content */
-              <div>
-                <h4 className="text-xs font-medium text-gray-700 mb-2">Content</h4>
-                <pre className="bg-gray-50 p-4 rounded text-xs overflow-x-auto border border-gray-200">
-                  <code>{selectedFile.content}</code>
-                </pre>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500 text-sm">
-                <p>No content available</p>
-              </div>
-            )}
+            </div>
+            
+            <div className="flex-1 overflow-auto">
+              {selectedFile.previousContent !== undefined && selectedFile.content !== undefined ? (
+                <ReactDiffViewer
+                  oldValue={selectedFile.previousContent || ''}
+                  newValue={selectedFile.content || ''}
+                  splitView={true}
+                  showDiffOnly={false}
+                  leftTitle="Before"
+                  rightTitle="After"
+                  styles={{
+                    variables: {
+                      light: {
+                        codeFoldGutterBackground: '#f7fafc',
+                        codeFoldBackground: '#f1f5f9',
+                        diffViewerBackground: '#ffffff',
+                        addedBackground: '#dcfce7',
+                        addedGutterBackground: '#bbf7d0',
+                        removedBackground: '#fee2e2',
+                        removedGutterBackground: '#fecaca',
+                        wordAddedBackground: '#86efac',
+                        wordRemovedBackground: '#fca5a5',
+                      }
+                    }
+                  }}
+                />
+              ) : (
+                <div className="p-4">
+                  <pre className="text-sm font-mono bg-gray-50 p-4 rounded border border-gray-200 overflow-x-auto">
+                    {selectedFile.content || '(empty file)'}
+                  </pre>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-500">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="mt-2 text-sm">Select a file to view its content</p>
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="text-center">
+              <File size={48} className="mx-auto mb-2 text-gray-400" />
+              <p className="text-sm">Select a file to view changes</p>
+            </div>
           </div>
         )}
       </div>
@@ -167,30 +212,38 @@ const FilesTab: React.FC<FilesTabProps> = ({ run }) => {
   );
 };
 
-function FileIcon({ operation }: { operation: string }) {
+function getOperationBadge(operation: string): string {
   switch (operation) {
     case 'create':
-      return <span className="text-green-500">+</span>;
+      return 'bg-green-100 text-green-700';
     case 'modify':
-      return <span className="text-yellow-500">~</span>;
+      return 'bg-blue-100 text-blue-700';
     case 'delete':
-      return <span className="text-red-500">-</span>;
+      return 'bg-red-100 text-red-700';
     default:
-      return <span className="text-gray-500">•</span>;
+      return 'bg-gray-100 text-gray-700';
   }
 }
 
-function getOperationBadgeClass(operation: string): string {
+function getOperationLabel(operation: string): string {
   switch (operation) {
     case 'create':
-      return 'bg-green-100 text-green-800';
+      return 'Created';
     case 'modify':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'Modified';
     case 'delete':
-      return 'bg-red-100 text-red-800';
+      return 'Deleted';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return operation;
   }
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
 export default FilesTab;
