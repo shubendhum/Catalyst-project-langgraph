@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { RunFile } from '../../../contexts/RunContext';
+import { RunFile } from '../../../contexts/RunContext.tsx';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { ChevronRight, ChevronDown, File, Folder, FolderOpen } from 'lucide-react';
 
