@@ -177,6 +177,75 @@ chmod +x deploy.sh
 
 ---
 
+## Environment Setup
+
+Catalyst uses environment variables for configuration. Before running the application, you need to configure both backend and frontend.
+
+### Backend Configuration
+
+1. **Copy the template file**:
+   ```bash
+   cd backend
+   cp .env.example .env
+   ```
+
+2. **Edit `.env` and fill in required values**:
+   - **MONGO_URL**: MongoDB connection string (default works for Docker Compose)
+   - **EMERGENT_LLM_KEY**: Your Emergent Universal LLM Key (get from [emergent.sh/profile/universal-key](https://emergent.sh/profile/universal-key))
+   - **Optional**: Provider-specific API keys if not using Emergent Universal Key
+   - **Optional**: GitHub token, Confluence/Jira credentials for enterprise connectors
+
+3. **Key environment variables**:
+   - `DEFAULT_LLM_PROVIDER`: LLM provider (emergent, anthropic, openai, bedrock)
+   - `DEFAULT_LLM_MODEL`: Default model to use
+   - `LOG_LEVEL`: Logging verbosity (DEBUG, INFO, WARNING, ERROR)
+   - `ENVIRONMENT`: Set to `docker_desktop` for local development
+
+### Frontend Configuration
+
+1. **Copy the template file**:
+   ```bash
+   cd frontend
+   cp .env.example .env
+   ```
+
+2. **Edit `.env` if needed**:
+   - **REACT_APP_BACKEND_URL**: Backend API URL (default `http://localhost:8001` works for Docker Desktop)
+   - Most other settings can use defaults
+
+3. **For production builds**:
+   - Update `REACT_APP_BACKEND_URL` to your production backend URL
+   - Set appropriate feature flags
+
+### Quick Setup for Docker Desktop
+
+If you're using Docker Compose, the default values in `.env.example` are already configured for local Docker Desktop deployment:
+
+```bash
+# Copy both .env files at once
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# Edit backend/.env to add your EMERGENT_LLM_KEY
+nano backend/.env  # or use your preferred editor
+
+# Start services
+docker-compose up -d
+```
+
+### Alignment with CI
+
+The `.env.example` files are aligned with the CI configuration in `.github/workflows/ci.yml`:
+- Backend tests use: `MONGO_URL=mongodb://localhost:27017/test`
+- E2E tests use: `REACT_APP_BACKEND_URL=http://localhost:8001`
+- All services use standard Docker Desktop ports
+
+**See inline comments in `.env.example` files for detailed configuration options.**
+
+
+
+---
+
 ## Deployment Options
 
 Catalyst supports multiple deployment methods:
