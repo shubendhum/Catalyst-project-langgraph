@@ -1974,13 +1974,21 @@ async def get_sandbox_status():
 
 app.include_router(api_router)
 app.include_router(health_router, prefix="/api")
+app.include_router(health_enhanced_router, prefix="/api", tags=["health"])
 app.include_router(search_router, prefix="/api")
 app.include_router(config_router, prefix="/api")
 
+# CORS middleware with environment-based configuration
+cors_origins_str = os.environ.get('CORS_ORIGINS', '*')
+cors_origins = [origin.strip() for origin in cors_origins_str.split(',')]
+cors_allow_credentials = os.environ.get('CORS_ALLOW_CREDENTIALS', 'true').lower() == 'true'
+
+logger.info(f"CORS configured - Origins: {cors_origins}, Allow Credentials: {cors_allow_credentials}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_credentials=cors_allow_credentials,
+    allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
