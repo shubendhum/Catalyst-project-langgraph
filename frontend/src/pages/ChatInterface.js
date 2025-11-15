@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Settings, Bot, User, Loader2, BarChart3, FileText, Plus, MessageSquare } from 'lucide-react';
+import { Send, Settings, Bot, User, Loader2, BarChart3, FileText, Plus, MessageSquare, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
@@ -9,6 +9,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ConversationSidebar from '../components/ConversationSidebar';
 import MessageRenderer from '../components/MessageRenderer';
+import RunInspector from '../components/RunInspector/RunInspector';
+import { useRun } from '../contexts/RunContext';
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
