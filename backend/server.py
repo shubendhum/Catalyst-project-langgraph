@@ -34,7 +34,6 @@ import uuid
 from datetime import datetime, timezone
 import json
 import asyncio
-import logging
 
 # Initialize logger early
 logging.basicConfig(
@@ -349,7 +348,7 @@ async def oauth_callback(code: str, state: str):
         oauth_states[state]["authenticated"] = True
         oauth_states[state]["code"] = code
         
-        logger.info(f"✅ OAuth2 callback processed successfully")
+        logger.info("✅ OAuth2 callback processed successfully")
         
         # Return success page
         return """
@@ -457,7 +456,7 @@ async def start_device_code_flow(request: DeviceCodeStartRequest):
             "interval": device_data.get("interval", 5)
         }
         
-        logger.info(f"✅ Device code flow initiated")
+        logger.info("✅ Device code flow initiated")
         logger.info(f"   Session ID: {session_id}")
         logger.info(f"   User Code: {device_data['user_code']}")
         
@@ -1083,7 +1082,7 @@ async def set_llm_config(config: LLMConfig):
         # Handle Anthropic API key
         if "anthropic_api_key" in config_dict:
             config_dict["api_key"] = config_dict.pop("anthropic_api_key", "")
-        logger.info(f"   Anthropic config saved")
+        logger.info("   Anthropic config saved")
     
     elif config_dict.get("provider") == "org_azure":
         # Handle Organization Azure OpenAI config
@@ -1105,12 +1104,12 @@ async def set_llm_config(config: LLMConfig):
         }
         config_dict["org_azure_config"] = org_azure_config
         # Don't set config_dict["model"] - deployment handles this
-        logger.info(f"   Organization Azure OpenAI config saved")
+        logger.info("   Organization Azure OpenAI config saved")
         logger.info(f"      Base URL: {org_azure_config['base_url']}")
         logger.info(f"      Deployment: {org_azure_config['deployment']}")
         logger.info(f"      API Version: {org_azure_config['api_version']}")
         logger.info(f"      Subscription Key: {'*****' if org_azure_config['subscription_key'] else 'NOT SET'}")
-        logger.info(f"      OAuth Config:")
+        logger.info("      OAuth Config:")
         logger.info(f"         Auth URL: {org_azure_config['oauth_config']['auth_url']}")
         logger.info(f"         Token URL: {org_azure_config['oauth_config']['token_url']}")
         client_id = org_azure_config['oauth_config']['client_id']
