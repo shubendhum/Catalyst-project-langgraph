@@ -87,6 +87,13 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Add middleware (order matters - added in reverse order of execution)
+# Security headers middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Request ID middleware (for tracing)
+app.add_middleware(RequestIDMiddleware)
+
 # WebSocket manager
 class ConnectionManager:
     def __init__(self):
