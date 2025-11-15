@@ -366,7 +366,7 @@ class EventDrivenTesterAgent(EventDrivenAgent):
             if result["success"]:
                 await self._log(task_id, f"✅ Frontend tests: {passed_count} passed, {failed_count} failed ({int(coverage * 100)}% coverage)")
             else:
-                await self._log(task_id, f"⚠️ Frontend tests completed with warnings")
+                await self._log(task_id, "⚠️ Frontend tests completed with warnings")
                 if passed_count > 0:
                     await self._log(task_id, f"   {passed_count} tests passed")
             
