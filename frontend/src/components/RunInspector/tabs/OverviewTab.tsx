@@ -17,6 +17,12 @@ interface OverviewTabProps {
 
 const OverviewTab: React.FC<OverviewTabProps> = ({ run }) => {
   const { metadata, stages } = run;
+  const [isRerunDialogOpen, setIsRerunDialogOpen] = useState(false);
+  const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
+  const [editedPrompt, setEditedPrompt] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
   const formatDuration = (ms?: number) => {
     if (!ms) return 'N/A';
@@ -34,15 +40,55 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ run }) => {
   };
 
   const handleRerun = () => {
-    // TODO: Implement rerun functionality
-    console.log('Rerun with same inputs:', metadata.inputMessage);
-    alert('Re-run functionality coming soon!');
+    setEditedPrompt(metadata.inputMessage || '');
+    setIsRerunDialogOpen(true);
   };
 
   const handleClone = () => {
-    // TODO: Implement clone functionality
-    console.log('Clone run:', metadata);
-    alert('Clone run functionality coming soon!');
+    setEditedPrompt(metadata.inputMessage || '');
+    setIsCloneDialogOpen(true);
+  };
+  
+  const confirmRerun = async () => {
+    try {
+      setIsSubmitting(true);
+      const response = await axios.post(`${BACKEND_URL}/api/runs/${metadata.runId}/rerun`, {
+        prompt: editedPrompt
+      });
+      
+      if (response.data.success) {
+        alert(`✅ Task re-run started! New Task ID: ${response.data.new_task_id}`);
+        setIsRerunDialogOpen(false);
+      } else {
+        alert(`❌ Failed to re-run: ${response.data.error}`);
+      }
+    } catch (error) {
+      console.error('Error re-running task:', error);
+      alert('❌ Error starting re-run. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const confirmClone = async () => {
+    try {
+      setIsSubmitting(true);
+      const response = await axios.post(`${BACKEND_URL}/api/runs/${metadata.runId}/rerun`, {
+        prompt: editedPrompt
+      });
+      
+      if (response.data.success) {
+        alert(`✅ Cloned run started! New Task ID: ${response.data.new_task_id}`);
+        setIsCloneDialogOpen(false);
+      } else {
+        alert(`❌ Failed to clone: ${response.data.error}`);
+      }
+    } catch (error) {
+      console.error('Error cloning task:', error);
+      alert('❌ Error cloning run. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
