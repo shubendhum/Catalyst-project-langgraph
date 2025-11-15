@@ -1,0 +1,37 @@
+{
+  "name": "catalyst-platform",
+  "version": "1.0.0",
+  "description": "Catalyst AI Multi-Agent Development Platform",
+  "private": true,
+  "scripts": {
+    "eval": "cd backend && python -m evals.run",
+    "eval:summary": "cd backend && python -m evals.run --summary",
+    "eval:category": "cd backend && python -m evals.run --category",
+    "eval:promptfoo": "cd evals && npx promptfoo@latest eval",
+    "eval:view": "cd evals && npx promptfoo@latest view",
+    "test:backend": "cd backend && pytest",
+    "test:frontend": "cd frontend && yarn test",
+    "test:all": "npm run test:backend && npm run test:frontend"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/catalyst"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "development",
+    "automation",
+    "llm",
+    "evaluations"
+  ],
+  "author": "Catalyst Team",
+  "license": "MIT",
+  "devDependencies": {
+    "promptfoo": "^0.95.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
