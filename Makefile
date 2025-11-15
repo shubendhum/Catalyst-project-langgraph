@@ -296,6 +296,40 @@ eval-promptfoo: ## Run promptfoo evaluations (requires promptfoo npm package)
 	@echo "$(BLUE)Running promptfoo evaluations...$(NC)"
 	@cd evals && npx promptfoo@latest eval || echo "$(YELLOW)promptfoo not installed. Run: npm install -g promptfoo$(NC)"
 
+eval-real-bugs: ## Run evaluations on real-world bug scenarios
+	@echo "$(BLUE)Running real-world bug evaluations...$(NC)"
+	@cd backend && python -m evals.run --tasks ../evals/gold/real_world_bugs.jsonl --output ../evals/real_bugs_report.json
+	@echo "$(GREEN)✓ Real-world bug evaluations complete$(NC)"
+	@echo "$(BLUE)Report: evals/real_bugs_report.json$(NC)"
+
+eval-all: ## Run all evaluation suites (tasks + real bugs + scenarios)
+	@echo "$(BLUE)Running all evaluation suites...$(NC)"
+	@$(MAKE) eval
+	@$(MAKE) eval-real-bugs
+	@echo "$(GREEN)✓ All evaluations complete$(NC)"
+	@echo "$(BLUE)Reports generated in evals/ directory$(NC)"
+
+eval-compare: ## Compare current vs baseline performance
+	@echo "$(BLUE)Comparing evaluation results...$(NC)"
+	@if [ ! -f evals/report.json ]; then \
+		echo "$(RED)No current report found. Run 'make eval' first.$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -f evals/baseline_report.json ]; then \
+		echo "$(YELLOW)No baseline found. Copying current report as baseline.$(NC)"; \
+		cp evals/report.json evals/baseline_report.json; \
+	fi
+	@cd backend && python -m evals.compare_reports ../evals/baseline_report.json ../evals/report.json
+
+eval-baseline: ## Save current report as baseline for future comparisons
+	@echo "$(BLUE)Saving current report as baseline...$(NC)"
+	@if [ ! -f evals/report.json ]; then \
+		echo "$(RED)No report found. Run 'make eval' first.$(NC)"; \
+		exit 1; \
+	fi
+	@cp evals/report.json evals/baseline_report.json
+	@echo "$(GREEN)✓ Baseline saved to evals/baseline_report.json$(NC)"
+
 ##@ Docker Commands (Main Interface)
 
 docker: docker-up ## Alias for docker-up
