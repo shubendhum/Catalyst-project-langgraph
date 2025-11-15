@@ -35,12 +35,14 @@ from datetime import datetime, timezone
 import json
 import asyncio
 
-# Initialize logger early
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Setup structured logging BEFORE other imports
+from utils.logging_utils import setup_logging, get_logger as get_structured_logger
+
+log_level = os.getenv("LOG_LEVEL", "INFO")
+log_format = os.getenv("LOG_FORMAT", "json")
+setup_logging(log_level, log_format)
+
+logger = get_structured_logger(__name__)
 
 from agents.planner import PlannerAgent
 from agents.architect import ArchitectAgent
