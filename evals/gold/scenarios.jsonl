@@ -1,0 +1,5 @@
+{"scenario": "hello_world", "prompt": "Create a simple hello world Python script", "expected_output": "print('Hello, World!')", "difficulty": "trivial"}
+{"scenario": "api_endpoint_basic", "prompt": "Create a FastAPI GET endpoint at /health that returns status OK", "expected_output": "contains: [@app.get, /health, return, status, OK]", "difficulty": "easy"}
+{"scenario": "bug_fix_null_check", "prompt": "Fix: def get_name(user): return user.name # Error: user can be None", "expected_output": "contains: [if user, is not None, return None]", "difficulty": "easy"}
+{"scenario": "react_counter", "prompt": "Create a React counter component with increment and decrement buttons", "expected_output": "contains: [useState, function, onClick, +1, -1]", "difficulty": "easy"}
+{"scenario": "database_query", "prompt": "Write a SQL query to get top 10 users by registration date", "expected_output": "contains: [SELECT, FROM users, ORDER BY, created_at DESC, LIMIT 10]", "difficulty": "easy"}
