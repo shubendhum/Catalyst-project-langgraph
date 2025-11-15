@@ -9,8 +9,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ConversationSidebar from '../components/ConversationSidebar';
 import MessageRenderer from '../components/MessageRenderer';
-import RunInspector from '../components/RunInspector/RunInspector';
-import { useRun } from '../contexts/RunContext';
+import RunInspector from '../components/RunInspector/RunInspector.tsx';
+import { useRun } from '../contexts/RunContext.tsx';
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
