@@ -31,6 +31,13 @@ A production-ready multi-agent AI platform featuring LangGraph orchestration, co
 - **Multi-Agent Orchestration**: 6 specialized AI agents (Planner, Architect, Coder, Tester, Reviewer, Deployer)
 - **LangGraph Integration**: State-driven workflow with conditional edges and feedback loops
 - **Conversational Interface**: Natural language chat with intent recognition
+- **Run Inspector**: Complete visibility into agent runs with detailed tabs
+  - 📊 **Overview**: Pipeline visualization, metrics, and run summary
+  - 📁 **Files**: File tree with side-by-side diff viewer for all changes
+  - ✅ **Tests**: Sandbox test results with stdout/stderr logs
+  - 📜 **Logs**: Filtered, searchable logs scoped to each run
+  - ⏱️ **Events**: Chronological timeline of all agent activities
+  - 🔄 **Replay/Re-run**: Re-execute tasks with editable inputs
 - **Multi-LLM Support**: 
   - ✅ Emergent LLM Key (Claude, GPT, Gemini)
   - ✅ Anthropic Claude Direct
