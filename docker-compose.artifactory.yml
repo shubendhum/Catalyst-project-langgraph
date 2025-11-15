@@ -140,6 +140,24 @@ services:
       start_period: 30s
 
   # ============================================
+  # Sandbox Runner for Code Execution
+  # ============================================
+  
+  # Sandbox Runner - Ephemeral containers for isolated code execution
+  # This service builds the image but doesn't run persistently
+  # Backend spawns short-lived containers from this image as needed
+  sandbox-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox
+    image: catalyst-sandbox-runner:latest
+    container_name: catalyst-sandbox-runner-builder
+    # This container exits immediately - we only need the image
+    command: /bin/true
+    networks:
+      - catalyst-network
+
+  # ============================================
   # Phase 4 Infrastructure Services
   # ============================================
 
