@@ -637,6 +637,20 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
       // Check if a task was started
       const metadata = response.data.message.metadata || {};
       if (metadata.action === 'task_started' && metadata.task_id) {
+        // Initialize run in context
+        initializeRun(metadata.task_id, {
+          runId: metadata.task_id,
+          name: inputMessage.substring(0, 50) + (inputMessage.length > 50 ? '...' : ''),
+          description: inputMessage,
+          status: 'running',
+          startTime: new Date().toISOString(),
+          inputMessage: inputMessage
+        });
+        
+        // Select the run and open inspector
+        selectRun(metadata.task_id);
+        setIsInspectorOpen(true);
+        
         // Connect WebSocket for real-time updates
         setActiveTaskId(metadata.task_id);
         connectWebSocket(metadata.task_id);
