@@ -251,6 +251,68 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ run }) => {
           </div>
         </div>
       </div>
+      
+      {/* Re-run Dialog */}
+      <Dialog open={isRerunDialogOpen} onOpenChange={setIsRerunDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Re-run Task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Edit prompt (optional)
+              </label>
+              <Textarea
+                value={editedPrompt}
+                onChange={(e) => setEditedPrompt(e.target.value)}
+                rows={6}
+                className="w-full"
+                placeholder="Enter your task description..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRerunDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmRerun} disabled={isSubmitting}>
+              {isSubmitting ? 'Starting...' : 'Start Re-run'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Clone Dialog */}
+      <Dialog open={isCloneDialogOpen} onOpenChange={setIsCloneDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Clone Run</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Edit prompt for new run
+              </label>
+              <Textarea
+                value={editedPrompt}
+                onChange={(e) => setEditedPrompt(e.target.value)}
+                rows={6}
+                className="w-full"
+                placeholder="Enter your task description..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCloneDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmClone} disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : 'Create Clone'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
