@@ -199,7 +199,7 @@ services:
       - QDRANT__LOG_LEVEL=INFO
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:6333/readyz"]
-      interval: 30s
+      interval: 10s
       timeout: 5s
       retries: 3
       start_period: 30s
