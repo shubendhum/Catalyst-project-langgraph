@@ -123,82 +123,62 @@ async def check_llm() -> Dict[str, Any]:
         }
 
 
-async def check_rabbitmq() -> Dict[str, Any]:
-    """Check RabbitMQ connectivity"""
-    try:
-        import pika
-        
-        rabbitmq_url = os.getenv("RABBITMQ_URL", "amqp://catalyst:catalyst_queue_2025@rabbitmq:5672/catalyst")
-        
-        # Parse connection parameters
-        params = pika.URLParameters(rabbitmq_url)
-        params.socket_timeout = 3
-        
-        connection = pika.BlockingConnection(params)
-        connection.close()
-        
-        return {
-            "status": "healthy",
-            "detail": "Connected"
-        }
-    except Exception as e:
-        return {
-            "status": "unhealthy",
-            "detail": f"Connection failed: {str(e)[:100]}"
-        }
-
-
 @router.get("/health")
 async def comprehensive_health_check():
     """
     Comprehensive health check endpoint
     
-    Returns structured status for all dependencies
+    Returns structured status for all dependencies.
+    Always returns HTTP 200 for backward compatibility.
+    Check the 'status' field in the response body to determine actual health.
+    
+    Response format:
+    {
+      "status": "ok" | "degraded" | "down",
+      "redis": {"status": "ok|error", "detail": "..."},
+      "qdrant": {"status": "ok|error", "detail": "..."},
+      "model": {"status": "ok|error", "detail": "..."},
+      "timestamp": 1234567890.123,
+      "latency_ms": 45.2
+    }
     """
     start_time = time.time()
     
     try:
-        # Check all dependencies in parallel
-        mongo_task = asyncio.create_task(check_mongodb())
+        # Check required dependencies in parallel
         redis_task = asyncio.create_task(check_redis())
         qdrant_task = asyncio.create_task(check_qdrant())
         llm_task = asyncio.create_task(check_llm())
-        rabbitmq_task = asyncio.create_task(check_rabbitmq())
         
-        mongo_status = await mongo_task
         redis_status = await redis_task
         qdrant_status = await qdrant_task
         llm_status = await llm_task
-        rabbitmq_status = await rabbitmq_task
         
         # Determine overall status
+        # "ok" if all are ok
+        # "degraded" if at least one is error but API can respond
+        # "down" only if service cannot function (but since we're responding, we use degraded)
         statuses = [
-            mongo_status["status"],
             redis_status["status"],
             qdrant_status["status"],
-            llm_status["status"],
-            rabbitmq_status["status"]
+            llm_status["status"]
         ]
         
-        if all(s == "healthy" for s in statuses):
-            overall_status = "healthy"
-        elif any(s == "unhealthy" for s in statuses):
+        if all(s == "ok" for s in statuses):
+            overall_status = "ok"
+        elif any(s == "error" for s in statuses):
             overall_status = "degraded"
         else:
-            overall_status = "degraded"
+            overall_status = "ok"
         
         latency_ms = (time.time() - start_time) * 1000
         
         response = {
             "status": overall_status,
+            "redis": redis_status,
+            "qdrant": qdrant_status,
+            "model": llm_status,
             "timestamp": time.time(),
-            "checks": {
-                "mongodb": mongo_status,
-                "redis": redis_status,
-                "qdrant": qdrant_status,
-                "llm": llm_status,
-                "rabbitmq": rabbitmq_status
-            },
             "latency_ms": latency_ms
         }
         
@@ -206,10 +186,14 @@ async def comprehensive_health_check():
         
     except Exception as e:
         logger.error(f"Health check failed: {e}", exc_info=True)
+        # Still return 200 for backward compatibility, but status is down
         return {
-            "status": "unhealthy",
+            "status": "down",
+            "redis": {"status": "error", "detail": "Check failed"},
+            "qdrant": {"status": "error", "detail": "Check failed"},
+            "model": {"status": "error", "detail": "Check failed"},
+            "error": str(e)[:200],
             "timestamp": time.time(),
-            "error": str(e),
             "latency_ms": (time.time() - start_time) * 1000
         }
 
