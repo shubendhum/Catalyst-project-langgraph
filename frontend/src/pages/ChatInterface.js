@@ -729,6 +729,15 @@ This code expires in ${Math.floor(response.data.expires_in / 60)} minutes.
               Backend Logs
             </Button>
           </Link>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsInspectorOpen(!isInspectorOpen)}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            title={isInspectorOpen ? "Hide Run Inspector" : "Show Run Inspector"}
+          >
+            {isInspectorOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+            Run Inspector
+          </Button>
           <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
