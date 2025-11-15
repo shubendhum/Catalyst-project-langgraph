@@ -1,0 +1,41 @@
+# Sandbox Runner Container
+# Clean environment for executing generated code and tests
+
+FROM python:3.11-slim
+
+# Install system dependencies and build tools
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install common Python testing tools
+RUN pip install --no-cache-dir \
+    pytest \
+    pytest-cov \
+    pytest-asyncio \
+    flake8 \
+    black \
+    mypy \
+    pylint \
+    bandit
+
+# Install Node.js testing tools
+RUN npm install -g \
+    jest \
+    eslint \
+    prettier \
+    @testing-library/react \
+    @testing-library/jest-dom
+
+# Create workspace directory
+WORKDIR /workspace
+
+# Default command (will be overridden)
+CMD ["/bin/bash"]
