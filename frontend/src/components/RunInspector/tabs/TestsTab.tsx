@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RunTest } from '../../../contexts/RunContext';
+import { RunTest } from '../../../contexts/RunContext.tsx';
 
 interface TestsTabProps {
   run: {
