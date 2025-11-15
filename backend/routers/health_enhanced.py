@@ -54,12 +54,12 @@ async def check_redis() -> Dict[str, Any]:
         await r.close()
         
         return {
-            "status": "healthy",
+            "status": "ok",
             "detail": "Connected"
         }
     except Exception as e:
         return {
-            "status": "unhealthy",
+            "status": "error",
             "detail": f"Connection failed: {str(e)[:100]}"
         }
 
@@ -76,17 +76,17 @@ async def check_qdrant() -> Dict[str, Any]:
             
             if response.status_code == 200:
                 return {
-                    "status": "healthy",
+                    "status": "ok",
                     "detail": "Connected"
                 }
             else:
                 return {
-                    "status": "degraded",
+                    "status": "error",
                     "detail": f"HTTP {response.status_code}"
                 }
     except Exception as e:
         return {
-            "status": "unhealthy",
+            "status": "error",
             "detail": f"Connection failed: {str(e)[:100]}"
         }
 
@@ -95,29 +95,30 @@ async def check_llm() -> Dict[str, Any]:
     """Check LLM provider configuration"""
     try:
         # Check if API key is configured
-        llm_key = os.getenv("EMERGENT_LLM_KEY") or os.getenv("OPENAI_API_KEY")
+        llm_key = os.getenv("EMERGENT_LLM_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
         provider = os.getenv("DEFAULT_LLM_PROVIDER", "emergent")
+        model = os.getenv("DEFAULT_LLM_MODEL", "unknown")
         
         if not llm_key:
             return {
-                "status": "degraded",
+                "status": "error",
                 "detail": "No LLM API key configured"
             }
         
         # Verify key format (basic check)
         if len(llm_key) > 10:
             return {
-                "status": "healthy",
-                "detail": f"Provider: {provider}, API key configured"
+                "status": "ok",
+                "detail": f"Provider: {provider}, Model: {model}, API key configured"
             }
         else:
             return {
-                "status": "degraded",
+                "status": "error",
                 "detail": "Invalid API key format"
             }
     except Exception as e:
         return {
-            "status": "unhealthy",
+            "status": "error",
             "detail": f"Check failed: {str(e)[:100]}"
         }
 
