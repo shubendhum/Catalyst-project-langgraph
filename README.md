@@ -215,6 +215,80 @@ aws ecs register-task-definition --cli-input-json file://aws/ecs-task-definition
 
 ---
 
+---
+
+## Using the Run Inspector
+
+The Run Inspector provides complete visibility into agent execution, similar to platforms like emergent.sh. Access it by clicking the **"Run Inspector"** button in the top navigation bar.
+
+### Features
+
+#### 📊 Overview Tab
+- **Run Summary**: Status, duration, timestamps, token usage, and cost
+- **Pipeline Visualization**: Visual representation of agent workflow stages
+  - Planning → Architecture → Implementation → Testing → Review → Deployment
+  - Real-time status updates for each stage
+- **Actions**: Re-run with same inputs or clone to new run with editable parameters
+- **Metrics**: Quick stats on events, files modified, and tests run
+
+#### 📁 Files Tab
+- **File Tree Navigation**: Hierarchical view of all files touched during the run
+- **Diff Viewer**: Side-by-side comparison of file changes
+  - Syntax highlighting for code files
+  - Before/after views for modified files
+  - File size and operation indicators (create/modify/delete)
+
+#### ✅ Tests Tab
+- **Test Summary**: Total, passed, and failed test counts
+- **Detailed Results**: 
+  - Command executed
+  - Exit codes and duration
+  - Expandable stdout/stderr logs
+  - Test summary per execution
+
+#### 📜 Logs Tab
+- **Filtered Logging**: View logs specific to the current run
+- **Search & Filter**: 
+  - Text search across all log messages
+  - Filter by level (DEBUG, INFO, WARN, ERROR)
+  - Filter by agent or tool
+- **Structured Display**: Timestamp, level badges, and expandable JSON details
+
+#### ⏱️ Events Tab
+- **Event Timeline**: Chronological view of all run activities
+- **Event Types**:
+  - Agent start/finish
+  - Tool calls
+  - File operations
+  - Test executions
+  - Errors and retries
+- **Expandable Details**: View full event payload as formatted JSON
+
+### Usage
+
+1. **Open Inspector**: Click the "Run Inspector" button in the top navigation (or use the panel icon)
+2. **Select a Run**: When you start a task, the inspector automatically selects and displays it
+3. **Navigate Tabs**: Switch between Overview, Files, Tests, Logs, and Events to explore run details
+4. **Re-run Tasks**: 
+   - Click "Re-run with same inputs" in Overview tab for exact replay
+   - Click "Clone to new run" to edit the prompt before execution
+5. **Toggle Visibility**: Click the Run Inspector button again to collapse the panel
+
+### Backend APIs
+
+The Run Inspector uses these API endpoints (automatically called by the UI):
+
+```
+GET  /api/runs/{runId}/files         # List all modified files
+GET  /api/runs/{runId}/files/{path}  # Get file content + diff
+GET  /api/runs/{runId}/tests         # Get test execution results
+GET  /api/runs/{runId}/logs          # Get filtered logs
+GET  /api/runs/{runId}/events        # Get event timeline
+POST /api/runs/{runId}/rerun         # Re-run or clone a task
+```
+
+
+
 ## Documentation
 
 ### Quick References
