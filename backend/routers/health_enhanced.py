@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-StatusType = Literal["healthy", "degraded", "unhealthy"]
+StatusType = Literal["ok", "degraded", "down", "error"]
 
 
 async def check_mongodb() -> Dict[str, Any]:
@@ -24,7 +24,7 @@ async def check_mongodb() -> Dict[str, Any]:
         mongo_url = os.getenv("MONGO_URL")
         if not mongo_url:
             return {
-                "status": "unhealthy",
+                "status": "error",
                 "detail": "MONGO_URL not configured"
             }
         
@@ -32,12 +32,12 @@ async def check_mongodb() -> Dict[str, Any]:
         await client.server_info()
         
         return {
-            "status": "healthy",
+            "status": "ok",
             "detail": "Connected"
         }
     except Exception as e:
         return {
-            "status": "unhealthy",
+            "status": "error",
             "detail": f"Connection failed: {str(e)[:100]}"
         }
 
