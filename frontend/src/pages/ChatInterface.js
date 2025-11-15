@@ -55,6 +55,19 @@ const ChatInterface = () => {
 
   const messagesEndRef = useRef(null);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+  
+  // Helper to map agent names to stages
+  const getStageNameFromAgent = (agentName) => {
+    const mapping = {
+      'planner': 'Planning',
+      'architect': 'Architecture',
+      'coder': 'Implementation',
+      'tester': 'Testing',
+      'reviewer': 'Review',
+      'deployer': 'Deployment'
+    };
+    return mapping[agentName?.toLowerCase()] || agentName;
+  };
 
   // Cleanup websocket on unmount
   useEffect(() => {
